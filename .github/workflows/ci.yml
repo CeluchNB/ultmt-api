@@ -70,7 +70,6 @@ jobs:
 
     - name: Create env
       run: |
-        cd src
         cd tests
         mkdir config
         cd config
