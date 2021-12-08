@@ -1,7 +1,7 @@
 
 name: Node CI
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -71,6 +71,7 @@ jobs:
     - name: Create env
       run: |
         cd src
+        cd test
         mkdir config
         cd config
         touch .env

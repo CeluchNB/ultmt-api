@@ -1,16 +1,14 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
 import { IUser } from '../../../src/types/user'
-import dotenv from 'dotenv'
-import { connect, connection } from 'mongoose'
-dotenv.config({ path: './path/config' })
+import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 
 describe('test user services', () => {
     let services: UserServices
     let user: IUser
 
     beforeAll(async () => {
-        await connect('mongodb://127.0.0.1:27017/ultmt-test')
+        await setUpDatabase()
         services = new UserServices(User)
 
         user = {
@@ -26,7 +24,7 @@ describe('test user services', () => {
     })
 
     afterAll((done) => {
-        connection.close()
+        tearDownDatabase()
         done()
     })
 

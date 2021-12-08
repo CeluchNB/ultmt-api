@@ -9,11 +9,8 @@ export default class UserServices {
     }
 
     signUp = async (user: IUser): Promise<IUser> => {
-        console.log('trying create')
         const userObject = await this.userModel.create(user)
-        console.log('trying save')
         await userObject.save()
-        console.log('after save')
         return userObject
     }
 

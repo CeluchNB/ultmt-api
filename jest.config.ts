@@ -1,5 +1,5 @@
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    setupFiles: ['dotenv/config'],
+    globalSetup: './tests/fixtures/setup-test-env.ts',
 }
