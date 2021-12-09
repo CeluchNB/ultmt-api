@@ -1,5 +1,6 @@
 import { IUserModel } from '../models/user'
-import type { IUser } from '../types/user'
+import { IUser, ApiError } from '../types'
+import * as Constants from '../utils/constants'
 
 export default class UserServices {
     userModel: IUserModel
@@ -8,17 +9,17 @@ export default class UserServices {
         this.userModel = userModel
     }
 
-    signUp = async (user: IUser): Promise<IUser> => {
-        const userObject = await this.userModel.create(user)
-        await userObject.save()
-        return userObject
-    }
+    signUp = async (user: IUser): Promise<{ user: IUser; token: string }> => {
+        let userObject
+        let token: string
+        try {
+            userObject = await this.userModel.create(user)
+            await userObject.save()
 
-    fetchUser = async (id: string): Promise<IUser> => {
-        const user = await this.userModel.findById(id)
-        if (user == null) {
-            throw new Error('User not found')
+            token = await userObject.generateAuthToken()
+        } catch (error) {
+            throw new ApiError(Constants.UNABLE_TO_CREATE_USER, 400)
         }
-        return user
+        return { user: userObject, token }
     }
 }
