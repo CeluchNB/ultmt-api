@@ -1,15 +1,11 @@
 import { Schema, Types, model } from 'mongoose'
-import type { IUser } from '../types/user'
+import type { IUserDocument } from '../types/user'
 import bcrypt from 'bcrypt'
 import PasswordValidator from 'password-validator'
 import validator from 'validator'
 import jwt from 'jsonwebtoken'
 import { ApiError } from '../types'
 import * as Constants from '../utils/constants'
-
-interface IUserDocument extends IUser {
-    generateAuthToken: () => string
-}
 
 const schema = new Schema<IUserDocument>({
     firstName: { type: String, required: true, trim: true },
@@ -23,7 +19,7 @@ const schema = new Schema<IUserDocument>({
             }
         },
     },
-    password: { type: String, required: true, minlength: 7 },
+    password: { type: String, required: true },
     tokens: [{ type: String }],
     playerTeams: [{ type: Types.ObjectId }],
     managerTeams: [{ type: Types.ObjectId }],
@@ -45,7 +41,7 @@ const isValidPassword = (password: string): boolean => {
 }
 
 schema.pre('save', async function (next) {
-    if (this.isModified('password')) {
+    if (this.password !== undefined && this.isModified('password')) {
         if (!isValidPassword(this.password)) {
             throw new ApiError(Constants.INVALID_PASSWORD, 400)
         }
@@ -55,7 +51,7 @@ schema.pre('save', async function (next) {
 })
 
 schema.methods.toJSON = function () {
-    const userObject: IUser = this.toObject()
+    const userObject = this.toObject()
     delete userObject.password
     delete userObject.tokens
 

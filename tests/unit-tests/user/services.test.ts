@@ -38,29 +38,17 @@ describe('test sign up', () => {
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
+
         expect(token).toBeDefined()
+        expect(token.length).toBeGreaterThan(10)
     })
 
-    it('with invalid email', async () => {
+    it('with invalid user data', async () => {
         const user: IUser = {
             firstName: 'FirstName',
             lastName: 'LastName',
             email: 'bad@email',
             password: 'Pass123!',
-        }
-
-        expect(async () => {
-            const { user: userRecord, token } = await services.signUp(user)
-            console.log('return value', userRecord, token)
-        }).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
-    })
-
-    it('with invalid password', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass',
         }
 
         expect(async () => {

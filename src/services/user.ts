@@ -1,5 +1,5 @@
 import { IUserModel } from '../models/user'
-import { IUser, ApiError } from '../types'
+import { IUser, IUserDocument, ApiError } from '../types'
 import * as Constants from '../utils/constants'
 
 export default class UserServices {
@@ -9,7 +9,7 @@ export default class UserServices {
         this.userModel = userModel
     }
 
-    signUp = async (user: IUser): Promise<{ user: IUser; token: string }> => {
+    signUp = async (user: IUser): Promise<{ user: IUserDocument; token: string }> => {
         let userObject
         let token: string
         try {
