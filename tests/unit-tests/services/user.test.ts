@@ -89,3 +89,37 @@ describe('test login', () => {
         }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500))
     })
 })
+
+describe('test logout', () => {
+    it('with existing email', async () => {
+        const user: IUser = {
+            firstName: 'FirstName',
+            lastName: 'LastName',
+            email: 'last@email.com',
+            password: 'Pass123!',
+        }
+
+        const userRecord = await User.create(user)
+        userRecord.tokens?.push('token1')
+        await userRecord.save()
+
+        await services.logout(user.email, 'token1')
+
+        const testUser = await User.findOne({ email: user.email })
+        expect(testUser?.tokens?.length).toBe(0)
+    })
+
+    it('with non-existing email', async () => {
+        const user: IUser = {
+            firstName: 'FirstName',
+            lastName: 'LastName',
+            email: 'last@email.com',
+            password: 'Pass123!',
+        }
+
+        await User.create(user)
+        expect(async () => {
+            await services.logout('absent@email.com', 'token1')
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 400))
+    })
+})
