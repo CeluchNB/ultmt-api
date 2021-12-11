@@ -3,6 +3,7 @@ import User from '../../../src/models/user'
 import { IUser } from '../../../src/types/user'
 import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
+import { ApiError } from '../../../src/types'
 
 let services: UserServices
 
@@ -54,5 +55,37 @@ describe('test sign up', () => {
         expect(async () => {
             await services.signUp(user)
         }).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
+    })
+})
+
+describe('test login', () => {
+    it('with existing email', async () => {
+        const user: IUser = {
+            firstName: 'FirstName',
+            lastName: 'LastName',
+            email: 'last@email.com',
+            password: 'Pass123!',
+        }
+
+        await User.create(user)
+        const token = await services.login(user.email)
+        const userRecord = await User.findOne({ email: user.email })
+
+        expect(userRecord?.tokens?.length).toBe(1)
+        expect(userRecord?.tokens?.[0]).toBe(token)
+    })
+
+    it('with non-existing email', async () => {
+        const user: IUser = {
+            firstName: 'FirstName',
+            lastName: 'LastName',
+            email: 'last@email.com',
+            password: 'Pass123!',
+        }
+
+        await User.create(user)
+        expect(async () => {
+            await services.login('absent@email.com')
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500))
     })
 })
