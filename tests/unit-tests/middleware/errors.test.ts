@@ -17,6 +17,12 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with invalid username', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_USERNAME} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_USERNAME, 400),
+        )
+    })
+
     it('with missing fields', () => {
         expect(userErrorResponse("Error: 'password' is required.")).toEqual(
             createExpressErrorObject(Constants.MISSING_FIELDS, 400),

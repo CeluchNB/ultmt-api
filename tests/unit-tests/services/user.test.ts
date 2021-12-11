@@ -2,6 +2,7 @@ import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
 import { IUser } from '../../../src/types/user'
 import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { getUser } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
 
@@ -23,12 +24,7 @@ afterAll((done) => {
 
 describe('test sign up', () => {
     it('with valid user data', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         const { user: userRecord, token } = await services.signUp(user)
         expect(userRecord.firstName).toBe(user.firstName)
@@ -45,12 +41,8 @@ describe('test sign up', () => {
     })
 
     it('with invalid user data', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'bad@email',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
+        user.email = 'bad@email'
 
         expect(async () => {
             await services.signUp(user)
@@ -60,12 +52,7 @@ describe('test sign up', () => {
 
 describe('test login', () => {
     it('with existing email', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         await User.create(user)
         const token = await services.login(user.email)
@@ -76,12 +63,7 @@ describe('test login', () => {
     })
 
     it('with non-existing email', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         await User.create(user)
         expect(async () => {
@@ -92,12 +74,7 @@ describe('test login', () => {
 
 describe('test logout', () => {
     it('with existing email', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         const userRecord = await User.create(user)
         userRecord.tokens?.push('token1')
@@ -110,12 +87,7 @@ describe('test logout', () => {
     })
 
     it('with non-existing email', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         await User.create(user)
         expect(async () => {

@@ -4,6 +4,7 @@ import app from '../../../src/app'
 import { IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { getUser } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 
 beforeAll(async () => {
@@ -21,12 +22,7 @@ afterAll((done) => {
 
 describe('/POST user', () => {
     it('with valid data', async () => {
-        const user: IUser = {
-            firstName: 'FirstName',
-            lastName: 'LastName',
-            email: 'last@email.com',
-            password: 'Pass123!',
-        }
+        const user: IUser = getUser()
 
         const response = await request(app)
             .post('/user')

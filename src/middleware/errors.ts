@@ -7,6 +7,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.INVALID_EMAIL, 400)
     } else if (error.includes(Constants.INVALID_PASSWORD)) {
         return createExpressErrorObject(Constants.INVALID_PASSWORD, 400)
+    } else if (error.includes(Constants.INVALID_USERNAME)) {
+        return createExpressErrorObject(Constants.INVALID_USERNAME, 400)
     } else if (error.includes('required.')) {
         return createExpressErrorObject(Constants.MISSING_FIELDS, 400)
     } else if (error.includes(Constants.UNABLE_TO_GENERATE_TOKEN)) {

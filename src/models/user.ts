@@ -20,6 +20,16 @@ const schema = new Schema<IUserDocument>({
             }
         },
     },
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        validate(value: string) {
+            if (!validator.isAlphanumeric(value)) {
+                throw new ApiError(Constants.INVALID_USERNAME, 400)
+            }
+        },
+    },
     password: { type: String, required: true },
     tokens: [{ type: String }],
     playerTeams: [{ type: Types.ObjectId }],
