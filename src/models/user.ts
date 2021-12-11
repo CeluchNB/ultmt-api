@@ -13,6 +13,7 @@ const schema = new Schema<IUserDocument>({
     email: {
         type: String,
         required: true,
+        unique: true,
         validate(value: string) {
             if (!validator.isEmail(value)) {
                 throw new ApiError(Constants.INVALID_EMAIL, 400)
@@ -43,7 +44,7 @@ const isValidPassword = (password: string): boolean => {
 schema.pre('save', async function (next) {
     if (this.password !== undefined && this.isModified('password')) {
         if (!isValidPassword(this.password)) {
-            throw new ApiError(Constants.INVALID_PASSWORD, 400)
+            next(new ApiError(Constants.INVALID_PASSWORD, 400))
         }
         this.password = await bcrypt.hash(this.password, 10)
     }

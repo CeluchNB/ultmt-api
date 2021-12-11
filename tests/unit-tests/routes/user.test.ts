@@ -4,9 +4,14 @@ import app from '../../../src/app'
 import { IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import User from '../../../src/models/user'
 
 beforeAll(async () => {
     await setUpDatabase()
+})
+
+afterEach(async () => {
+    await User.deleteMany({})
 })
 
 afterAll((done) => {
@@ -52,6 +57,6 @@ describe('/POST user', () => {
             })
             .expect(400)
 
-        expect(response.body.message).toBe(Constants.UNABLE_TO_CREATE_USER)
+        expect(response.body.message).toBe(Constants.MISSING_FIELDS)
     })
 })

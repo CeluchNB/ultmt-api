@@ -2,12 +2,11 @@ import { Request, Response, Router } from 'express'
 import { IUser } from '../types/user'
 import UserServices from '../services/user'
 import User from '../models/user'
-import { createErrorMessage } from '../utils/utils'
-import * as Constants from '../utils/constants'
+import { errorMiddleware } from '../middleware/errors'
 
 export const userRouter = Router()
 
-userRouter.post('/user', async (req: Request, res: Response) => {
+userRouter.post('/user', async (req: Request, res: Response, next) => {
     try {
         const user: IUser = req.body
         const userService = new UserServices(User)
@@ -15,8 +14,10 @@ userRouter.post('/user', async (req: Request, res: Response) => {
         const userObject = await userService.signUp(user)
         return res.status(201).json(userObject)
     } catch (error) {
-        return res.status(400).send(createErrorMessage(Constants.UNABLE_TO_CREATE_USER))
+        next(error)
     }
 })
+
+userRouter.use(errorMiddleware)
 
 export default userRouter
