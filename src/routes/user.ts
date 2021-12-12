@@ -3,6 +3,7 @@ import { IUser } from '../types/user'
 import UserServices from '../services/user'
 import User from '../models/user'
 import { errorMiddleware } from '../middleware/errors'
+import passport from 'passport'
 
 export const userRouter = Router()
 
@@ -17,6 +18,21 @@ userRouter.post('/user', async (req: Request, res: Response, next) => {
         next(error)
     }
 })
+
+userRouter.post(
+    '/user/login',
+    passport.authenticate('local', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const user: IUser = req.user as IUser
+            const userService = new UserServices(User)
+            const token = await userService.login(user.email)
+            return res.json({ token })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 userRouter.use(errorMiddleware)
 
