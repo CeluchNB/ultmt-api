@@ -1,5 +1,6 @@
 import { IUserModel } from '../models/user'
-import type { IUser } from '../types/user'
+import { ApiError, IUser, IUserDocument } from '../types'
+import * as Constants from '../utils/constants'
 
 export default class UserServices {
     userModel: IUserModel
@@ -8,17 +9,30 @@ export default class UserServices {
         this.userModel = userModel
     }
 
-    signUp = async (user: IUser): Promise<IUser> => {
+    signUp = async (user: IUser): Promise<{ user: IUserDocument; token: string }> => {
         const userObject = await this.userModel.create(user)
-        await userObject.save()
-        return userObject
+        const token = await userObject.generateAuthToken()
+
+        return { user: userObject, token }
     }
 
-    fetchUser = async (id: string): Promise<IUser> => {
-        const user = await this.userModel.findById(id)
-        if (user == null) {
-            throw new Error('User not found')
+    login = async (email: string): Promise<string> => {
+        const user = await this.userModel.findOne({ email })
+        const token = await user?.generateAuthToken()
+
+        if (token) {
+            return token
+        } else {
+            throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
         }
-        return user
+    }
+
+    logout = async (email: string, jwt: string) => {
+        const user = await this.userModel.findOne({ email })
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
+        }
+        user.tokens = user?.tokens?.filter((token) => token !== jwt)
+        await user.save()
     }
 }
