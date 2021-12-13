@@ -92,6 +92,6 @@ describe('test logout', () => {
         await User.create(user)
         expect(async () => {
             await services.logout('absent@email.com', 'token1')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 400))
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 500))
     })
 })

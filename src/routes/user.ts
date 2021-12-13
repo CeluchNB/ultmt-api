@@ -34,6 +34,23 @@ userRouter.post(
     },
 )
 
+userRouter.post(
+    '/user/logout',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const token = req.header('Authorization')?.replace('Bearer ', '')
+            const email = (req?.user as IUser).email
+
+            const userService = new UserServices(User)
+            await userService.logout(email, token as string)
+            return res.send()
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)
 
 export default userRouter
