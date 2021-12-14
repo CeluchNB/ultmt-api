@@ -153,7 +153,7 @@ describe('test /POST login', () => {
 })
 
 describe('test /POST logout', () => {
-    it('with existing user and valid key', async () => {
+    it('with existing user and valid token', async () => {
         const user: IUser = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
@@ -205,6 +205,41 @@ describe('test /POST logout', () => {
 
         await request(app)
             .post('/user/logout')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+    })
+})
+
+describe('test /POST logout all', () => {
+    it('with existing user and multiple tokens', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+        await userRecord.generateAuthToken()
+        await userRecord.generateAuthToken()
+
+        await request(app)
+            .post('/user/logoutAll')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const testUser = await User.findById(userRecord._id)
+        expect(testUser?.tokens?.length).toBe(0)
+    })
+
+    it('with service error', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+
+        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
+        })
+
+        await request(app)
+            .post('/user/logoutAll')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)

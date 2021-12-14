@@ -51,6 +51,22 @@ userRouter.post(
     },
 )
 
+userRouter.post(
+    '/user/logoutAll',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const email = (req?.user as IUser).email
+
+            const userService = new UserServices(User)
+            await userService.logoutAll(email)
+            return res.send()
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
     return res.send(req.user)
 })

@@ -74,7 +74,7 @@ describe('test login', () => {
 })
 
 describe('test logout', () => {
-    it('with existing email', async () => {
+    it('with existing email and one token', async () => {
         const user: IUser = getUser()
 
         const userRecord = await User.create(user)
@@ -87,12 +87,62 @@ describe('test logout', () => {
         expect(testUser?.tokens?.length).toBe(0)
     })
 
+    it('with existing email and three tokens', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        userRecord.tokens?.push('token1')
+        userRecord.tokens?.push('token2')
+        userRecord.tokens?.push('token3')
+        await userRecord.save()
+
+        await services.logout(user.email, 'token2')
+
+        const testUser = await User.findOne({ email: user.email })
+        expect(testUser?.tokens?.length).toBe(2)
+        expect(testUser?.tokens).not.toContain('token2')
+    })
+
     it('with non-existing email', async () => {
         const user: IUser = getUser()
 
         await User.create(user)
         expect(async () => {
             await services.logout('absent@email.com', 'token1')
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+    })
+})
+
+describe('test logout all', () => {
+    it('with existing email and one token', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        userRecord.tokens?.push('token1')
+        await userRecord.save()
+
+        await services.logoutAll(user.email)
+        const testUser = await User.findOne({ email: user.email })
+        expect(testUser?.tokens?.length).toBe(0)
+    })
+
+    it('with existing email and three tokens', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        userRecord.tokens?.push('token1')
+        userRecord.tokens?.push('token2')
+        userRecord.tokens?.push('token3')
+        await userRecord.save()
+
+        await services.logoutAll(user.email)
+        const testUser = await User.findOne({ email: user.email })
+        expect(testUser?.tokens?.length).toBe(0)
+    })
+
+    it('with non-existing email', async () => {
+        const user: IUser = getUser()
+        await User.create(user)
+
+        expect(async () => {
+            await services.logoutAll('absent@email.com')
         }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 })
