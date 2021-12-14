@@ -36,6 +36,15 @@ export default class UserServices {
         await user.save()
     }
 
+    logoutAll = async (email: string) => {
+        const user = await this.userModel.findOne({ email })
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.tokens = []
+        await user.save()
+    }
+
     getUser = async (id: string): Promise<IUserDocument> => {
         const user = await this.userModel.findById(id)
 
