@@ -31,6 +31,7 @@ const schema = new Schema<IUserDocument>({
         },
     },
     password: { type: String, required: true },
+    private: { type: Boolean, required: true, default: false },
     tokens: [{ type: String }],
     playerTeams: [{ type: Types.ObjectId }],
     managerTeams: [{ type: Types.ObjectId }],

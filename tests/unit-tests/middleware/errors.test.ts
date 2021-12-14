@@ -36,7 +36,17 @@ describe('test user error response parsing', () => {
     })
 
     it('with general error', () => {
-        expect(userErrorResponse('Random error text')).toEqual(
+        expect(userErrorResponse('Random error text')).toEqual(createExpressErrorObject(Constants.GENERIC_ERROR, 500))
+    })
+
+    it('with not found user', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_FIND_USER} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with create user error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_CREATE_USER} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),
         )
     })

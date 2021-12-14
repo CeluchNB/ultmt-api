@@ -30,9 +30,25 @@ export default class UserServices {
     logout = async (email: string, jwt: string) => {
         const user = await this.userModel.findOne({ email })
         if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 500)
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
         user.tokens = user?.tokens?.filter((token) => token !== jwt)
         await user.save()
+    }
+
+    getUser = async (id: string): Promise<IUserDocument> => {
+        const user = await this.userModel.findById(id)
+
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        if (user.private) {
+            user.stats = undefined
+            user.playerTeams = undefined
+            user.managerTeams = undefined
+        }
+
+        return user
     }
 }
