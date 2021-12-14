@@ -207,7 +207,7 @@ describe('test /POST logout', () => {
             .post('/user/logout')
             .set('Authorization', `Bearer ${token}`)
             .send()
-            .expect(500)
+            .expect(404)
     })
 })
 
@@ -243,5 +243,32 @@ describe('test /GET me', () => {
         expect(response.body._id).toBeUndefined()
         expect(response.body.firstName).toBeUndefined()
         expect(response.body.email).toBeUndefined()
+    })
+})
+
+describe('test /GET user', () => {
+    it('with existing user', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+
+        const response = await request(app)
+            .get(`/user/${userRecord._id}`)
+            .send()
+            .expect(200)
+        
+        const userResponse = response.body
+        expect(userResponse.firstName).toBe(userRecord.firstName)
+        expect(userResponse.lastName).toBe(userRecord.lastName)
+        expect(userResponse.email).toBe(userRecord.email)
+        expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
+    })
+
+    it('with non-existing user', async () => {
+        const response = await request(app)
+            .get(`/user/507f191e810c19729de860ea`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
     })
 })

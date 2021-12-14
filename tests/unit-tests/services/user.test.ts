@@ -93,7 +93,7 @@ describe('test logout', () => {
         await User.create(user)
         expect(async () => {
             await services.logout('absent@email.com', 'token1')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 500))
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 })
 
@@ -134,7 +134,7 @@ describe('test get user', () => {
     it('with non-existent user', async () => {
         expect(async () => {
             await services.getUser('507f191e810c19729de860ea')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 500))
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 
     it('with bad id', async () => {

@@ -55,6 +55,16 @@ userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), asy
     return res.send(req.user)
 })
 
+userRouter.get('/user/:id', async (req: Request, res: Response, next) => {
+    try {
+        const userService = new UserServices(User)
+        const user = await userService.getUser(req.params.id)
+        return res.json(user)
+    } catch (error) {
+        next(error)
+    }
+})
+
 userRouter.use(errorMiddleware)
 
 export default userRouter

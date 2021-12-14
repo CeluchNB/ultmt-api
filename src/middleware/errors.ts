@@ -13,8 +13,12 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.MISSING_FIELDS, 400)
     } else if (error.includes(Constants.UNABLE_TO_GENERATE_TOKEN)) {
         return createExpressErrorObject(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
-    } else {
+    } else if (error.includes(Constants.UNABLE_TO_FIND_USER)) {
+        return createExpressErrorObject(Constants.UNABLE_TO_FIND_USER, 404)
+    } else if (error.includes(Constants.UNABLE_TO_CREATE_USER)) {
         return createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500)
+    } else {
+        return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }
 }
 
