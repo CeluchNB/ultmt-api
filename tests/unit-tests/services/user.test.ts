@@ -27,6 +27,7 @@ describe('test sign up', () => {
         const user: IUser = getUser()
 
         const { user: userRecord, token } = await services.signUp(user)
+        expect(userRecord._id).toBeDefined()
         expect(userRecord.firstName).toBe(user.firstName)
         expect(userRecord.lastName).toBe(user.lastName)
         expect(userRecord.email).toBe(user.email)
@@ -93,5 +94,52 @@ describe('test logout', () => {
         expect(async () => {
             await services.logout('absent@email.com', 'token1')
         }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 500))
+    })
+})
+
+describe('test get user', () => {
+    it('with existing, public user', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+
+        const userResponse = await services.getUser(userRecord._id)
+
+        expect(userResponse._id.toString()).toBe(userRecord._id.toString())
+        expect(userResponse.firstName).toBe(userRecord.firstName)
+        expect(userResponse.lastName).toBe(userRecord.lastName)
+        expect(userResponse.email).toBe(userRecord.email)
+        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
+        expect(userResponse.playerTeams?.toString()).toBe(userRecord.playerTeams?.toString())
+        expect(userResponse.managerTeams?.toString()).toBe(userRecord.managerTeams?.toString())
+        expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
+    })
+
+    it('with existing, private user', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        userRecord.private = true
+        await userRecord.save()
+
+        const userResponse = await services.getUser(userRecord._id)
+        expect(userResponse._id.toString()).toBe(userRecord._id.toString())
+        expect(userResponse.firstName).toBe(userRecord.firstName)
+        expect(userResponse.lastName).toBe(userRecord.lastName)
+        expect(userResponse.email).toBe(userRecord.email)
+        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
+        expect(userResponse.playerTeams).toBeUndefined()
+        expect(userResponse.managerTeams).toBeUndefined()
+        expect(userResponse.stats).toBeUndefined()
+    })
+
+    it('with non-existent user', async () => {
+        expect(async () => {
+            await services.getUser('507f191e810c19729de860ea')
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 500))
+    })
+
+    it('with bad id', async () => {
+        expect(async () => {
+            await services.getUser('badid')
+        }).rejects.toThrow()
     })
 })
