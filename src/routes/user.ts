@@ -51,6 +51,10 @@ userRouter.post(
     },
 )
 
+userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
+    return res.send(req.user)
+})
+
 userRouter.use(errorMiddleware)
 
 export default userRouter

@@ -210,3 +210,38 @@ describe('test /POST logout', () => {
             .expect(500)
     })
 })
+
+describe('test /GET me', () => {
+    it('with valid token', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+
+        const response = await request(app)
+            .get('/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        expect(response.body._id.toString()).toBe(userRecord._id.toString())
+        expect(response.body.firstName).toBe(userRecord.firstName)
+        expect(response.body.email).toBe(userRecord.email)
+    })
+
+    it('with invalid token', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        await userRecord.generateAuthToken()
+        const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
+
+        const response = await request(app)
+            .get('/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(401)
+        
+        expect(response.body._id).toBeUndefined()
+        expect(response.body.firstName).toBeUndefined()
+        expect(response.body.email).toBeUndefined()
+    })
+})
