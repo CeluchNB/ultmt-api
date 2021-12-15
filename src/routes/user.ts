@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express'
-import { IUser } from '../types/user'
+import { IUser, IUserDocument } from '../types/user'
 import UserServices from '../services/user'
 import User from '../models/user'
 import { errorMiddleware } from '../middleware/errors'
@@ -80,6 +80,21 @@ userRouter.get('/user/:id', async (req: Request, res: Response, next) => {
         next(error)
     }
 })
+
+userRouter.delete(
+    '/user/me',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const id = (req.user as IUserDocument)._id
+            const userService = new UserServices(User)
+            await userService.deleteUser(id)
+            res.send()
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 userRouter.use(errorMiddleware)
 
