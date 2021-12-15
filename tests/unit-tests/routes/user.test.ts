@@ -9,6 +9,8 @@ import { getUser } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
 
+const anonId = '507f191e810c19729de860ea'
+
 beforeAll(async () => {
     await setUpDatabase()
 })
@@ -185,7 +187,7 @@ describe('test /POST logout', () => {
     })
 
     it('with non-existent objectid of user', async () => {
-        const token = jwt.sign({ sub: "507f191e810c19729de860ea", iat: Date.now() }, process.env.JWT_SECRET as string)
+        const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         await request(app)
             .post('/user/logout')
@@ -300,10 +302,50 @@ describe('test /GET user', () => {
 
     it('with non-existing user', async () => {
         const response = await request(app)
-            .get(`/user/507f191e810c19729de860ea`)
+            .get(`/user/${anonId}`)
             .send()
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
+    })
+})
+
+describe('test /DELETE profile', () => {
+    it('test delete with existing token', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+
+        await request(app)
+            .delete('/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+    })
+
+    it('test delete with non-existing token', async () => {
+        const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
+
+        await request(app)
+            .delete('/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(401)
+    })
+
+    it('test delete with service error', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+
+        jest.spyOn(User, 'deleteOne').mockImplementationOnce(() => {
+            throw new ApiError(Constants.GENERIC_ERROR, 500)
+        })
+
+        await request(app)
+            .delete('/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(500)
     })
 })

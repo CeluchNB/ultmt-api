@@ -60,4 +60,8 @@ export default class UserServices {
 
         return user
     }
+
+    deleteUser = async (id: string) => {
+        await this.userModel.deleteOne({ _id: id })
+    }
 }
