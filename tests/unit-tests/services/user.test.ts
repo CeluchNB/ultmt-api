@@ -7,6 +7,7 @@ import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
 
 let services: UserServices
+const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -183,7 +184,7 @@ describe('test get user', () => {
 
     it('with non-existent user', async () => {
         expect(async () => {
-            await services.getUser('507f191e810c19729de860ea')
+            await services.getUser(anonId)
         }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 
@@ -191,5 +192,33 @@ describe('test get user', () => {
         expect(async () => {
             await services.getUser('badid')
         }).rejects.toThrow()
+    })
+})
+
+describe('test delete account', () => {
+    it('with existing user', async () => {
+        const user1: IUser = getUser()
+        const user2: IUser = getUser()
+        user2.email = 'first.last2@email.com'
+        user2.username = 'lastfirst'
+        const userRecord1 = await User.create(user1)
+        const userRecord2 = await User.create(user2)
+
+        await services.deleteUser(userRecord1._id)
+
+        const userResult1 = await User.findById(userRecord1._id)
+        const userResult2 = await User.findById(userRecord2._id)
+
+        expect(userResult1).toBeNull()
+        expect(userResult2).not.toBeNull()
+    })
+
+    it('with non-existing user', async () => {
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+
+        services.deleteUser(anonId)
+        const userResult = await User.findById(userRecord._id)
+        expect(userResult).not.toBeNull()
     })
 })
