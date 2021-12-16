@@ -1,10 +1,5 @@
 import { Types, Document } from 'mongoose'
-
-export interface ITeamUser {
-    userId: Types.ObjectId
-    firstName: string
-    lastName: string
-}
+import { IUserDocument } from '.'
 
 export interface ITeam {
     place: string
@@ -13,10 +8,15 @@ export interface ITeam {
     players: Types.ObjectId[]
     seasonStart: Date
     seasonEnd: Date
-}
-
-export interface ITeamDocument extends ITeam, Document {
+    rosterOpen: boolean
     requestingPlayers: Types.ObjectId[]
     requestedPlayers: Types.ObjectId[]
     games: Types.ObjectId[]
+}
+
+export interface ITeamDocument extends ITeam, Document {
+    managerArray: IUserDocument[]
+    playerArray: IUserDocument[]
+    requestingPlayerArray: IUserDocument[]
+    requestedPlayerArray: IUserDocument[]
 }

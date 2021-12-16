@@ -18,5 +18,9 @@ export const getTeam = (): ITeam => {
         players: [],
         seasonStart: new Date('2021'),
         seasonEnd: new Date('2022'),
+        rosterOpen: false,
+        requestingPlayers: [],
+        requestedPlayers: [],
+        games: [],
     }
 }
