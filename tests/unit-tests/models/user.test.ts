@@ -1,7 +1,7 @@
 import User from '../../../src/models/user'
 import { IUser } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
-import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
 import jwt from 'jsonwebtoken'
 
@@ -10,7 +10,7 @@ beforeAll(async () => {
 })
 
 afterEach(async () => {
-    await User.deleteMany({})
+    await resetDatabase()
 })
 
 afterAll((done) => {
@@ -35,6 +35,8 @@ describe('test user model', () => {
         expect(userRecord.tokens?.length).toBe(0)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
+        expect(userRecord.requestedTeams?.length).toBe(0)
+        expect(userRecord.requestingTeams?.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
     })
 
@@ -85,6 +87,8 @@ describe('test user model', () => {
         expect(userJson.private).toBe(false)
         expect(userJson.playerTeams?.length).toBe(0)
         expect(userJson.managerTeams?.length).toBe(0)
+        expect(userRecord.requestedTeams?.length).toBe(0)
+        expect(userRecord.requestingTeams?.length).toBe(0)
         expect(userJson.stats?.length).toBe(0)
     })
 

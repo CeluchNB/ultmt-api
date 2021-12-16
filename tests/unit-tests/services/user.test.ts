@@ -1,7 +1,7 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
 import { IUser } from '../../../src/types/user'
-import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
@@ -15,7 +15,7 @@ beforeAll(async () => {
 })
 
 afterEach(async () => {
-    await User.deleteMany({})
+    await resetDatabase()
 })
 
 afterAll((done) => {
@@ -36,6 +36,8 @@ describe('test sign up', () => {
         expect(userRecord.tokens?.length).toBe(1)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
+        expect(userRecord.requestedTeams?.length).toBe(0)
+        expect(userRecord.requestingTeams?.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
         expect(token).toBeDefined()
@@ -162,6 +164,8 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams?.toString()).toBe(userRecord.playerTeams?.toString())
         expect(userResponse.managerTeams?.toString()).toBe(userRecord.managerTeams?.toString())
+        expect(userResponse.requestedTeams?.toString()).toBeUndefined()
+        expect(userResponse.requestingTeams?.toString()).toBeUndefined()
         expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
 
@@ -179,6 +183,8 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams).toBeUndefined()
         expect(userResponse.managerTeams).toBeUndefined()
+        expect(userResponse.requestedTeams).toBeUndefined()
+        expect(userResponse.requestingTeams).toBeUndefined()
         expect(userResponse.stats).toBeUndefined()
     })
 
