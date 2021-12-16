@@ -19,6 +19,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.UNABLE_TO_FIND_TEAM, 404)
     } else if (error.includes(Constants.UNABLE_TO_CREATE_USER)) {
         return createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500)
+    } else if (error.includes(Constants.UNAUTHORIZED_TO_GET_TEAM)) {
+        return createExpressErrorObject(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

@@ -109,3 +109,60 @@ describe('test /GET public team', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test /GET managed id', () => {
+    it('with valid data', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+        team.managers.push(userRecord._id)
+
+        const teamRecord = await Team.create(team)
+
+        const response = await request(app)
+            .get(`/team/managing/${teamRecord._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const teamResponse = response.body.team as ITeamDocument
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.managers.length).toBe(1)
+    })
+
+    it('with invalid user', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        team.managers.push(userRecord._id)
+
+        const teamRecord = await Team.create(team)
+
+        await request(app)
+            .get(`/team/managing/${teamRecord._id}`)
+            .set('Authorization', 'Bearer badadf.asdf.token1')
+            .send()
+            .expect(401)
+    })
+
+    it('with invalid team', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
+        team.managers.push(userRecord._id)
+
+        const teamRecord = await Team.create(team)
+
+        await request(app)
+            .get(`/team/managing/${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+    })
+})

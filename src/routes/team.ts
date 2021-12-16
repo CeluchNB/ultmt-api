@@ -28,9 +28,24 @@ teamRouter.get('/team/:id', async (req: Request, res: Response, next) => {
     try {
         const teamServices = new TeamServices(Team, User)
         const team = await teamServices.getTeam(req.params.id, true)
-        return res.status(200).json({ team })
+        return res.json({ team })
     } catch (error) {
         next(error)
     }
 })
+
+teamRouter.get(
+    '/team/managing/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User)
+            const team = await teamServices.getManagedTeam(req.params.id, (req.user as IUserDocument)._id)
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

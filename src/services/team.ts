@@ -51,4 +51,14 @@ export default class TeamServices {
 
         return teamObject
     }
+
+    getManagedTeam = async (teamId: string, userId: string): Promise<ITeamDocument> => {
+        const team = await this.getTeam(teamId, false)
+        for (const mId of team.managers) {
+            if (mId.toString() === userId.toString()) {
+                return team
+            }
+        }
+        throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+    }
 }

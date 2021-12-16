@@ -51,6 +51,12 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with unauthorized team error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_TO_GET_TEAM} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_TO_GET_TEAM, 401),
+        )
+    })
+
     it('with create user error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_CREATE_USER} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),

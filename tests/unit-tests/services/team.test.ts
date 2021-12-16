@@ -140,3 +140,32 @@ describe('test getTeam', () => {
         }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 400))
     })
 })
+
+describe('test getManagedTeam', () => {
+    it('with valid manager', async () => {
+        const user: IUser = getUser()
+        const userResponse = await User.create(user)
+
+        const team: ITeam = getTeam()
+        team.managers.push(userResponse._id)
+        const teamRecord = await Team.create(team)
+
+        const teamResponse = await services.getManagedTeam(teamRecord._id, userResponse._id)
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.managers?.length).toBe(1)
+    })
+
+    it('with invalid manager', async () => {
+        const team: ITeam = getTeam()
+        const teamRecord = await Team.create(team)
+
+        const user: IUser = getUser()
+        const userRecord = await User.create(user)
+        await userRecord.generateAuthToken()
+
+        expect(async () => {
+            await services.getManagedTeam(teamRecord._id, anonId)
+        }).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401))
+    })
+})
