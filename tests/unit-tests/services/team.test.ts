@@ -1,9 +1,10 @@
 import TeamServices from '../../../src/services/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
-import { ITeam, IUser } from '../../../src/types'
+import { ApiError, ITeam, IUser } from '../../../src/types'
 import { getTeam, getUser } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
+import * as Constants from '../../../src/utils/constants'
 
 const anonId = '507f191e810c19729de860ea'
 const services = new TeamServices(Team, User)
@@ -91,5 +92,51 @@ describe('test create team', () => {
         expect(async () => {
             await services.createTeam(getTeam(), userRecord)
         }).rejects.toThrow()
+    })
+})
+
+describe('test getTeam', () => {
+    it('with valid id and non-public request', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+        teamRecord.requestsFromPlayers.push(userRecord._id)
+        teamRecord.requestsToPlayers.push(userRecord._id)
+        await teamRecord.save()
+
+        const teamResponse = await services.getTeam(teamRecord._id, false)
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.requestsFromPlayers.length).toBe(1)
+        expect(teamResponse.requestsToPlayers.length).toBe(1)
+    })
+
+    it('with valid id and public request', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+        teamRecord.requestsFromPlayers.push(userRecord._id)
+        teamRecord.requestsToPlayers.push(userRecord._id)
+        await teamRecord.save()
+
+        const teamResponse = await services.getTeam(teamRecord._id, true)
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.requestsFromPlayers.length).toBe(0)
+        expect(teamResponse.requestsToPlayers.length).toBe(0)
+    })
+
+    it('with invalid id', async () => {
+        const team: ITeam = getTeam()
+
+        await Team.create(team)
+
+        expect(async () => {
+            await services.getTeam(anonId, true)
+        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 400))
     })
 })
