@@ -39,6 +39,10 @@ describe('test create team', () => {
         expect(teamResponse.seasonEnd).toBe(team.seasonEnd)
         expect(teamResponse.requestsFromPlayers.length).toBe(0)
         expect(teamResponse.requestsToPlayers.length).toBe(0)
+        expect(teamResponse.managerArray.length).toBe(1)
+        expect(teamResponse.requestsToPlayerArray.length).toBe(0)
+        expect(teamResponse.requestsFromPlayerArray).toBeUndefined()
+        expect(teamResponse.playerArray).toBeUndefined()
 
         expect(teamRecord?.place).toBe(team.place)
         expect(teamRecord?.name).toBe(team.name)
@@ -68,6 +72,10 @@ describe('test create team', () => {
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.requestsToPlayers.length).toBe(3)
+        expect(teamResponse.managerArray.length).toBe(1)
+        expect(teamResponse.managerArray[0].firstName).toBe(users[0].firstName)
+        expect(teamResponse.requestsToPlayerArray.length).toBe(3)
+        expect(teamResponse.requestsToPlayerArray[2].firstName).toBe(users[2].firstName)
 
         for (const u of users) {
             const user = await User.findById(u._id)

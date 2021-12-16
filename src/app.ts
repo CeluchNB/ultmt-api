@@ -12,5 +12,6 @@ const app: Application = express()
 app.use(express.json())
 app.use(passport.initialize())
 app.use(Routes.userRouter)
+app.use(Routes.teamRouter)
 
 export default app

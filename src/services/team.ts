@@ -26,6 +26,8 @@ export default class TeamServices {
             await requestUser?.save()
         }
 
+        await teamObject.populate('managerArray')
+        await teamObject.populate('requestsToPlayerArray')
         return teamObject
     }
 }
