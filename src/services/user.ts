@@ -57,6 +57,8 @@ export default class UserServices {
             user.playerTeams = undefined
             user.managerTeams = undefined
         }
+        user.requestsToTeams = undefined
+        user.requestsFromTeams = undefined
 
         return user
     }

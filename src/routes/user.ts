@@ -97,5 +97,3 @@ userRouter.delete(
 )
 
 userRouter.use(errorMiddleware)
-
-export default userRouter

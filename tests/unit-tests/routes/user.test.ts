@@ -4,7 +4,7 @@ import request from 'supertest'
 import app from '../../../src/app'
 import { ApiError, IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
-import { setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
@@ -16,7 +16,7 @@ beforeAll(async () => {
 })
 
 afterEach(async () => {
-    await User.deleteMany({})
+    await resetDatabase()
 })
 
 afterAll((done) => {

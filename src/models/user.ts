@@ -33,6 +33,8 @@ const schema = new Schema<IUserDocument>({
     password: { type: String, required: true },
     private: { type: Boolean, required: true, default: false },
     tokens: [{ type: String }],
+    requestsFromTeams: [{ type: Types.ObjectId }],
+    requestsToTeams: [{ type: Types.ObjectId }],
     playerTeams: [{ type: Types.ObjectId }],
     managerTeams: [{ type: Types.ObjectId }],
     stats: [{ type: Types.ObjectId }],
