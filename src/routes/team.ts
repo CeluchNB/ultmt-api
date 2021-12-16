@@ -24,4 +24,13 @@ teamRouter.post(
     },
 )
 
+teamRouter.get('/team/:id', async (req: Request, res: Response, next) => {
+    try {
+        const teamServices = new TeamServices(Team, User)
+        const team = await teamServices.getTeam(req.params.id, true)
+        return res.status(200).json({ team })
+    } catch (error) {
+        next(error)
+    }
+})
 teamRouter.use(errorMiddleware)

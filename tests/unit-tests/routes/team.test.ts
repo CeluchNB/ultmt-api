@@ -6,6 +6,7 @@ import { ITeam, ITeamDocument, IUser } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getTeam, getUser } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
+import Team from '../../../src/models/team'
 
 const anonId = '507f191e810c19729de860ea'
 
@@ -75,5 +76,36 @@ describe('test /POST team', () => {
             .send({ team: {} })
             .expect(401)
     })
+})
 
+describe('test /GET public team', () => {
+    it('with valid id', async () => {
+        const team: ITeam = getTeam()
+
+        const teamRecord = await Team.create(team)
+
+        const response = await request(app)
+            .get(`/team/${teamRecord._id}`)
+            .send()
+            .expect(200)
+
+        const teamResponse: ITeamDocument = response.body.team as ITeamDocument
+
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.requestsFromPlayers.length).toBe(0)
+    })
+
+    it('with invalid id', async () => {
+        const team: ITeam = getTeam()
+
+        await Team.create(team)
+
+        const response = await request(app)
+            .get(`/team/${anonId}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
 })

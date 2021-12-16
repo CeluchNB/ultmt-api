@@ -45,6 +45,12 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with not found team', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_FIND_TEAM} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
     it('with create user error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_CREATE_USER} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),
