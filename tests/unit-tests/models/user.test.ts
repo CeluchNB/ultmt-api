@@ -35,8 +35,8 @@ describe('test user model', () => {
         expect(userRecord.tokens?.length).toBe(0)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
-        expect(userRecord.requestedTeams?.length).toBe(0)
-        expect(userRecord.requestingTeams?.length).toBe(0)
+        expect(userRecord.requestsToTeams?.length).toBe(0)
+        expect(userRecord.requestsFromTeams?.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
     })
 
@@ -87,8 +87,8 @@ describe('test user model', () => {
         expect(userJson.private).toBe(false)
         expect(userJson.playerTeams?.length).toBe(0)
         expect(userJson.managerTeams?.length).toBe(0)
-        expect(userRecord.requestedTeams?.length).toBe(0)
-        expect(userRecord.requestingTeams?.length).toBe(0)
+        expect(userRecord.requestsToTeams?.length).toBe(0)
+        expect(userRecord.requestsFromTeams?.length).toBe(0)
         expect(userJson.stats?.length).toBe(0)
     })
 

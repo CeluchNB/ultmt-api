@@ -6,12 +6,11 @@ import { getUser } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
 
-let services: UserServices
+const services: UserServices = new UserServices(User)
 const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()
-    services = new UserServices(User)
 })
 
 afterEach(async () => {
@@ -36,8 +35,8 @@ describe('test sign up', () => {
         expect(userRecord.tokens?.length).toBe(1)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
-        expect(userRecord.requestedTeams?.length).toBe(0)
-        expect(userRecord.requestingTeams?.length).toBe(0)
+        expect(userRecord.requestsToTeams?.length).toBe(0)
+        expect(userRecord.requestsFromTeams?.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
         expect(token).toBeDefined()
@@ -164,8 +163,8 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams?.toString()).toBe(userRecord.playerTeams?.toString())
         expect(userResponse.managerTeams?.toString()).toBe(userRecord.managerTeams?.toString())
-        expect(userResponse.requestedTeams?.toString()).toBeUndefined()
-        expect(userResponse.requestingTeams?.toString()).toBeUndefined()
+        expect(userResponse.requestsToTeams?.toString()).toBeUndefined()
+        expect(userResponse.requestsFromTeams?.toString()).toBeUndefined()
         expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
 
@@ -183,8 +182,8 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams).toBeUndefined()
         expect(userResponse.managerTeams).toBeUndefined()
-        expect(userResponse.requestedTeams).toBeUndefined()
-        expect(userResponse.requestingTeams).toBeUndefined()
+        expect(userResponse.requestsToTeams).toBeUndefined()
+        expect(userResponse.requestsFromTeams).toBeUndefined()
         expect(userResponse.stats).toBeUndefined()
     })
 

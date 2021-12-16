@@ -28,8 +28,8 @@ describe('test team model', () => {
         expect(teamRecord.players.length).toBe(team.players.length)
         expect(teamRecord.seasonStart).toBe(team.seasonStart)
         expect(teamRecord.seasonEnd).toBe(team.seasonEnd)
-        expect(teamRecord.requestingPlayers.length).toBe(0)
-        expect(teamRecord.requestedPlayers.length).toBe(0)
+        expect(teamRecord.requestsFromPlayers.length).toBe(0)
+        expect(teamRecord.requestsToPlayers.length).toBe(0)
         expect(teamRecord.games.length).toBe(0)
     })
 
@@ -63,33 +63,33 @@ describe('test team model', () => {
         expect(teamRecord.playerArray[0].lastName).toBe(user.lastName)
     })
 
-    it('test requestingPlayerArray virtual', async () => {
+    it('test requestsFromPlayerArray virtual', async () => {
         const user: IUser = getUser()
         const userRecord = await User.create(user)
 
         const team: ITeam = getTeam()
-        team.requestingPlayers.push(userRecord._id)
+        team.requestsFromPlayers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
-        await teamRecord.populate('requestingPlayerArray')
+        await teamRecord.populate('requestsFromPlayerArray')
 
-        expect(teamRecord.requestingPlayerArray.length).toBe(1)
-        expect(teamRecord.requestingPlayerArray[0].firstName).toBe(user.firstName)
-        expect(teamRecord.requestingPlayerArray[0].lastName).toBe(user.lastName)
+        expect(teamRecord.requestsFromPlayerArray.length).toBe(1)
+        expect(teamRecord.requestsFromPlayerArray[0].firstName).toBe(user.firstName)
+        expect(teamRecord.requestsFromPlayerArray[0].lastName).toBe(user.lastName)
     })
 
-    it('test requestedPlayerArray virtual', async () => {
+    it('test requestsToPlayerArray virtual', async () => {
         const user: IUser = getUser()
         const userRecord = await User.create(user)
 
         const team: ITeam = getTeam()
-        team.requestedPlayers.push(userRecord._id)
+        team.requestsToPlayers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
-        await teamRecord.populate('requestedPlayerArray')
+        await teamRecord.populate('requestsToPlayerArray')
 
-        expect(teamRecord.requestedPlayerArray.length).toBe(1)
-        expect(teamRecord.requestedPlayerArray[0].firstName).toBe(user.firstName)
-        expect(teamRecord.requestedPlayerArray[0].lastName).toBe(user.lastName)
+        expect(teamRecord.requestsToPlayerArray.length).toBe(1)
+        expect(teamRecord.requestsToPlayerArray[0].firstName).toBe(user.firstName)
+        expect(teamRecord.requestsToPlayerArray[0].lastName).toBe(user.lastName)
     })
 })

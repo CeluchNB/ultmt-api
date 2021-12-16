@@ -22,8 +22,8 @@ const schema = new Schema<ITeamDocument>(
             required: true,
             default: false,
         },
-        requestingPlayers: [{ type: Types.ObjectId }],
-        requestedPlayers: [{ type: Types.ObjectId }],
+        requestsFromPlayers: [{ type: Types.ObjectId }],
+        requestsToPlayers: [{ type: Types.ObjectId }],
         games: [{ type: Types.ObjectId }],
     },
     opts,
@@ -41,18 +41,19 @@ schema.virtual('playerArray', {
     foreignField: '_id',
 })
 
-schema.virtual('requestingPlayerArray', {
+schema.virtual('requestsFromPlayerArray', {
     ref: 'User',
-    localField: 'requestingPlayers',
+    localField: 'requestsFromPlayers',
     foreignField: '_id',
 })
 
-schema.virtual('requestedPlayerArray', {
+schema.virtual('requestsToPlayerArray', {
     ref: 'User',
-    localField: 'requestedPlayers',
+    localField: 'requestsToPlayers',
     foreignField: '_id',
 })
 
 const Team = model<ITeamDocument>('Team', schema)
 
+export type ITeamModel = typeof Team
 export default Team

@@ -9,14 +9,14 @@ export interface ITeam {
     seasonStart: Date
     seasonEnd: Date
     rosterOpen: boolean
-    requestingPlayers: Types.ObjectId[]
-    requestedPlayers: Types.ObjectId[]
+    requestsFromPlayers: Types.ObjectId[]
+    requestsToPlayers: Types.ObjectId[]
     games: Types.ObjectId[]
 }
 
 export interface ITeamDocument extends ITeam, Document {
     managerArray: IUserDocument[]
     playerArray: IUserDocument[]
-    requestingPlayerArray: IUserDocument[]
-    requestedPlayerArray: IUserDocument[]
+    requestsFromPlayerArray: IUserDocument[]
+    requestsToPlayerArray: IUserDocument[]
 }
