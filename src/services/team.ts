@@ -63,7 +63,7 @@ export default class TeamServices {
         throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
     }
 
-    rosterPlayer = async (managerId: string, teamId: string, playerId: string) => {
+    rosterPlayer = async (managerId: string, teamId: string, playerId: string): Promise<ITeamDocument> => {
         const team = await this.teamModel.findById(teamId)
         // handle non-found team case
         if (!team) {
@@ -98,5 +98,7 @@ export default class TeamServices {
 
         await team.save()
         await user.save()
+
+        return team
     }
 }

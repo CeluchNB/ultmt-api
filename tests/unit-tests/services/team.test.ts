@@ -184,7 +184,10 @@ describe('test request roster player', () => {
         user1.managerTeams?.push(teamRecord._id)
         await user1.save()
 
-        await services.rosterPlayer(user1._id, teamRecord._id, user2._id)
+        const teamResult = await services.rosterPlayer(user1._id, teamRecord._id, user2._id)
+        expect(teamResult).toBeDefined()
+        expect(teamResult.requestsToPlayers.length).toBe(1)
+        expect(teamResult.requestsToPlayers[0].toString()).toBe(user2._id.toString())
 
         const userData = await User.findById(user2._id)
         const teamData = await Team.findById(teamRecord._id)
