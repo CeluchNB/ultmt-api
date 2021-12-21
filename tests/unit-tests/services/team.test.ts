@@ -319,4 +319,38 @@ describe('test request roster player', () => {
             new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
         )
     })
+
+    it('with player already on team', async () => {
+        const team: ITeam = getTeam()
+        const teamRecord = await Team.create(team)
+
+        const [user1, user2] = await User.find({})
+        teamRecord.managers.push(user1._id)
+        teamRecord.players.push(user2._id)
+        await teamRecord.save()
+        user1.managerTeams?.push(teamRecord._id)
+        await user1.save()
+
+        await expect(services.rosterPlayer(user1._id, teamRecord._id, user2._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
+        )
+    })
+
+    it('with team already in player', async () => {
+        const team: ITeam = getTeam()
+        const teamRecord = await Team.create(team)
+
+        const [user1, user2] = await User.find({})
+        teamRecord.managers.push(user1._id)
+        await teamRecord.save()
+        user1.managerTeams?.push(teamRecord._id)
+        await user1.save()
+
+        user2.playerTeams?.push(teamRecord._id)
+        await user2.save()
+
+        await expect(services.rosterPlayer(user1._id, teamRecord._id, user2._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
+        )
+    })
 })

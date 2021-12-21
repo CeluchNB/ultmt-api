@@ -9,6 +9,11 @@ export default class UserServices {
         this.userModel = userModel
     }
 
+    /**
+     * Method to sign a user up
+     * @param user data of user to sign up
+     * @returns created user document and an authentication token
+     */
     signUp = async (user: IUser): Promise<{ user: IUserDocument; token: string }> => {
         const userObject = await this.userModel.create(user)
         const token = await userObject.generateAuthToken()
@@ -16,6 +21,12 @@ export default class UserServices {
         return { user: userObject, token }
     }
 
+    /**
+     * Method to generate an authentication token for a user
+     * Actual email/password check occurs in passport.js
+     * @param email email to login with
+     * @returns the authentication token
+     */
     login = async (email: string): Promise<string> => {
         const user = await this.userModel.findOne({ email })
         const token = await user?.generateAuthToken()
@@ -27,6 +38,11 @@ export default class UserServices {
         }
     }
 
+    /**
+     * Method to logout
+     * @param email Email of user to logout
+     * @param jwt authentication token to remove from user's list
+     */
     logout = async (email: string, jwt: string) => {
         const user = await this.userModel.findOne({ email })
         if (!user) {
@@ -36,6 +52,10 @@ export default class UserServices {
         await user.save()
     }
 
+    /**
+     * Method to logout all devices
+     * @param email email of user to delete all authentication tokens
+     */
     logoutAll = async (email: string) => {
         const user = await this.userModel.findOne({ email })
         if (!user) {
@@ -45,6 +65,11 @@ export default class UserServices {
         await user.save()
     }
 
+    /**
+     * Method to get a user's public details
+     * @param id id of user to get
+     * @returns user document
+     */
     getUser = async (id: string): Promise<IUserDocument> => {
         const user = await this.userModel.findById(id)
 
@@ -63,6 +88,10 @@ export default class UserServices {
         return user
     }
 
+    /**
+     * Method to delete a user
+     * @param id id of user to delete
+     */
     deleteUser = async (id: string) => {
         await this.userModel.deleteOne({ _id: id })
     }

@@ -21,6 +21,10 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500)
     } else if (error.includes(Constants.UNAUTHORIZED_TO_GET_TEAM)) {
         return createExpressErrorObject(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+    } else if (error.includes(Constants.PLAYER_ALREADY_ROSTERED)) {
+        return createExpressErrorObject(Constants.PLAYER_ALREADY_ROSTERED, 400)
+    } else if (error.includes(Constants.TEAM_ALREADY_JOINED)) {
+        return createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

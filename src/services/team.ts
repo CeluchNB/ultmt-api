@@ -13,6 +13,12 @@ export default class TeamServices {
         this.userModel = userModel
     }
 
+    /**
+     * Creates a team
+     * @param team team to create
+     * @param user user that is the manager
+     * @returns the created team
+     */
     createTeam = async (team: ITeam, user: IUserDocument): Promise<ITeamDocument> => {
         const teamObject = await this.teamModel.create(team)
 
@@ -53,6 +59,12 @@ export default class TeamServices {
         return teamObject
     }
 
+    /**
+     * gets a team that is managed by the requesting user
+     * @param teamId team id that is requested
+     * @param userId user that is the manager
+     * @returns the team document found
+     */
     getManagedTeam = async (teamId: string, userId: string): Promise<ITeamDocument> => {
         const team = await this.getTeam(teamId, false)
         for (const mId of team.managers) {
@@ -63,6 +75,13 @@ export default class TeamServices {
         throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
     }
 
+    /**
+     * Method to add a request that a player join the roster
+     * @param managerId manager of team
+     * @param teamId id of team
+     * @param playerId player to request
+     * @returns updated team document
+     */
     rosterPlayer = async (managerId: string, teamId: string, playerId: string): Promise<ITeamDocument> => {
         const team = await this.teamModel.findById(teamId)
         // handle non-found team case
@@ -91,6 +110,10 @@ export default class TeamServices {
         // throw error if player has already requested to be on team's roster
         if (user.requestsToTeams?.includes(teamObjectId) || team.requestsFromPlayers.includes(playerObjectId)) {
             throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
+        }
+
+        if (user.playerTeams?.includes(teamObjectId) || team.players.includes(playerObjectId)) {
+            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
         }
 
         user.requestsFromTeams?.push(teamObjectId)

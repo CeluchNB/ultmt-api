@@ -57,6 +57,18 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with player already rostered error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_ALREADY_ROSTERED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.PLAYER_ALREADY_ROSTERED, 400),
+        )
+    })
+
+    it('with team already joined error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.TEAM_ALREADY_JOINED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400),
+        )
+    })
+
     it('with create user error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_CREATE_USER} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),
