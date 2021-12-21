@@ -248,7 +248,7 @@ describe('test /POST team request to roster player', () => {
         
         const team: ITeam = getTeam()
         team.managers.push(user1._id)
-        const teamRecord = await Team.create(team)
+        await Team.create(team)
 
         const response = await request(app)
             .post('/team/roster/player')
@@ -262,7 +262,7 @@ describe('test /POST team request to roster player', () => {
     })
 
     it('with bad user id', async () => {
-        const [user1, user2] = await User.find({})
+        const [user1] = await User.find({})
         const token = await user1.generateAuthToken()
         
         const team: ITeam = getTeam()

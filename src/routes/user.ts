@@ -89,7 +89,22 @@ userRouter.delete(
             const id = (req.user as IUserDocument)._id
             const userService = new UserServices(User)
             await userService.deleteUser(id)
-            res.send()
+            return res.send()
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.post(
+    '/user/roster/team',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const id = (req.user as IUserDocument)._id
+            const userService = new UserServices(User)
+            const user = await userService.requestRoster(req.body.teamId, id)
+            return res.json({ user })
         } catch (error) {
             next(error)
         }
