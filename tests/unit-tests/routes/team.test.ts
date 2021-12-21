@@ -7,7 +7,6 @@ import { setUpDatabase, resetDatabase, saveUsers, tearDownDatabase } from '../..
 import { getTeam, getUser } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
-import supertest from 'supertest'
 
 const anonId = '507f191e810c19729de860ea'
 
