@@ -46,9 +46,7 @@ describe('test user model', () => {
 
         const user = new User(userData)
 
-        expect(async () => {
-            await user.save()
-        }).rejects.toThrowError(Constants.INVALID_EMAIL)
+        await expect(user.save()).rejects.toThrowError(Constants.INVALID_EMAIL)
     })
 
     it('save with invalid username', async () => {
@@ -56,9 +54,7 @@ describe('test user model', () => {
         userData.username = 'bad username'
 
         const user = new User(userData)
-        expect(async () => {
-            await user.save()
-        }).rejects.toThrowError(Constants.INVALID_USERNAME)
+        await expect(user.save()).rejects.toThrowError(Constants.INVALID_USERNAME)
     })
 
     it('save with invalid password', async () => {
@@ -67,9 +63,7 @@ describe('test user model', () => {
 
         const user = new User(userData)
 
-        expect(async () => {
-            await user.save()
-        }).rejects.toThrowError(Constants.INVALID_PASSWORD)
+        await expect(user.save()).rejects.toThrowError(Constants.INVALID_PASSWORD)
     })
 
     it('to json', async () => {
@@ -122,9 +116,7 @@ describe('test user model', () => {
             throw new Error('Error')
         })
 
-        expect(async () => {
-            await userRecord.generateAuthToken()
-        }).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
+        await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
 
     it('generate auth token with save error', async () => {
@@ -137,8 +129,6 @@ describe('test user model', () => {
             throw new Error('Error')
         })
 
-        expect(async () => {
-            await userRecord.generateAuthToken()
-        }).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
+        await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
 })

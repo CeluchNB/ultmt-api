@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
@@ -41,7 +42,7 @@ export default class TeamServices {
     getTeam = async (id: string, publicReq: boolean): Promise<ITeamDocument> => {
         const teamObject = await this.teamModel.findById(id)
         if (!teamObject) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 400)
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
         if (publicReq) {
@@ -60,5 +61,44 @@ export default class TeamServices {
             }
         }
         throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+    }
+
+    rosterPlayer = async (managerId: string, teamId: string, playerId: string): Promise<ITeamDocument> => {
+        const team = await this.teamModel.findById(teamId)
+        // handle non-found team case
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        // case where requesting user is not a manager
+        if (!team.managers.includes(new Types.ObjectId(managerId))) {
+            throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+        }
+
+        const user = await this.userModel.findById(playerId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const teamObjectId = new Types.ObjectId(teamId)
+        const playerObjectId = new Types.ObjectId(playerId)
+
+        // throw error if team has already requested to roster player
+        if (user.requestsFromTeams?.includes(teamObjectId) || team.requestsToPlayers.includes(playerObjectId)) {
+            throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
+        }
+
+        // throw error if player has already requested to be on team's roster
+        if (user.requestsToTeams?.includes(teamObjectId) || team.requestsFromPlayers.includes(playerObjectId)) {
+            throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
+        }
+
+        user.requestsFromTeams?.push(teamObjectId)
+        team.requestsToPlayers.push(playerObjectId)
+
+        await team.save()
+        await user.save()
+
+        return team
     }
 }

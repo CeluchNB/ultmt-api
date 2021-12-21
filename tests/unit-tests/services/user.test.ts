@@ -47,9 +47,7 @@ describe('test sign up', () => {
         const user: IUser = getUser()
         user.email = 'bad@email'
 
-        expect(async () => {
-            await services.signUp(user)
-        }).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
+        await expect(services.signUp(user)).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
     })
 })
 
@@ -69,9 +67,9 @@ describe('test login', () => {
         const user: IUser = getUser()
 
         await User.create(user)
-        expect(async () => {
-            await services.login('absent@email.com')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500))
+        await expect(services.login('absent@email.com')).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500),
+        )
     })
 })
 
@@ -108,9 +106,9 @@ describe('test logout', () => {
         const user: IUser = getUser()
 
         await User.create(user)
-        expect(async () => {
-            await services.logout('absent@email.com', 'token1')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+        await expect(services.logout('absent@email.com', 'token1')).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
     })
 })
 
@@ -143,9 +141,9 @@ describe('test logout all', () => {
         const user: IUser = getUser()
         await User.create(user)
 
-        expect(async () => {
-            await services.logoutAll('absent@email.com')
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+        await expect(services.logoutAll('absent@email.com')).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
     })
 })
 
@@ -188,15 +186,11 @@ describe('test get user', () => {
     })
 
     it('with non-existent user', async () => {
-        expect(async () => {
-            await services.getUser(anonId)
-        }).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+        await expect(services.getUser(anonId)).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 
     it('with bad id', async () => {
-        expect(async () => {
-            await services.getUser('badid')
-        }).rejects.toThrow()
+        await expect(services.getUser('badid')).rejects.toThrow()
     })
 })
 
