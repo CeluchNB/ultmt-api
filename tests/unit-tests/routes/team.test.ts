@@ -157,7 +157,7 @@ describe('test /GET managed id', () => {
         const token = await userRecord.generateAuthToken()
         team.managers.push(userRecord._id)
 
-        const teamRecord = await Team.create(team)
+        await Team.create(team)
 
         await request(app)
             .get(`/team/managing/${anonId}`)
