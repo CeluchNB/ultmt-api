@@ -1,10 +1,11 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
-import { IUser } from '../../../src/types/user'
+import { IUser, ITeam } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser } from '../../fixtures/utils'
+import { getUser, getTeam } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
+import Team from '../../../src/models/team'
 
 const services: UserServices = new UserServices(User)
 const anonId = '507f191e810c19729de860ea'
@@ -219,5 +220,143 @@ describe('test delete account', () => {
         services.deleteUser(anonId)
         const userResult = await User.findById(userRecord._id)
         expect(userResult).not.toBeNull()
+    })
+})
+
+describe('test request to join team', () => {
+    it('with valid data', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        const userResponse = await services.requestRoster(teamRecord._id, userRecord._id)
+
+        expect(userResponse).toBeDefined()
+        expect(userResponse?.requestsToTeams?.length).toBe(1)
+        expect(userResponse?.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
+
+        const userData = await User.findById(userRecord._id)
+        expect(userData?.requestsToTeams?.length).toBe(1)
+        expect(userData?.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
+
+        const teamData = await Team.findById(teamRecord._id)
+        expect(teamData?.requestsFromPlayers?.length).toBe(1)
+        expect(teamData?.requestsFromPlayers?.[0].toString()).toBe(userRecord._id.toString())
+    })
+
+    it('with non-existent team', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        await Team.create(team)
+
+        await expect(services.requestRoster(anonId, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with non-existent user', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        await expect(services.requestRoster(teamRecord._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with player already requesting to join team', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        userRecord.requestsToTeams?.push(teamRecord._id)
+        await userRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
+        )
+    })
+
+    it('with team already having request from player', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        teamRecord.requestsFromPlayers?.push(userRecord._id)
+        await teamRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
+        )
+    })
+
+    it('with player already having request from team', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        userRecord.requestsFromTeams?.push(teamRecord._id)
+        await userRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
+        )
+    })
+
+    it('with team already requesting player', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        teamRecord.requestsToPlayers?.push(userRecord._id)
+        await teamRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
+        )
+    })
+
+    it('with player already on team roster', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        teamRecord.players?.push(userRecord._id)
+        await teamRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
+        )
+    })
+
+    it('with team already on player list', async () => {
+        const user: IUser = getUser()
+        const team: ITeam = getTeam()
+
+        const userRecord = await User.create(user)
+        const teamRecord = await Team.create(team)
+
+        userRecord.playerTeams?.push(teamRecord._id)
+        await userRecord.save()
+
+        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
+        )
     })
 })

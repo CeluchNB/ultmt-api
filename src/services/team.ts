@@ -79,10 +79,10 @@ export default class TeamServices {
      * Method to add a request that a player join the roster
      * @param managerId manager of team
      * @param teamId id of team
-     * @param playerId player to request
+     * @param userId player to request
      * @returns updated team document
      */
-    rosterPlayer = async (managerId: string, teamId: string, playerId: string): Promise<ITeamDocument> => {
+    rosterPlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeamDocument> => {
         const team = await this.teamModel.findById(teamId)
         // handle non-found team case
         if (!team) {
@@ -94,30 +94,30 @@ export default class TeamServices {
             throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
         }
 
-        const user = await this.userModel.findById(playerId)
+        const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
         const teamObjectId = new Types.ObjectId(teamId)
-        const playerObjectId = new Types.ObjectId(playerId)
+        const userObjectId = new Types.ObjectId(userId)
 
         // throw error if team has already requested to roster player
-        if (user.requestsFromTeams?.includes(teamObjectId) || team.requestsToPlayers.includes(playerObjectId)) {
+        if (user.requestsFromTeams?.includes(teamObjectId) || team.requestsToPlayers.includes(userObjectId)) {
             throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
         }
 
         // throw error if player has already requested to be on team's roster
-        if (user.requestsToTeams?.includes(teamObjectId) || team.requestsFromPlayers.includes(playerObjectId)) {
+        if (user.requestsToTeams?.includes(teamObjectId) || team.requestsFromPlayers.includes(userObjectId)) {
             throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
         }
 
-        if (user.playerTeams?.includes(teamObjectId) || team.players.includes(playerObjectId)) {
+        if (user.playerTeams?.includes(teamObjectId) || team.players.includes(userObjectId)) {
             throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
         }
 
         user.requestsFromTeams?.push(teamObjectId)
-        team.requestsToPlayers.push(playerObjectId)
+        team.requestsToPlayers.push(userObjectId)
 
         await team.save()
         await user.save()
