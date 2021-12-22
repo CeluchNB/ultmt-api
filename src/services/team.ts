@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
-import { ITeamModel } from '../models/team'
-import { IUserModel } from '../models/user'
+import Team, { ITeamModel } from '../models/team'
+import User, { IUserModel } from '../models/user'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
 
@@ -121,6 +121,57 @@ export default class TeamServices {
 
         await team.save()
         await user.save()
+
+        return team
+    }
+
+    /**
+     * Method to accept or deny a player's request to be rostered on the team
+     * @param managerId manager of team
+     * @param teamId teamId of request
+     * @param userId playerId of request
+     * @param accept boolean to confirm or deny request
+     * @returns an updated team object
+     */
+    respondToRequest = async (
+        managerId: string,
+        teamId: string,
+        userId: string,
+        accept: boolean,
+    ): Promise<ITeamDocument> => {
+        const team = await Team.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        if (!team.managers.includes(new Types.ObjectId(managerId))) {
+            throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+        }
+
+        const user = await User.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const userObjectId = new Types.ObjectId(userId)
+        const teamObjectId = new Types.ObjectId(teamId)
+        if (!user.requestsToTeams?.includes(teamObjectId) || !team.requestsFromPlayers.includes(userObjectId)) {
+            throw new ApiError(Constants.NO_REQUEST, 400)
+        }
+
+        if (user.playerTeams?.includes(teamObjectId) || team.players.includes(userObjectId)) {
+            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
+        }
+
+        user.requestsToTeams = user.requestsToTeams?.filter((id) => !id.equals(teamObjectId))
+        team.requestsFromPlayers = team.requestsFromPlayers.filter((id) => !id.equals(userObjectId))
+        if (accept) {
+            user.playerTeams?.push(teamObjectId)
+            team.players.push(userObjectId)
+        }
+
+        await user.save()
+        await team.save()
 
         return team
     }
