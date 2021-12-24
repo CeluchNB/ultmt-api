@@ -1,7 +1,7 @@
 import { connect, connection } from 'mongoose'
 import User from '../../src/models/user'
 import Team from '../../src/models/team'
-import { IUser } from '../../src/types'
+import { ITeam, IUser } from '../../src/types'
 
 export const setUpDatabase = async () => {
     await connect(process.env.MONGOOSE_URL as string)

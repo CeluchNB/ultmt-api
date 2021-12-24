@@ -11,10 +11,9 @@ export interface IUser {
 export interface IUserDocument extends IUser, Document {
     private: boolean
     tokens?: string[]
-    playerTeams?: Types.ObjectId[]
-    managerTeams?: Types.ObjectId[]
-    stats?: Types.ObjectId[]
-    requestsFromTeams?: Types.ObjectId[]
-    requestsToTeams?: Types.ObjectId[]
+    playerTeams: Types.ObjectId[]
+    managerTeams: Types.ObjectId[]
+    stats: Types.ObjectId[]
+    requests: Types.ObjectId[]
     generateAuthToken(): string
 }

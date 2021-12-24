@@ -34,10 +34,9 @@ describe('test sign up', () => {
         expect(userRecord.email).toBe(user.email)
         expect(userRecord.password).not.toBe(user.password)
         expect(userRecord.tokens?.length).toBe(1)
-        expect(userRecord.playerTeams?.length).toBe(0)
-        expect(userRecord.managerTeams?.length).toBe(0)
-        expect(userRecord.requestsToTeams?.length).toBe(0)
-        expect(userRecord.requestsFromTeams?.length).toBe(0)
+        expect(userRecord.playerTeams.length).toBe(0)
+        expect(userRecord.managerTeams.length).toBe(0)
+        expect(userRecord.requests.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
         expect(token).toBeDefined()
@@ -160,10 +159,9 @@ describe('test get user', () => {
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
-        expect(userResponse.playerTeams?.toString()).toBe(userRecord.playerTeams?.toString())
-        expect(userResponse.managerTeams?.toString()).toBe(userRecord.managerTeams?.toString())
-        expect(userResponse.requestsToTeams?.toString()).toBeUndefined()
-        expect(userResponse.requestsFromTeams?.toString()).toBeUndefined()
+        expect(userResponse.playerTeams.toString()).toBe(userRecord.playerTeams?.toString())
+        expect(userResponse.managerTeams.toString()).toBe(userRecord.managerTeams?.toString())
+        expect(userResponse.requests.length).toBe(0)
         expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
 
@@ -179,11 +177,10 @@ describe('test get user', () => {
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
-        expect(userResponse.playerTeams).toBeUndefined()
-        expect(userResponse.managerTeams).toBeUndefined()
-        expect(userResponse.requestsToTeams).toBeUndefined()
-        expect(userResponse.requestsFromTeams).toBeUndefined()
-        expect(userResponse.stats).toBeUndefined()
+        expect(userResponse.playerTeams.length).toBe(0)
+        expect(userResponse.managerTeams.length).toBe(0)
+        expect(userResponse.requests.length).toBe(0)
+        expect(userResponse.stats.length).toBe(0)
     })
 
     it('with non-existent user', async () => {
@@ -220,143 +217,5 @@ describe('test delete account', () => {
         services.deleteUser(anonId)
         const userResult = await User.findById(userRecord._id)
         expect(userResult).not.toBeNull()
-    })
-})
-
-describe('test request to join team', () => {
-    it('with valid data', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        const userResponse = await services.requestRoster(teamRecord._id, userRecord._id)
-
-        expect(userResponse).toBeDefined()
-        expect(userResponse?.requestsToTeams?.length).toBe(1)
-        expect(userResponse?.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
-
-        const userData = await User.findById(userRecord._id)
-        expect(userData?.requestsToTeams?.length).toBe(1)
-        expect(userData?.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
-
-        const teamData = await Team.findById(teamRecord._id)
-        expect(teamData?.requestsFromPlayers?.length).toBe(1)
-        expect(teamData?.requestsFromPlayers?.[0].toString()).toBe(userRecord._id.toString())
-    })
-
-    it('with non-existent team', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        await Team.create(team)
-
-        await expect(services.requestRoster(anonId, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
-        )
-    })
-
-    it('with non-existent user', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        await expect(services.requestRoster(teamRecord._id, anonId)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-
-    it('with player already requesting to join team', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        userRecord.requestsToTeams?.push(teamRecord._id)
-        await userRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
-        )
-    })
-
-    it('with team already having request from player', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        teamRecord.requestsFromPlayers?.push(userRecord._id)
-        await teamRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
-        )
-    })
-
-    it('with player already having request from team', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        userRecord.requestsFromTeams?.push(teamRecord._id)
-        await userRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
-        )
-    })
-
-    it('with team already requesting player', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        teamRecord.requestsToPlayers?.push(userRecord._id)
-        await teamRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
-        )
-    })
-
-    it('with player already on team roster', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        teamRecord.players?.push(userRecord._id)
-        await teamRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
-        )
-    })
-
-    it('with team already on player list', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-
-        userRecord.playerTeams?.push(teamRecord._id)
-        await userRecord.save()
-
-        await expect(services.requestRoster(teamRecord._id, userRecord._id)).rejects.toThrowError(
-            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
-        )
     })
 })

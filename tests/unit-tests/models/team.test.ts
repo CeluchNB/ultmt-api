@@ -28,8 +28,7 @@ describe('test team model', () => {
         expect(teamRecord.players.length).toBe(team.players.length)
         expect(teamRecord.seasonStart).toBe(team.seasonStart)
         expect(teamRecord.seasonEnd).toBe(team.seasonEnd)
-        expect(teamRecord.requestsFromPlayers.length).toBe(0)
-        expect(teamRecord.requestsToPlayers.length).toBe(0)
+        expect(teamRecord.requests.length).toBe(0)
         expect(teamRecord.games.length).toBe(0)
     })
 
@@ -61,35 +60,5 @@ describe('test team model', () => {
         expect(teamRecord.playerArray.length).toBe(1)
         expect(teamRecord.playerArray[0].firstName).toBe(user.firstName)
         expect(teamRecord.playerArray[0].lastName).toBe(user.lastName)
-    })
-
-    it('test requestsFromPlayerArray virtual', async () => {
-        const user: IUser = getUser()
-        const userRecord = await User.create(user)
-
-        const team: ITeam = getTeam()
-        team.requestsFromPlayers.push(userRecord._id)
-
-        const teamRecord = await Team.create(team)
-        await teamRecord.populate('requestsFromPlayerArray')
-
-        expect(teamRecord.requestsFromPlayerArray.length).toBe(1)
-        expect(teamRecord.requestsFromPlayerArray[0].firstName).toBe(user.firstName)
-        expect(teamRecord.requestsFromPlayerArray[0].lastName).toBe(user.lastName)
-    })
-
-    it('test requestsToPlayerArray virtual', async () => {
-        const user: IUser = getUser()
-        const userRecord = await User.create(user)
-
-        const team: ITeam = getTeam()
-        team.requestsToPlayers.push(userRecord._id)
-
-        const teamRecord = await Team.create(team)
-        await teamRecord.populate('requestsToPlayerArray')
-
-        expect(teamRecord.requestsToPlayerArray.length).toBe(1)
-        expect(teamRecord.requestsToPlayerArray[0].firstName).toBe(user.firstName)
-        expect(teamRecord.requestsToPlayerArray[0].lastName).toBe(user.lastName)
     })
 })
