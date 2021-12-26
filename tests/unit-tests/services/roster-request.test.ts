@@ -4,7 +4,7 @@ import Team from '../../../src/models/team'
 import RosterRequestServices from '../../../src/services/roster-request'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getTeam, anonId } from '../../fixtures/utils'
-import { ApiError, Initiator, Status } from '../../../src/types'
+import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 
 const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -86,6 +86,26 @@ describe('test request from team', () => {
         )
     })
 
+    it('with previous request', async () => {
+        const [manager, user] = await User.find({})
+        const team = await Team.create(getTeam())
+        team.managers.push(manager._id)
+        await team.save()
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        await RosterRequest.create(request)
+
+        await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
+        )
+    })
+
     it('with unauthorized manager', async () => {
         const [manager, user1, user2] = await User.find({})
         const team = await Team.create(getTeam())
@@ -153,6 +173,24 @@ describe('test request from player', () => {
 
         await expect(services.requestFromPlayer(user._id, anonId)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with previous request', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+
+        await RosterRequest.create(request)
+
+        await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
         )
     })
 

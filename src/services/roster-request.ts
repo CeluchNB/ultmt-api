@@ -3,6 +3,7 @@ import { IUserModel } from '../models/user'
 import { ITeamModel } from '../models/team'
 import { ApiError, Initiator, IRosterRequest, IRosterRequestDocument, Status } from '../types'
 import * as Constants from '../utils/constants'
+import { Types } from 'mongoose'
 
 export default class RosterRequestServices {
     teamModel: ITeamModel
@@ -23,6 +24,16 @@ export default class RosterRequestServices {
      * @returns roster request document
      */
     requestFromTeam = async (managerId: string, teamId: string, userId: string): Promise<IRosterRequestDocument> => {
+        const requestGuard = await this.rosterRequestModel.findOne({
+            user: new Types.ObjectId(userId),
+            team: new Types.ObjectId(teamId),
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        })
+        if (requestGuard) {
+            throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
+        }
+
         const manager = await this.userModel.findById(managerId)
         if (!manager) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -72,6 +83,16 @@ export default class RosterRequestServices {
      * @returns roster request document
      */
     requestFromPlayer = async (userId: string, teamId: string): Promise<IRosterRequestDocument> => {
+        const requestGuard = await this.rosterRequestModel.findOne({
+            user: new Types.ObjectId(userId),
+            team: new Types.ObjectId(teamId),
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+        if (requestGuard) {
+            throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
+        }
+
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
