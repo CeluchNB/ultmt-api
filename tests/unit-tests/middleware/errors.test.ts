@@ -57,15 +57,33 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with unauthorized team requested', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_MANAGER} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_MANAGER, 401),
+        )
+    })
+
     it('with player already rostered error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_ALREADY_ROSTERED} extra details`)).toEqual(
             createExpressErrorObject(Constants.PLAYER_ALREADY_ROSTERED, 400),
         )
     })
 
+    it('with player already requested error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_ALREADY_REQUESTED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.PLAYER_ALREADY_REQUESTED, 400),
+        )
+    })
+
     it('with team already joined error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.TEAM_ALREADY_JOINED} extra details`)).toEqual(
             createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400),
+        )
+    })
+
+    it('with team already requested error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.TEAM_ALREADY_REQUESTED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.TEAM_ALREADY_REQUESTED, 400),
         )
     })
 
