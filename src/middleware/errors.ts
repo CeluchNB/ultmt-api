@@ -31,6 +31,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.TEAM_ALREADY_REQUESTED, 400)
     } else if (error.includes(Constants.TEAM_ALREADY_JOINED)) {
         return createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400)
+    } else if (error.includes(Constants.UNABLE_TO_FIND_REQUEST)) {
+        return createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

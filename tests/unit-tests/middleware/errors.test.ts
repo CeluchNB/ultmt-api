@@ -92,6 +92,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),
         )
     })
+
+    it('with not found roster request', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_FIND_REQUEST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
 })
 
 describe('test middleware', () => {

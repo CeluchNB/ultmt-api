@@ -125,4 +125,51 @@ export default class RosterRequestServices {
 
         return request
     }
+
+    /**
+     *
+     * @param managerId manager id t
+     * @param requestId
+     * @returns
+     */
+    teamAcceptRequest = async (managerId: string, requestId: string): Promise<IRosterRequestDocument> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const request = await this.rosterRequestModel.findById(requestId)
+        if (!request) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        }
+
+        const team = await this.teamModel.findById(request.team)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        if (!team.managers.includes(manager._id)) {
+            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
+        }
+
+        const user = await this.userModel.findById(request.user)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        // add player to team and remove request from team's list
+        team.players.push(user._id)
+        team.requests = team.requests.filter((id) => !id.equals(request._id))
+        await team.save()
+
+        // add team to player but don't remove request from list
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        // set status to approved
+        request.status = Status.Approved
+        await request.save()
+
+        return request
+    }
 }
