@@ -2,15 +2,12 @@
 /* eslint-disable prettier/prettier */
 import request from 'supertest'
 import app from '../../../src/app'
-import { ApiError, IUser, IUserDocument, ITeam } from '../../../src/types'
+import { ApiError, IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, getTeam } from '../../fixtures/utils'
+import { getUser, anonId } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
-import Team from '../../../src/models/team'
-
-const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()

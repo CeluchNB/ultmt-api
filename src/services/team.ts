@@ -1,6 +1,5 @@
-import { Types } from 'mongoose'
-import Team, { ITeamModel } from '../models/team'
-import User, { IUserModel } from '../models/user'
+import { ITeamModel } from '../models/team'
+import { IUserModel } from '../models/user'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
 

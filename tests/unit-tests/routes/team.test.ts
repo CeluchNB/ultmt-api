@@ -3,12 +3,10 @@ import request from 'supertest'
 import app from '../../../src/app'
 import User from '../../../src/models/user'
 import { ITeam, ITeamDocument, IUser } from '../../../src/types'
-import { setUpDatabase, resetDatabase, saveUsers, tearDownDatabase } from '../../fixtures/setup-db'
-import { getTeam, getUser } from '../../fixtures/utils'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
-
-const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()

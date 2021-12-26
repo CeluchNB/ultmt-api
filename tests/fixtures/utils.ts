@@ -23,3 +23,5 @@ export const getTeam = (): ITeam => {
         games: [],
     }
 }
+
+export const anonId = '507f191e810c19729de860ea'

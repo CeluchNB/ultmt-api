@@ -2,11 +2,10 @@ import TeamServices from '../../../src/services/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import { ApiError, ITeam, IUser } from '../../../src/types'
-import { getTeam, getUser } from '../../fixtures/utils'
+import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 
-const anonId = '507f191e810c19729de860ea'
 const services = new TeamServices(Team, User)
 
 beforeAll(async () => {

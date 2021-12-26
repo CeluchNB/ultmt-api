@@ -1,14 +1,12 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
-import { IUser, ITeam } from '../../../src/types'
+import { IUser } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, getTeam } from '../../fixtures/utils'
+import { getUser, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
-import Team from '../../../src/models/team'
 
 const services: UserServices = new UserServices(User)
-const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()

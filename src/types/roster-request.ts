@@ -1,14 +1,14 @@
 import { Types, Document } from 'mongoose'
 
 export enum Initiator {
-    Player,
-    Team,
+    Player = 'player',
+    Team = 'team',
 }
 
 export enum Status {
-    Pending,
-    Approved,
-    Denied,
+    Pending = 'pending',
+    Approved = 'approved',
+    Denied = 'denied',
 }
 
 export interface IRosterRequest {

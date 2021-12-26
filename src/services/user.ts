@@ -1,8 +1,6 @@
-import Team from '../models/team'
-import User, { IUserModel } from '../models/user'
+import { IUserModel } from '../models/user'
 import { ApiError, IUser, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
-import { Types } from 'mongoose'
 
 export default class UserServices {
     userModel: IUserModel
