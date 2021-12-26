@@ -103,11 +103,68 @@ describe('test request from team', () => {
         team.managers.push(manager._id)
         team.players.push(user._id)
         await team.save()
-        user.playerTeams.push(team._id)
-        await user.save()
 
         await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
+        )
+    })
+})
+
+describe('test request from player', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid data', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request = await services.requestFromPlayer(user._id, team._id)
+        expect(request.team.toString()).toBe(team._id.toString())
+        expect(request.user.toString()).toBe(user._id.toString())
+        expect(request.requestSource).toBe(Initiator.Player)
+        expect(request.status).toBe(Status.Pending)
+
+        const requestRecord = await RosterRequest.findById(request._id)
+        expect(requestRecord?.team.toString()).toBe(team._id.toString())
+        expect(requestRecord?.user.toString()).toBe(user._id.toString())
+        expect(requestRecord?.requestSource).toBe(Initiator.Player)
+        expect(requestRecord?.status).toBe(Status.Pending)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.requests.length).toBe(1)
+        expect(userRecord?.requests[0].toString()).toBe(request._id.toString())
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.requests.length).toBe(1)
+        expect(teamRecord?.requests[0].toString()).toBe(request._id.toString())
+    })
+
+    it('with non-existent user', async () => {
+        const team = await Team.create(getTeam())
+
+        await expect(services.requestFromPlayer(anonId, team._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const [user] = await User.find({})
+
+        await expect(services.requestFromPlayer(user._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with player already on team', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
+            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
         )
     })
 })
