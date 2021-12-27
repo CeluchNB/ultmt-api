@@ -17,3 +17,5 @@ export const TEAM_ALREADY_JOINED = 'Team has already been joined'
 export const TEAM_ALREADY_REQUESTED = 'Team has already requested player to join team'
 export const NO_REQUEST = 'There is no active request between this player and team'
 export const UNABLE_TO_FIND_REQUEST = 'Unable to find request record'
+export const PLAYER_NOT_ON_TEAM = 'Player is not on the team'
+export const TEAM_NOT_IN_PLAYER_LIST = "Team is not on player's list"

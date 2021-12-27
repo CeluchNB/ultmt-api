@@ -98,6 +98,18 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404),
         )
     })
+
+    it('with player not on team', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_NOT_ON_TEAM} extra details`)).toEqual(
+            createExpressErrorObject(Constants.PLAYER_NOT_ON_TEAM, 400),
+        )
+    })
+
+    it('with team not on player list', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.TEAM_NOT_IN_PLAYER_LIST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.TEAM_NOT_IN_PLAYER_LIST, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

@@ -33,6 +33,10 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400)
     } else if (error.includes(Constants.UNABLE_TO_FIND_REQUEST)) {
         return createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404)
+    } else if (error.includes(Constants.PLAYER_NOT_ON_TEAM)) {
+        return createExpressErrorObject(Constants.PLAYER_NOT_ON_TEAM, 400)
+    } else if (error.includes(Constants.TEAM_NOT_IN_PLAYER_LIST)) {
+        return createExpressErrorObject(Constants.TEAM_NOT_IN_PLAYER_LIST, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

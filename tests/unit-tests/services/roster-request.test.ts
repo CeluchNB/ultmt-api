@@ -208,12 +208,12 @@ describe('test request from player', () => {
     })
 })
 
-describe('test team accept request', () => {
+describe('test team respond to request', () => {
     beforeEach(async () => {
         await saveUsers()
     })
 
-    it('with valid data', async () => {
+    it('accept with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
@@ -232,7 +232,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        const result = await services.teamAcceptRequest(manager._id, requestRecord._id)
+        const result = await services.teamRespondToRequest(manager._id, requestRecord._id, true)
         expect(result._id.toString()).toBe(requestRecord._id.toString())
         expect(result.team.toString()).toBe(team._id.toString())
         expect(result.user.toString()).toBe(user._id.toString())
@@ -247,6 +247,41 @@ describe('test team accept request', () => {
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(1)
         expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.requests.length).toBe(0)
+    })
+
+    it('deny with valid data', async () => {
+        const [manager, user] = await User.find({})
+        const team = await Team.create(getTeam())
+        team.managers.push(manager._id)
+        await team.save()
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        const result = await services.teamRespondToRequest(manager._id, requestRecord._id, false)
+        expect(result._id.toString()).toBe(requestRecord._id.toString())
+        expect(result.team.toString()).toBe(team._id.toString())
+        expect(result.user.toString()).toBe(user._id.toString())
+        expect(result.requestSource).toBe(Initiator.Player)
+        expect(result.status).toBe(Status.Denied)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+        expect(userRecord?.requests.length).toBe(1)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
         expect(teamRecord?.requests.length).toBe(0)
     })
 
@@ -267,7 +302,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamAcceptRequest(manager._id, requestRecord._id)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
         )
     })
@@ -291,7 +326,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamAcceptRequest(anonId, requestRecord._id)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(anonId, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -315,7 +350,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamAcceptRequest(manager._id, anonId)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(manager._id, anonId, true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404),
         )
     })
@@ -339,7 +374,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamAcceptRequest(manager._id, requestRecord._id)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
         )
     })
@@ -362,7 +397,7 @@ describe('test team accept request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamAcceptRequest(manager._id, requestRecord._id)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
