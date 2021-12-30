@@ -1,4 +1,5 @@
-import { IUser, ITeam } from '../../src/types'
+import { Types } from 'mongoose'
+import { IUser, ITeam, IRosterRequest, Initiator, Status } from '../../src/types'
 
 export const getUser = (): IUser => {
     return {
@@ -21,6 +22,15 @@ export const getTeam = (): ITeam => {
         rosterOpen: false,
         requests: [],
         games: [],
+    }
+}
+
+export const getRosterRequest = (team: Types.ObjectId, user: Types.ObjectId, source: Initiator): IRosterRequest => {
+    return {
+        team,
+        user,
+        requestSource: source,
+        status: Status.Pending,
     }
 }
 
