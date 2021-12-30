@@ -127,7 +127,7 @@ export default class RosterRequestServices {
     }
 
     /**
-     * Method to accept request to team
+     * Method to respond to request to team
      * @param managerId id of team manager
      * @param requestId id of request
      * @returns roster request
@@ -161,6 +161,14 @@ export default class RosterRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
+        if (request.requestSource !== Initiator.Player) {
+            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+        }
+
+        if (request.status !== Status.Pending) {
+            throw new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400)
+        }
+
         if (approve) {
             // add player to team and remove request from team's list
             team.players.push(user._id)
@@ -174,11 +182,67 @@ export default class RosterRequestServices {
             request.status = Status.Denied
         }
 
+        // filter request from team list, but leave in player list
         team.requests = team.requests.filter((id) => !id.equals(request._id))
 
         await team.save()
         await user.save()
         await request.save()
+        return request
+    }
+
+    userRespondToRequest = async (
+        userId: string,
+        requestId: string,
+        approve: boolean,
+    ): Promise<IRosterRequestDocument> => {
+        const request = await this.rosterRequestModel.findById(requestId)
+        if (!request) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        }
+
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(request?.team)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        if (!request.user.equals(user._id)) {
+            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+        }
+
+        if (request.requestSource !== Initiator.Team) {
+            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+        }
+
+        if (request.status !== Status.Pending) {
+            throw new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400)
+        }
+
+        if (approve) {
+            // add player to team and remove request from team's list
+            team.players.push(user._id)
+
+            // add team to player but don't remove request from list
+            user.playerTeams.push(team._id)
+
+            // set status to approved
+            request.status = Status.Approved
+        } else {
+            request.status = Status.Denied
+        }
+
+        // filter out request from user list, but leave in team list
+        user.requests = user.requests.filter((id) => !id.equals(request._id))
+
+        await request.save()
+        await user.save()
+        await team.save()
+
         return request
     }
 }

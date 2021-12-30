@@ -110,6 +110,18 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.TEAM_NOT_IN_PLAYER_LIST, 400),
         )
     })
+
+    it('with wrong party responding', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NOT_ALLOWED_TO_RESPOND} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NOT_ALLOWED_TO_RESPOND, 400),
+        )
+    })
+
+    it('with request status not pending', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.REQUEST_ALREADY_RESOLVED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.REQUEST_ALREADY_RESOLVED, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

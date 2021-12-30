@@ -19,3 +19,5 @@ export const NO_REQUEST = 'There is no active request between this player and te
 export const UNABLE_TO_FIND_REQUEST = 'Unable to find request record'
 export const PLAYER_NOT_ON_TEAM = 'Player is not on the team'
 export const TEAM_NOT_IN_PLAYER_LIST = "Team is not on player's list"
+export const NOT_ALLOWED_TO_RESPOND = 'You are not allowed to respond to this request'
+export const REQUEST_ALREADY_RESOLVED = 'This request has already been closed'

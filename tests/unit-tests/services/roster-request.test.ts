@@ -378,6 +378,7 @@ describe('test team respond to request', () => {
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
         )
     })
+
     it('with non-existent user', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
@@ -399,6 +400,262 @@ describe('test team respond to request', () => {
 
         await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with response to own request', async () => {
+        const [manager, user] = await User.find({})
+        const team = await Team.create(getTeam())
+        team.managers.push(manager._id)
+        await team.save()
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
+        )
+    })
+
+    it('with response to close requested', async () => {
+        const [manager, user] = await User.find({})
+        const team = await Team.create(getTeam())
+        team.managers.push(manager._id)
+        await team.save()
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Approved,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400),
+        )
+    })
+})
+
+describe('test user respond to request', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('accept with valid data', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        const result = await services.userRespondToRequest(user._id, requestRecord._id, true)
+        expect(result._id.toString()).toBe(requestRecord._id.toString())
+        expect(result.user.toString()).toBe(request.user.toString())
+        expect(result.team.toString()).toBe(request.team.toString())
+        expect(result.requestSource).toBe(request.requestSource)
+        expect(result.status).toBe(Status.Approved)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(1)
+        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(1)
+        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.requests.length).toBe(1)
+        expect(teamRecord?.requests[0].toString()).toBe(requestRecord._id.toString())
+    })
+
+    it('deny with valid data', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        const result = await services.userRespondToRequest(user._id, requestRecord._id, false)
+        expect(result._id.toString()).toBe(requestRecord._id.toString())
+        expect(result.user.toString()).toBe(request.user.toString())
+        expect(result.team.toString()).toBe(request.team.toString())
+        expect(result.requestSource).toBe(request.requestSource)
+        expect(result.status).toBe(Status.Denied)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
+        expect(teamRecord?.requests.length).toBe(1)
+        expect(teamRecord?.requests[0].toString()).toBe(requestRecord._id.toString())
+    })
+
+    it('with non-existent user', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(anonId, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: new Types.ObjectId(anonId),
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with non-existent request', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(user._id, anonId, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
+
+    it('responding to own request', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
+        )
+    })
+
+    it('responding to closed request', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Denied,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400),
+        )
+    })
+
+    it('with user not matching request user', async () => {
+        const [user, user2] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Team,
+            status: Status.Pending,
+        }
+
+        const requestRecord = await RosterRequest.create(request)
+        user.requests.push(requestRecord._id)
+        await user.save()
+        team.requests.push(requestRecord._id)
+        await team.save()
+
+        await expect(services.userRespondToRequest(user2._id, requestRecord._id, true)).rejects.toThrowError(
+            new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
         )
     })
 })
