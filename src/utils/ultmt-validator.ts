@@ -1,8 +1,9 @@
-import { IUserModel } from '../models/user'
-import { ITeamModel } from '../models/team'
-import { IRosterRequestModel } from '../models/roster-request'
-import { ApiError, Initiator } from '../types'
+import User, { IUserModel } from '../models/user'
+import Team, { ITeamModel } from '../models/team'
+import RosterRequest, { IRosterRequestModel } from '../models/roster-request'
+import { ApiError, Initiator, Status } from '../types'
 import * as Constants from './constants'
+import { Types } from 'mongoose'
 
 enum ValidationType {
     USER_EXISTS,
@@ -11,10 +12,15 @@ enum ValidationType {
     USER_IS_MANAGER,
     REQUEST_IS_TEAM_INITIATED,
     REQUEST_IS_USER_INITIATED,
+    NO_PENDING_REQUEST,
+    REQUEST_IS_PENDING,
+    PLAYER_NOT_ON_TEAM,
+    USER_ON_REQUEST,
 }
 
 type Validation = {
     type: ValidationType
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
 }
 
@@ -24,7 +30,11 @@ export default class UltmtValidator {
     rosterRequestModel: IRosterRequestModel
     validations: Validation[] = []
 
-    constructor(userModel: IUserModel, teamModel: ITeamModel, rosterRequestModel: IRosterRequestModel) {
+    constructor(
+        userModel: IUserModel = User,
+        teamModel: ITeamModel = Team,
+        rosterRequestModel: IRosterRequestModel = RosterRequest,
+    ) {
         this.userModel = userModel
         this.teamModel = teamModel
         this.rosterRequestModel = rosterRequestModel
@@ -60,6 +70,26 @@ export default class UltmtValidator {
         return this
     }
 
+    noPendingRequest = (userId: string, teamId: string, source: Initiator): UltmtValidator => {
+        this.validations.push({ type: ValidationType.NO_PENDING_REQUEST, data: { userId, teamId, source } })
+        return this
+    }
+
+    requestIsPending = (id: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.REQUEST_IS_PENDING, data: { id } })
+        return this
+    }
+
+    userNotOnTeam = (userId: string, teamId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.PLAYER_NOT_ON_TEAM, data: { userId, teamId } })
+        return this
+    }
+
+    userOnRequest = (userId: string, requestId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_ON_REQUEST, data: { userId, requestId } })
+        return this
+    }
+
     test = async (): Promise<boolean> => {
         for (const i of this.validations) {
             await this.performCheck(i)
@@ -70,14 +100,14 @@ export default class UltmtValidator {
     private performCheck = async (validation: Validation) => {
         switch (validation.type) {
             case ValidationType.USER_EXISTS:
-                const user = await this.userModel.findById(validation.data.id)
-                if (!user) {
+                const user1 = await this.userModel.findById(validation.data.id)
+                if (!user1) {
                     throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
                 }
                 break
             case ValidationType.TEAM_EXISTS:
-                const team = await this.teamModel.findById(validation.data.id)
-                if (!team) {
+                const team1 = await this.teamModel.findById(validation.data.id)
+                if (!team1) {
                     throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
                 }
                 break
@@ -107,6 +137,47 @@ export default class UltmtValidator {
             case ValidationType.REQUEST_IS_USER_INITIATED:
                 const request3 = await this.rosterRequestModel.findById(validation.data.id)
                 if (request3?.requestSource !== Initiator.Player) {
+                    throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+                }
+                break
+            case ValidationType.NO_PENDING_REQUEST:
+                const { userId: userId1, teamId: teamId1, source: source1 } = validation.data
+                const request4 = await this.rosterRequestModel.findOne({
+                    user: new Types.ObjectId(userId1),
+                    team: new Types.ObjectId(teamId1),
+                    requestSource: source1,
+                    status: Status.Pending,
+                })
+
+                if (request4) {
+                    if (source1 === Initiator.Team) {
+                        throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
+                    } else {
+                        throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
+                    }
+                }
+                break
+            case ValidationType.REQUEST_IS_PENDING:
+                const request5 = await this.rosterRequestModel.findById(validation.data.id)
+                if (request5?.status !== Status.Pending) {
+                    throw new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400)
+                }
+                break
+            case ValidationType.PLAYER_NOT_ON_TEAM:
+                const { userId: userId2, teamId: teamId2 } = validation.data
+                const user2 = await this.userModel.findById(userId2)
+                const team2 = await this.teamModel.findById(teamId2)
+
+                if (user2?.playerTeams.includes(team2?._id) || team2?.players.includes(user2?._id)) {
+                    throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
+                }
+                break
+            case ValidationType.USER_ON_REQUEST:
+                const { userId: userId3, requestId: requestId1 } = validation.data
+                const request6 = await this.rosterRequestModel.findById(requestId1)
+                const user3 = await this.userModel.findById(userId3)
+
+                if (!request6?.user.equals(user3?._id)) {
                     throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
                 }
                 break

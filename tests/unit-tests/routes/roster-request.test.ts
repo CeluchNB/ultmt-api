@@ -31,6 +31,8 @@ describe('test request from team route', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const response = await request(app)
             .post(`/request/team/${team._id}?user=${user._id}`)
@@ -178,6 +180,8 @@ describe('test team accept route', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const response = await request(app)
             .post(`/request/team/accept/${requestData._id}`)
@@ -262,6 +266,8 @@ describe('test team deny route', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const response = await request(app)
             .post(`/request/team/deny/${requestData._id}`)

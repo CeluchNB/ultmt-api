@@ -118,6 +118,8 @@ describe('test /GET managed id', () => {
         team.managers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
+        userRecord.managerTeams.push(teamRecord._id)
+        await userRecord.save()
 
         const response = await request(app)
             .get(`/team/managing/${teamRecord._id}`)
@@ -139,6 +141,8 @@ describe('test /GET managed id', () => {
         team.managers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
+        userRecord.managerTeams.push(teamRecord._id)
+        await userRecord.save()
 
         await request(app)
             .get(`/team/managing/${teamRecord._id}`)
@@ -155,7 +159,9 @@ describe('test /GET managed id', () => {
         const token = await userRecord.generateAuthToken()
         team.managers.push(userRecord._id)
 
-        await Team.create(team)
+        const teamRecord = await Team.create(team)
+        userRecord.managerTeams.push(teamRecord._id)
+        await userRecord.save()
 
         await request(app)
             .get(`/team/managing/${anonId}`)

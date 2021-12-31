@@ -14,6 +14,10 @@ beforeAll(async () => {
     await setUpDatabase()
 })
 
+beforeEach(async () => {
+    await saveUsers()
+})
+
 afterEach(async () => {
     await resetDatabase()
 })
@@ -23,15 +27,13 @@ afterAll(() => {
 })
 
 describe('test request from team', () => {
-    beforeEach(async () => {
-        await saveUsers()
-    })
-
     it('with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request = await services.requestFromTeam(manager._id, team._id, user._id)
         expect(request.team.toString()).toBe(team._id.toString())
@@ -70,6 +72,8 @@ describe('test request from team', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         await expect(services.requestFromTeam(manager._id, anonId, user._id)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
@@ -81,6 +85,8 @@ describe('test request from team', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         await expect(services.requestFromTeam(manager._id, team._id, anonId)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
@@ -92,6 +98,8 @@ describe('test request from team', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -112,6 +120,8 @@ describe('test request from team', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         await expect(services.requestFromTeam(user2._id, team._id, user1._id)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
@@ -124,6 +134,8 @@ describe('test request from team', () => {
         team.managers.push(manager._id)
         team.players.push(user._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
@@ -132,10 +144,6 @@ describe('test request from team', () => {
 })
 
 describe('test request from player', () => {
-    beforeEach(async () => {
-        await saveUsers()
-    })
-
     it('with valid data', async () => {
         const [user] = await User.find({})
         const team = await Team.create(getTeam())
@@ -203,21 +211,19 @@ describe('test request from player', () => {
         await user.save()
 
         await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
-            new ApiError(Constants.TEAM_ALREADY_JOINED, 400),
+            new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
         )
     })
 })
 
 describe('test team respond to request', () => {
-    beforeEach(async () => {
-        await saveUsers()
-    })
-
     it('accept with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -255,6 +261,8 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -331,7 +339,7 @@ describe('test team respond to request', () => {
         )
     })
 
-    it('with non-extistent request record', async () => {
+    it('with non-existent request record', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
@@ -360,6 +368,8 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -384,6 +394,8 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: new Types.ObjectId(anonId),
@@ -408,6 +420,8 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -432,6 +446,8 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -453,10 +469,6 @@ describe('test team respond to request', () => {
 })
 
 describe('test user respond to request', () => {
-    beforeEach(async () => {
-        await saveUsers()
-    })
-
     it('accept with valid data', async () => {
         const [user] = await User.find({})
         const team = await Team.create(getTeam())
