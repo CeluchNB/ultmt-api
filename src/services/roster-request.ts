@@ -211,6 +211,12 @@ export default class RosterRequestServices {
         return request
     }
 
+    /**
+     * Method to delete request from team
+     * @param managerId id of team manager
+     * @param requestId id of request
+     * @returns document of deleted roster request
+     */
     teamDelete = async (managerId: string, requestId: string): Promise<IRosterRequestDocument> => {
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
@@ -229,7 +235,45 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .userIsManager(managerId, request?.team.toString())
+            // team must contain request, cannot solely delete from user's queue
             .teamContainsRequest(team._id, request._id)
+            .test()
+
+        team.requests = team.requests.filter((id) => !id.equals(request._id))
+        user.requests = user.requests.filter((id) => !id.equals(request._id))
+
+        await request.delete()
+        await team.save()
+        await user.save()
+
+        return request
+    }
+
+    /**
+     * Method to delete request by user
+     * @param userId id of user
+     * @param requestId id of request
+     * @returns document of deleted roster request
+     */
+    userDelete = async (userId: string, requestId: string): Promise<IRosterRequestDocument> => {
+        const request = await this.rosterRequestModel.findById(requestId)
+        if (!request) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        }
+
+        const team = await this.teamModel.findById(request.team)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .userOnRequest(userId, requestId)
+            .userContainsRequest(userId, requestId)
             .test()
 
         team.requests = team.requests.filter((id) => !id.equals(request._id))
