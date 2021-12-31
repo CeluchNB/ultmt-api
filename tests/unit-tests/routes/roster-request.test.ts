@@ -331,3 +331,165 @@ describe('test team deny route', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
     })
 })
+
+describe('test user accept route', () => {
+    it('with valid data', async () => {
+        const [user] = await User.find({})
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        const response = await request(app)
+            .post(`/request/user/accept/${requestData._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const responseRequest = response.body.request as IRosterRequestDocument
+        expect(responseRequest._id.toString()).toBe(requestData._id.toString())
+        expect(responseRequest.user.toString()).toBe(requestData.user.toString())
+        expect(responseRequest.team.toString()).toBe(requestData.team.toString())
+        expect(responseRequest.requestSource).toBe(Initiator.Team)
+        expect(responseRequest.status).toBe(Status.Approved)
+
+        const requestRecord = await RosterRequest.findById(requestData._id)
+        expect(requestRecord?.user.toString()).toBe(requestData.user.toString())
+        expect(requestRecord?.team.toString()).toBe(requestData.team.toString())
+        expect(requestRecord?.requestSource).toBe(Initiator.Team)
+        expect(requestRecord?.status).toBe(Status.Approved)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(1)
+        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(1)
+        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.requests.length).toBe(1)
+        expect(teamRecord?.requests[0].toString()).toBe(requestData._id.toString())
+    })
+
+    it('with invalid token', async () => {
+        const [user] = await User.find({})
+        await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        await request(app)
+            .post(`/request/user/accept/${requestData._id}`)
+            .set('Authorization', 'Bearer asdfa1234.asdfar342a.asdf3214')
+            .send()
+            .expect(401)
+    })
+
+    it('with non-existent request', async () => {
+        const [user] = await User.find({})
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        const response = await request(app)
+            .post(`/request/user/accept/${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
+    })
+})
+
+describe('test user deny route', () => {
+    it('with valid data', async () => {
+        const [user] = await User.find({})
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        const response = await request(app)
+            .post(`/request/user/deny/${requestData._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const responseRequest = response.body.request as IRosterRequestDocument
+        expect(responseRequest._id.toString()).toBe(requestData._id.toString())
+        expect(responseRequest.user.toString()).toBe(requestData.user.toString())
+        expect(responseRequest.team.toString()).toBe(requestData.team.toString())
+        expect(responseRequest.requestSource).toBe(Initiator.Team)
+        expect(responseRequest.status).toBe(Status.Denied)
+
+        const requestRecord = await RosterRequest.findById(requestData._id)
+        expect(requestRecord?.user.toString()).toBe(requestData.user.toString())
+        expect(requestRecord?.team.toString()).toBe(requestData.team.toString())
+        expect(requestRecord?.requestSource).toBe(Initiator.Team)
+        expect(requestRecord?.status).toBe(Status.Denied)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
+        expect(teamRecord?.requests.length).toBe(1)
+        expect(teamRecord?.requests[0].toString()).toBe(requestData._id.toString())
+    })
+
+    it('with invalid token', async () => {
+        const [user] = await User.find({})
+        await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        await request(app)
+            .post(`/request/user/deny/${requestData._id}`)
+            .set('Authorization', 'Bearer asdfa1234.asdfar342a.asdf3214')
+            .send()
+            .expect(401)
+    })
+
+    it('with non-existent request', async () => {
+        const [user] = await User.find({})
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+
+        const response = await request(app)
+            .post(`/request/user/deny/${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
+    })
+})

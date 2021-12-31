@@ -70,4 +70,32 @@ rosterRequestRouter.post(
     },
 )
 
+rosterRequestRouter.post(
+    '/request/user/accept/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const request = await services.userRespondToRequest((req.user as IUserDocument)._id, req.params.id, true)
+            return res.json({ request })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+rosterRequestRouter.post(
+    '/request/user/deny/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const request = await services.userRespondToRequest((req.user as IUserDocument)._id, req.params.id, false)
+            return res.json({ request })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 rosterRequestRouter.use(errorMiddleware)
