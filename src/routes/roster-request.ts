@@ -112,4 +112,18 @@ rosterRequestRouter.post(
     },
 )
 
+rosterRequestRouter.post(
+    '/request/user/delete/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const request = await services.userDelete((req.user as IUserDocument)._id, req.params.id)
+            return res.json({ request })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 rosterRequestRouter.use(errorMiddleware)
