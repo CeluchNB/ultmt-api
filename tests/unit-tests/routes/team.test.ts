@@ -3,12 +3,10 @@ import request from 'supertest'
 import app from '../../../src/app'
 import User from '../../../src/models/user'
 import { ITeam, ITeamDocument, IUser } from '../../../src/types'
-import { setUpDatabase, resetDatabase, saveUsers, tearDownDatabase } from '../../fixtures/setup-db'
-import { getTeam, getUser } from '../../fixtures/utils'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
-
-const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -93,7 +91,7 @@ describe('test /GET public team', () => {
 
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
-        expect(teamResponse.requestsFromPlayers.length).toBe(0)
+        expect(teamResponse.requests.length).toBe(0)
     })
 
     it('with invalid id', async () => {
@@ -164,119 +162,5 @@ describe('test /GET managed id', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
-    })
-})
-
-describe('test /POST team request to roster player', () => {
-    beforeEach(async () => {
-        await saveUsers()
-    })
-
-    it('with valid data', async () => {
-        const [user1, user2] = await User.find({})
-        const token = await user1.generateAuthToken()
-        
-        const team: ITeam = getTeam()
-        team.managers.push(user1._id)
-        const teamRecord = await Team.create(team)
-
-        const response = await request(app)
-            .post('/team/roster/player')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                teamId: teamRecord._id,
-                playerId: user2._id
-            })
-            .expect(200)
-
-        const teamResponse = response.body.team as ITeamDocument
-        expect(teamResponse).toBeDefined()
-        expect(teamResponse.requestsToPlayers.length).toBe(1)
-        expect(teamResponse.requestsToPlayers[0].toString()).toBe(user2._id.toString())
-
-        const teamData = await Team.findById(teamRecord._id)
-        expect(teamData).toBeDefined()
-        expect(teamData?.requestsToPlayers.length).toBe(1)
-        expect(teamData?.requestsToPlayers[0].toString()).toBe(user2._id.toString())
-
-        const userData = await User.findById(user2._id)
-        expect(userData?.requestsFromTeams?.length).toBe(1)
-        expect(userData?.requestsFromTeams?.[0].toString()).toBe(teamRecord._id.toString())
-    })
-
-    it('with invalid token', async () => {
-        const [user1, user2] = await User.find({})
-        await user1.generateAuthToken()
-        
-        const team: ITeam = getTeam()
-        team.managers.push(user1._id)
-        const teamRecord = await Team.create(team)
-
-        await request(app)
-            .post('/team/roster/player')
-            .set('Authorization', 'Bearer verybad.token1234.asdfadfa')
-            .send({
-                teamId: teamRecord._id,
-                playerId: user2._id
-            })
-            .expect(401)
-    })
-
-    it('with unauthorized manager', async () => {
-        const [user1, user2] = await User.find({})
-        const token2 = await user2.generateAuthToken()
-        
-        const team: ITeam = getTeam()
-        team.managers.push(user1._id)
-        const teamRecord = await Team.create(team)
-
-        const response = await request(app)
-            .post('/team/roster/player')
-            .set('Authorization', `Bearer ${token2}`)
-            .send({
-                teamId: teamRecord._id,
-                playerId: user2._id
-            })
-            .expect(401)
-
-        expect(response.body.message).toBe(Constants.UNAUTHORIZED_TO_GET_TEAM)
-    })
-
-    it('with bad team id', async () => {
-        const [user1, user2] = await User.find({})
-        const token = await user1.generateAuthToken()
-        
-        const team: ITeam = getTeam()
-        team.managers.push(user1._id)
-        await Team.create(team)
-
-        const response = await request(app)
-            .post('/team/roster/player')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                teamId: anonId,
-                playerId: user2._id
-            })
-            .expect(404)
-        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
-    })
-
-    it('with bad user id', async () => {
-        const [user1] = await User.find({})
-        const token = await user1.generateAuthToken()
-        
-        const team: ITeam = getTeam()
-        team.managers.push(user1._id)
-        const teamRecord = await Team.create(team)
-
-        const response = await request(app)
-            .post('/team/roster/player')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                teamId: teamRecord._id,
-                playerId: anonId
-            })
-            .expect(404)
-        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
     })
 })

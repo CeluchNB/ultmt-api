@@ -57,9 +57,21 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with unauthorized team requested', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_MANAGER} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_MANAGER, 401),
+        )
+    })
+
     it('with player already rostered error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_ALREADY_ROSTERED} extra details`)).toEqual(
             createExpressErrorObject(Constants.PLAYER_ALREADY_ROSTERED, 400),
+        )
+    })
+
+    it('with player already requested error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_ALREADY_REQUESTED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.PLAYER_ALREADY_REQUESTED, 400),
         )
     })
 
@@ -69,9 +81,45 @@ describe('test user error response parsing', () => {
         )
     })
 
+    it('with team already requested error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.TEAM_ALREADY_REQUESTED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.TEAM_ALREADY_REQUESTED, 400),
+        )
+    })
+
     it('with create user error', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_CREATE_USER} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500),
+        )
+    })
+
+    it('with not found roster request', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_FIND_REQUEST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
+
+    it('with player not on team', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.PLAYER_NOT_ON_TEAM} extra details`)).toEqual(
+            createExpressErrorObject(Constants.PLAYER_NOT_ON_TEAM, 400),
+        )
+    })
+
+    it('with team not on player list', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.TEAM_NOT_IN_PLAYER_LIST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.TEAM_NOT_IN_PLAYER_LIST, 400),
+        )
+    })
+
+    it('with wrong party responding', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NOT_ALLOWED_TO_RESPOND} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NOT_ALLOWED_TO_RESPOND, 400),
+        )
+    })
+
+    it('with request status not pending', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.REQUEST_ALREADY_RESOLVED} extra details`)).toEqual(
+            createExpressErrorObject(Constants.REQUEST_ALREADY_RESOLVED, 400),
         )
     })
 })

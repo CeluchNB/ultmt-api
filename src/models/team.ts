@@ -22,8 +22,7 @@ const schema = new Schema<ITeamDocument>(
             required: true,
             default: false,
         },
-        requestsFromPlayers: [{ type: Types.ObjectId }],
-        requestsToPlayers: [{ type: Types.ObjectId }],
+        requests: [{ type: Types.ObjectId }],
         games: [{ type: Types.ObjectId }],
     },
     opts,
@@ -38,18 +37,6 @@ schema.virtual('managerArray', {
 schema.virtual('playerArray', {
     ref: 'User',
     localField: 'players',
-    foreignField: '_id',
-})
-
-schema.virtual('requestsFromPlayerArray', {
-    ref: 'User',
-    localField: 'requestsFromPlayers',
-    foreignField: '_id',
-})
-
-schema.virtual('requestsToPlayerArray', {
-    ref: 'User',
-    localField: 'requestsToPlayers',
     foreignField: '_id',
 })
 

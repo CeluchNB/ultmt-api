@@ -2,15 +2,12 @@
 /* eslint-disable prettier/prettier */
 import request from 'supertest'
 import app from '../../../src/app'
-import { ApiError, IUser, IUserDocument, ITeam } from '../../../src/types'
+import { ApiError, IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, getTeam } from '../../fixtures/utils'
+import { getUser, anonId } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
-import Team from '../../../src/models/team'
-
-const anonId = '507f191e810c19729de860ea'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -348,74 +345,5 @@ describe('test /DELETE profile', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(500)
-    })
-})
-
-describe('test /POST join team', () => {
-    it('with valid data', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-        
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-        const token = await userRecord.generateAuthToken()
-        
-        const response = await request(app)
-            .post('/user/roster/team')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                teamId: teamRecord._id
-            })
-            .expect(200)
-
-        const userResponse = response.body.user as IUserDocument
-
-        expect(userResponse).toBeDefined()
-        expect(userResponse.requestsToTeams?.length).toBe(1)
-        expect(userResponse.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
-
-        const userData = await User.findById(userRecord._id)
-        expect(userData?.requestsToTeams?.length).toBe(1)
-        expect(userData?.requestsToTeams?.[0].toString()).toBe(teamRecord._id.toString())
-        
-        const teamData = await Team.findById(teamRecord._id)
-        expect(teamData?.requestsFromPlayers?.length).toBe(1)
-        expect(teamData?.requestsFromPlayers?.[0].toString()).toBe(userRecord._id.toString())
-    })
-
-    it('with invalid token', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-        
-        const userRecord = await User.create(user)
-        const teamRecord = await Team.create(team)
-        await userRecord.generateAuthToken()
-        
-        await request(app)
-            .post('/user/roster/team')
-            .set('Authorization', `Bearer notarealtoken.asdfa3451.nogoodinfo124`)
-            .send({
-                teamId: teamRecord._id
-            })
-            .expect(401)
-    })
-
-    it('with bad teamId', async () => {
-        const user: IUser = getUser()
-        const team: ITeam = getTeam()
-        
-        const userRecord = await User.create(user)
-        await Team.create(team)
-        const token = await userRecord.generateAuthToken()
-
-        const response = await request(app)
-            .post('/user/roster/team')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                teamId: anonId
-            })
-            .expect(404)
-        
-        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })

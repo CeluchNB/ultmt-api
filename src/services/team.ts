@@ -1,4 +1,3 @@
-import { Types } from 'mongoose'
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
@@ -28,14 +27,14 @@ export default class TeamServices {
         user.managerTeams?.push(teamObject._id)
         await user.save()
 
-        for (const i of team.requestsToPlayers) {
+        // TODO:: Perform creation of RosterRequest objects here
+        for (const i of team.requests) {
             const requestUser = await this.userModel.findById(i)
-            requestUser?.requestsFromTeams?.push(teamObject._id)
+            requestUser?.requests.push(teamObject._id)
             await requestUser?.save()
         }
 
         await teamObject.populate('managerArray')
-        await teamObject.populate('requestsToPlayerArray')
         return teamObject
     }
 
@@ -52,8 +51,7 @@ export default class TeamServices {
         }
 
         if (publicReq) {
-            teamObject.requestsFromPlayers = []
-            teamObject.requestsToPlayers = []
+            teamObject.requests = []
         }
 
         return teamObject
@@ -73,55 +71,5 @@ export default class TeamServices {
             }
         }
         throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
-    }
-
-    /**
-     * Method to add a request that a player join the roster
-     * @param managerId manager of team
-     * @param teamId id of team
-     * @param userId player to request
-     * @returns updated team document
-     */
-    rosterPlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeamDocument> => {
-        const team = await this.teamModel.findById(teamId)
-        // handle non-found team case
-        if (!team) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
-        }
-
-        // case where requesting user is not a manager
-        if (!team.managers.includes(new Types.ObjectId(managerId))) {
-            throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
-        }
-
-        const user = await this.userModel.findById(userId)
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-
-        const teamObjectId = new Types.ObjectId(teamId)
-        const userObjectId = new Types.ObjectId(userId)
-
-        // throw error if team has already requested to roster player
-        if (user.requestsFromTeams?.includes(teamObjectId) || team.requestsToPlayers.includes(userObjectId)) {
-            throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
-        }
-
-        // throw error if player has already requested to be on team's roster
-        if (user.requestsToTeams?.includes(teamObjectId) || team.requestsFromPlayers.includes(userObjectId)) {
-            throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
-        }
-
-        if (user.playerTeams?.includes(teamObjectId) || team.players.includes(userObjectId)) {
-            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
-        }
-
-        user.requestsFromTeams?.push(teamObjectId)
-        team.requestsToPlayers.push(userObjectId)
-
-        await team.save()
-        await user.save()
-
-        return team
     }
 }

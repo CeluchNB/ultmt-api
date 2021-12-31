@@ -48,20 +48,4 @@ teamRouter.get(
     },
 )
 
-teamRouter.post(
-    '/team/roster/player',
-    passport.authenticate('jwt', { session: false }),
-    async (req: Request, res: Response, next) => {
-        try {
-            const manager = req.user as IUserDocument
-            const { teamId, playerId } = req.body
-            const teamServices = new TeamServices(Team, User)
-            const team = await teamServices.rosterPlayer(manager._id, teamId, playerId)
-            return res.json({ team })
-        } catch (error) {
-            next(error)
-        }
-    },
-)
-
 teamRouter.use(errorMiddleware)

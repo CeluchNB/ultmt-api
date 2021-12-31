@@ -21,10 +21,26 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.UNABLE_TO_CREATE_USER, 500)
     } else if (error.includes(Constants.UNAUTHORIZED_TO_GET_TEAM)) {
         return createExpressErrorObject(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+    } else if (error.includes(Constants.UNAUTHORIZED_MANAGER)) {
+        return createExpressErrorObject(Constants.UNAUTHORIZED_MANAGER, 401)
+    } else if (error.includes(Constants.PLAYER_ALREADY_REQUESTED)) {
+        return createExpressErrorObject(Constants.PLAYER_ALREADY_REQUESTED, 400)
     } else if (error.includes(Constants.PLAYER_ALREADY_ROSTERED)) {
         return createExpressErrorObject(Constants.PLAYER_ALREADY_ROSTERED, 400)
+    } else if (error.includes(Constants.TEAM_ALREADY_REQUESTED)) {
+        return createExpressErrorObject(Constants.TEAM_ALREADY_REQUESTED, 400)
     } else if (error.includes(Constants.TEAM_ALREADY_JOINED)) {
         return createExpressErrorObject(Constants.TEAM_ALREADY_JOINED, 400)
+    } else if (error.includes(Constants.UNABLE_TO_FIND_REQUEST)) {
+        return createExpressErrorObject(Constants.UNABLE_TO_FIND_REQUEST, 404)
+    } else if (error.includes(Constants.PLAYER_NOT_ON_TEAM)) {
+        return createExpressErrorObject(Constants.PLAYER_NOT_ON_TEAM, 400)
+    } else if (error.includes(Constants.TEAM_NOT_IN_PLAYER_LIST)) {
+        return createExpressErrorObject(Constants.TEAM_NOT_IN_PLAYER_LIST, 400)
+    } else if (error.includes(Constants.NOT_ALLOWED_TO_RESPOND)) {
+        return createExpressErrorObject(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+    } else if (error.includes(Constants.REQUEST_ALREADY_RESOLVED)) {
+        return createExpressErrorObject(Constants.REQUEST_ALREADY_RESOLVED, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }
