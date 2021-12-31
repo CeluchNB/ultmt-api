@@ -3,7 +3,7 @@ import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import RosterRequestServices from '../../../src/services/roster-request'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
-import { getTeam, anonId } from '../../fixtures/utils'
+import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
@@ -668,6 +668,207 @@ describe('test user respond to request', () => {
 
         await expect(services.userRespondToRequest(user2._id, requestRecord._id, true)).rejects.toThrowError(
             new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
+        )
+    })
+})
+
+describe('test team delete', () => {
+    it('with valid data', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        const response = await services.teamDelete(manager._id, request._id)
+        expect(response._id.toString()).toBe(request._id.toString())
+        expect(response.team.toString()).toBe(team._id.toString())
+        expect(response.user.toString()).toBe(user._id.toString())
+        expect(response.requestSource).toBe(Initiator.Team)
+        expect(response.status).toBe(Status.Pending)
+
+        const requestRecord = await RosterRequest.findById(request._id)
+        expect(requestRecord).toBeNull()
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.requests.length).toBe(0)
+    })
+
+    it('with non-existent request', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.teamDelete(manager._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
+
+    it('with request not on team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+            new ApiError(Constants.REQUEST_NOT_IN_LIST, 400),
+        )
+    })
+
+    it('with non-existent user', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(
+            getRosterRequest(team._id, new Types.ObjectId(anonId), Initiator.Team),
+        )
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(
+            getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
+        )
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+})
+
+describe('test user delete', () => {
+    it('with valid data', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        const response = await services.userDelete(user._id, request._id)
+        expect(response._id.toString()).toBe(request._id.toString())
+        expect(response.team.toString()).toBe(team._id.toString())
+        expect(response.user.toString()).toBe(user._id.toString())
+        expect(response.requestSource).toBe(Initiator.Team)
+        expect(response.status).toBe(Status.Pending)
+
+        const requestRecord = await RosterRequest.findById(request._id)
+        expect(requestRecord).toBeNull()
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.requests.length).toBe(0)
+    })
+
+    it('with non-existent request', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.userDelete(user._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
+
+    it('with request not on user', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
+            new ApiError(Constants.REQUEST_NOT_IN_LIST, 400),
+        )
+    })
+
+    it('with non-existent user', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.userDelete(anonId, request._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        const request = await RosterRequest.create(
+            getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
+        )
+        team.managers.push(manager._id)
+        team.requests.push(request._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.requests.push(request._id)
+        await user.save()
+
+        await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
         )
     })
 })

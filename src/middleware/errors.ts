@@ -41,6 +41,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.NOT_ALLOWED_TO_RESPOND, 400)
     } else if (error.includes(Constants.REQUEST_ALREADY_RESOLVED)) {
         return createExpressErrorObject(Constants.REQUEST_ALREADY_RESOLVED, 400)
+    } else if (error.includes(Constants.REQUEST_NOT_IN_LIST)) {
+        return createExpressErrorObject(Constants.REQUEST_NOT_IN_LIST, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }
