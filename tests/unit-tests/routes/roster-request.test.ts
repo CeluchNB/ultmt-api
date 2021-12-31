@@ -499,3 +499,86 @@ describe('test user deny route', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
     })
 })
+
+describe('test team delete request', () => {
+    it('with valid data', async () => {
+        const [user, manager] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        team.managers.push(manager._id)
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        const response = await request(app)
+            .post(`/request/team/delete/${requestData._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const requestResponse = response.body.request
+        expect(requestResponse._id.toString()).toBe(requestData._id.toString())
+        expect(requestResponse.user.toString()).toBe(requestData.user.toString())
+        expect(requestResponse.team.toString()).toBe(requestData.team.toString())
+        expect(requestResponse.requestSource).toBe(Initiator.Player)
+        expect(requestResponse.status).toBe(Status.Pending)
+
+        const requestRecord = await RosterRequest.findById(requestData._id)
+        expect(requestRecord).toBeNull()
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.requests.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.requests.length).toBe(0)
+    })
+
+    it('with invalid token', async () => {
+        const [user, manager] = await User.find({})
+        await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        team.managers.push(manager._id)
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        await request(app)
+            .post(`/request/team/delete/${requestData._id}`)
+            .set('Authorization', 'Bearer asdfa324.asdft421df.a3294fa')
+            .send()
+            .expect(401)
+    })
+
+    it('with non-existent request', async () => {
+        const [user, manager] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        team.managers.push(manager._id)
+        team.requests.push(requestData._id)
+        await team.save()
+        user.requests.push(requestData._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        const response = await request(app)
+            .post(`/request/team/delete/${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
+    })
+})
