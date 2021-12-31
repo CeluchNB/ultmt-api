@@ -21,6 +21,15 @@ afterAll(() => {
 })
 
 describe('test ultmt validator', () => {
+    it('test with no arguments', async () => {
+        const user = await User.create(getUser())
+
+        const validator = new UltmtValidator()
+        validator.userExists(user._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
     it('user exists with existing user', async () => {
         const user = await User.create(getUser())
 
