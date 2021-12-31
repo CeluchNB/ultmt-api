@@ -3,7 +3,7 @@ import { IUserModel } from '../models/user'
 import { ITeamModel } from '../models/team'
 import { ApiError, Initiator, IRosterRequest, IRosterRequestDocument, Status } from '../types'
 import * as Constants from '../utils/constants'
-import { Types } from 'mongoose'
+import UltmtValidator from '../utils/ultmt-validator'
 
 export default class RosterRequestServices {
     teamModel: ITeamModel
@@ -24,28 +24,9 @@ export default class RosterRequestServices {
      * @returns roster request document
      */
     requestFromTeam = async (managerId: string, teamId: string, userId: string): Promise<IRosterRequestDocument> => {
-        const requestGuard = await this.rosterRequestModel.findOne({
-            user: new Types.ObjectId(userId),
-            team: new Types.ObjectId(teamId),
-            requestSource: Initiator.Team,
-            status: Status.Pending,
-        })
-        if (requestGuard) {
-            throw new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400)
-        }
-
-        const manager = await this.userModel.findById(managerId)
-        if (!manager) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
-        }
-
-        if (!team.managers.includes(manager._id)) {
-            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
         }
 
         const user = await this.userModel.findById(userId)
@@ -53,9 +34,12 @@ export default class RosterRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        if (team.players.includes(user._id)) {
-            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
-        }
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .userExists(managerId)
+            .userIsManager(managerId, teamId)
+            .noPendingRequest(userId, teamId, Initiator.Team)
+            .userNotOnTeam(userId, teamId)
+            .test()
 
         const requestData: IRosterRequest = {
             team: team._id,
@@ -83,15 +67,10 @@ export default class RosterRequestServices {
      * @returns roster request document
      */
     requestFromPlayer = async (userId: string, teamId: string): Promise<IRosterRequestDocument> => {
-        const requestGuard = await this.rosterRequestModel.findOne({
-            user: new Types.ObjectId(userId),
-            team: new Types.ObjectId(teamId),
-            requestSource: Initiator.Player,
-            status: Status.Pending,
-        })
-        if (requestGuard) {
-            throw new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400)
-        }
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .noPendingRequest(userId, teamId, Initiator.Player)
+            .userNotOnTeam(userId, teamId)
+            .test()
 
         const user = await this.userModel.findById(userId)
         if (!user) {
@@ -101,10 +80,6 @@ export default class RosterRequestServices {
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
-        }
-
-        if (user.playerTeams.includes(team._id)) {
-            throw new ApiError(Constants.TEAM_ALREADY_JOINED, 400)
         }
 
         const requestData: IRosterRequest = {
@@ -137,44 +112,32 @@ export default class RosterRequestServices {
         requestId: string,
         approve: boolean,
     ): Promise<IRosterRequestDocument> => {
-        const manager = await this.userModel.findById(managerId)
-        if (!manager) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
         }
 
-        const team = await this.teamModel.findById(request.team)
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .userExists(managerId)
+            .userExists(request?.user.toString() || '')
+            .teamExists(request?.team.toString() || '')
+            .userIsManager(managerId, request?.team.toString() || '')
+            .requestIsUserInitiated(requestId)
+            .requestIsPending(request._id)
+            .test()
+
+        const team = await this.teamModel.findById(request?.team)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
-
-        if (!team.managers.includes(manager._id)) {
-            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
-        }
-
-        const user = await this.userModel.findById(request.user)
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-
-        if (request.requestSource !== Initiator.Player) {
-            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
-        }
-
-        if (request.status !== Status.Pending) {
-            throw new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400)
-        }
+        const user = await this.userModel.findById(request?.user)
 
         if (approve) {
             // add player to team and remove request from team's list
-            team.players.push(user._id)
+            team.players.push(user?._id)
 
             // add team to player but don't remove request from list
-            user.playerTeams.push(team._id)
+            user?.playerTeams.push(team._id)
 
             // set status to approved
             request.status = Status.Approved
@@ -183,10 +146,10 @@ export default class RosterRequestServices {
         }
 
         // filter request from team list, but leave in player list
-        team.requests = team.requests.filter((id) => !id.equals(request._id))
+        team.requests = team?.requests.filter((id) => !id.equals(request._id))
 
         await team.save()
-        await user.save()
+        await user?.save()
         await request.save()
         return request
     }
@@ -206,29 +169,21 @@ export default class RosterRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .teamExists(request?.team.toString())
+            .requestIsTeamInitiated(requestId)
+            .requestIsPending(request._id)
+            .userOnRequest(user._id, request._id)
+            .test()
+
         const team = await this.teamModel.findById(request?.team)
-        if (!team) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
-        }
-
-        if (!request.user.equals(user._id)) {
-            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
-        }
-
-        if (request.requestSource !== Initiator.Team) {
-            throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
-        }
-
-        if (request.status !== Status.Pending) {
-            throw new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400)
-        }
 
         if (approve) {
             // add player to team and remove request from team's list
-            team.players.push(user._id)
+            team?.players.push(user._id)
 
             // add team to player but don't remove request from list
-            user.playerTeams.push(team._id)
+            user.playerTeams.push(team?._id)
 
             // set status to approved
             request.status = Status.Approved
@@ -241,7 +196,7 @@ export default class RosterRequestServices {
 
         await request.save()
         await user.save()
-        await team.save()
+        await team?.save()
 
         return request
     }

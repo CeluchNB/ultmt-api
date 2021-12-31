@@ -2,6 +2,7 @@ import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
+import UltmtValidator from '../utils/ultmt-validator'
 
 export default class TeamServices {
     teamModel: ITeamModel
@@ -64,12 +65,7 @@ export default class TeamServices {
      * @returns the team document found
      */
     getManagedTeam = async (teamId: string, userId: string): Promise<ITeamDocument> => {
-        const team = await this.getTeam(teamId, false)
-        for (const mId of team.managers) {
-            if (mId.toString() === userId.toString()) {
-                return team
-            }
-        }
-        throw new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401)
+        await new UltmtValidator(this.userModel, this.teamModel).teamExists(teamId).userIsManager(userId, teamId).test()
+        return await this.getTeam(teamId, false)
     }
 }

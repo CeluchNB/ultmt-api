@@ -140,6 +140,9 @@ describe('test getManagedTeam', () => {
         team.managers.push(userResponse._id)
         const teamRecord = await Team.create(team)
 
+        userResponse.managerTeams.push(teamRecord._id)
+        await userResponse.save()
+
         const teamResponse = await services.getManagedTeam(teamRecord._id, userResponse._id)
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
@@ -155,7 +158,7 @@ describe('test getManagedTeam', () => {
         await userRecord.generateAuthToken()
 
         await expect(services.getManagedTeam(teamRecord._id, anonId)).rejects.toThrowError(
-            new ApiError(Constants.UNAUTHORIZED_TO_GET_TEAM, 401),
+            new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
         )
     })
 })
