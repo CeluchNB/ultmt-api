@@ -122,6 +122,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.REQUEST_ALREADY_RESOLVED, 400),
         )
     })
+
+    it('with request not in list', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.REQUEST_NOT_IN_LIST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.REQUEST_NOT_IN_LIST, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

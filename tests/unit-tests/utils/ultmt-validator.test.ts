@@ -259,4 +259,31 @@ describe('test ultmt validator', () => {
         validator.userOnRequest(user._id, request._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
+
+    it('team contains request success case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const request = await RosterRequest.create(
+            getRosterRequest(team._id, new Types.ObjectId(user._id), Initiator.Team),
+        )
+        team.requests.push(request._id)
+        await team.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.teamContainsRequest(team._id, request._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('team contains request failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const request = await RosterRequest.create(
+            getRosterRequest(team._id, new Types.ObjectId(user._id), Initiator.Team),
+        )
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.teamContainsRequest(team._id, request._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.REQUEST_NOT_IN_LIST, 400))
+    })
 })
