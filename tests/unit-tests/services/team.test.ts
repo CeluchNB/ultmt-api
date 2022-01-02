@@ -162,3 +162,83 @@ describe('test getManagedTeam', () => {
         )
     })
 })
+
+describe('test remove player', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+    it('with valid data', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        const result = await services.removePlayer(manager._id, team._id, user._id)
+        expect(result._id.toString()).toBe(team._id.toString())
+        expect(result.name).toBe(team.name)
+        expect(result.players.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+    })
+
+    it('with non-existent user', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        await expect(services.removePlayer(manager._id, team._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        await expect(services.removePlayer(manager._id, anonId, user._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with non-existent manager', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+
+        await expect(services.removePlayer(anonId, team._id, user._id)).rejects.toThrowError(
+            new ApiError(Constants.UNAUTHORIZED_MANAGER, 400),
+        )
+    })
+})

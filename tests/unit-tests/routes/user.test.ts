@@ -5,9 +5,10 @@ import app from '../../../src/app'
 import { ApiError, IUser, IUserDocument } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, anonId } from '../../fixtures/utils'
+import { getUser, anonId, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
+import Team from '../../../src/models/team'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -345,5 +346,70 @@ describe('test /DELETE profile', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(500)
+    })
+})
+
+describe('test /POST leave team', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        const response = await request(app)
+            .post(`/user/leave/team?team=${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+        
+        const userResponse = response.body.user
+        expect(userResponse._id).toBe(user._id.toString())
+        expect(userResponse.playerTeams.length).toBe(0)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
+    })
+
+    it('with invalid token', async () => {
+        const user = await User.create(getUser())
+        await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        await request(app)
+            .post(`/user/leave/team?team=${team._id}`)
+            .set('Authorization', 'Bearer asdf431gf.asdft541fg.g86f9jf')
+            .send()
+            .expect(401)
+    })
+
+    it('with non-existent team', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        const response = await request(app)
+            .post(`/user/leave/team?team=${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })

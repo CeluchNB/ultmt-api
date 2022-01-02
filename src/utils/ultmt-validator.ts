@@ -18,6 +18,7 @@ enum ValidationType {
     USER_ON_REQUEST,
     TEAM_CONTAINS_REQUEST,
     USER_CONTAINS_REQUEST,
+    USER_ON_TEAM,
 }
 
 type Validation = {
@@ -99,6 +100,11 @@ export default class UltmtValidator {
 
     userContainsRequest = (userId: string, requestId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.USER_CONTAINS_REQUEST, data: { userId, requestId } })
+        return this
+    }
+
+    userOnTeam = (userId: string, teamId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_ON_TEAM, data: { userId, teamId } })
         return this
     }
 
@@ -220,6 +226,17 @@ export default class UltmtValidator {
                 if (!user?.requests.includes(new Types.ObjectId(requestId))) {
                     throw new ApiError(Constants.REQUEST_NOT_IN_LIST, 400)
                 }
+                break
+            }
+            case ValidationType.USER_ON_TEAM: {
+                const { userId, teamId } = validation.data
+                const user = await this.userModel.findById(userId)
+                const team = await this.teamModel.findById(teamId)
+
+                if (!user?.playerTeams.includes(team?._id) || !team?.players.includes(user._id)) {
+                    throw new ApiError(Constants.PLAYER_NOT_ON_TEAM, 400)
+                }
+                break
             }
         }
     }

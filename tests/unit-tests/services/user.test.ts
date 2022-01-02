@@ -1,12 +1,13 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
+import Team from '../../../src/models/team'
 import { IUser } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, anonId } from '../../fixtures/utils'
+import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
 
-const services: UserServices = new UserServices(User)
+const services: UserServices = new UserServices(User, Team)
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -215,5 +216,64 @@ describe('test delete account', () => {
         services.deleteUser(anonId)
         const userResult = await User.findById(userRecord._id)
         expect(userResult).not.toBeNull()
+    })
+})
+
+describe('test leave team', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        const result = await services.leaveTeam(user._id, team._id)
+        expect(result._id.toString()).toBe(user._id.toString())
+        expect(result.playerTeams.length).toBe(0)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.players.length).toBe(0)
+    })
+
+    it('with non-existent user', async () => {
+        const user = await User.create(getUser())
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        await expect(services.leaveTeam(anonId, team._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const user = await User.create(getUser())
+        const team = await Team.create(getTeam())
+
+        user.playerTeams.push(team._id)
+        await user.save()
+        team.players.push(user._id)
+        await team.save()
+
+        await expect(services.leaveTeam(user._id, anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with user not on team', async () => {
+        const user = await User.create(getUser())
+        const team = await Team.create(getTeam())
+
+        await expect(services.leaveTeam(user._id, team._id)).rejects.toThrowError(
+            new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404),
+        )
     })
 })
