@@ -97,4 +97,19 @@ userRouter.delete(
     },
 )
 
+userRouter.post(
+    '/user/leave/team',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const id = (req.user as IUserDocument)._id
+            const userService = new UserServices(User, Team)
+            const user = await userService.leaveTeam(id, req.query.team as string)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)
