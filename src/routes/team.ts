@@ -48,4 +48,22 @@ teamRouter.get(
     },
 )
 
+teamRouter.post(
+    '/team/remove/player/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User)
+            const team = await teamServices.removePlayer(
+                (req.user as IUserDocument)._id,
+                req.params.id,
+                req.query.user as string,
+            )
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)
