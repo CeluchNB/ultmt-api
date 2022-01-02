@@ -305,4 +305,26 @@ describe('test ultmt validator', () => {
         validator.userContainsRequest(team._id, request._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.REQUEST_NOT_IN_LIST, 400))
     })
+
+    it('user on team success case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        team.players.push(user._id)
+        await team.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userOnTeam(user._id, team._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('user on team failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userOnTeam(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
+    })
 })

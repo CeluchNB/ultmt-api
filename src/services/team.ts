@@ -68,4 +68,35 @@ export default class TeamServices {
         await new UltmtValidator(this.userModel, this.teamModel).teamExists(teamId).userIsManager(userId, teamId).test()
         return await this.getTeam(teamId, false)
     }
+
+    /**
+     * Method to delete a player from a team
+     * @param managerId id of team manager
+     * @param teamId id of team
+     * @param userId id of user
+     * @returns updated team document
+     */
+    removePlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeamDocument> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel)
+            .userOnTeam(userId, teamId)
+            .userIsManager(managerId, teamId)
+            .test()
+
+        team.players = team.players.filter((id) => !id.equals(user._id))
+        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
+
+        await team.save()
+        await user.save()
+        return team
+    }
 }
