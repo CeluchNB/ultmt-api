@@ -1,12 +1,16 @@
+import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { ApiError, IUser, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
+import UltmtValidator from '../utils/ultmt-validator'
 
 export default class UserServices {
     userModel: IUserModel
+    teamModel: ITeamModel
 
-    constructor(userModel: IUserModel) {
+    constructor(userModel: IUserModel, teamModel: ITeamModel) {
         this.userModel = userModel
+        this.teamModel = teamModel
     }
 
     /**
@@ -93,5 +97,33 @@ export default class UserServices {
      */
     deleteUser = async (id: string) => {
         await this.userModel.deleteOne({ _id: id })
+    }
+
+    /**
+     * Method to leave a team as a player
+     * @param userId id of user
+     * @param teamId id of team
+     * @returns updated user document
+     */
+    leaveTeam = async (userId: string, teamId: string): Promise<IUserDocument> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userOnTeam(userId, teamId).test()
+
+        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
+        team.players = team.players.filter((id) => !id.equals(user._id))
+
+        await user.save()
+        await team.save()
+
+        return user
     }
 }
