@@ -134,6 +134,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.SEASON_START_ERROR, 400),
         )
     })
+
+    it('with not accepting requests', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NOT_ACCEPTING_REQUESTS} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NOT_ACCEPTING_REQUESTS, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {
