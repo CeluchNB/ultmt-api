@@ -1,16 +1,20 @@
 import { ITeamModel } from '../models/team'
-import { IUserModel } from '../models/user'
+import User, { IUserModel } from '../models/user'
+import { IArchiveTeamModel } from '../models/archive-team'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
+import { Types } from 'mongoose'
 
 export default class TeamServices {
     teamModel: ITeamModel
     userModel: IUserModel
+    archiveTeamModel: IArchiveTeamModel
 
-    constructor(teamModel: ITeamModel, userModel: IUserModel) {
+    constructor(teamModel: ITeamModel, userModel: IUserModel, archiveTeamModel: IArchiveTeamModel) {
         this.teamModel = teamModel
         this.userModel = userModel
+        this.archiveTeamModel = archiveTeamModel
     }
 
     /**
@@ -97,6 +101,68 @@ export default class TeamServices {
 
         await team.save()
         await user.save()
+        return team
+    }
+
+    /**
+     *
+     * @param managerId id of manager requesting rollover
+     * @param teamId id of team to rollover
+     * @param copyPlayers boolean to copy current players over or delete them
+     * @param seasonStart new season start
+     * @param seasonEnd new season end
+     * @returns new team document
+     */
+    rollover = async (
+        managerId: string,
+        teamId: string,
+        copyPlayers: boolean,
+        seasonStart: Date,
+        seasonEnd: Date,
+    ): Promise<ITeamDocument> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await this.archiveTeamModel.insertMany([team])
+
+        const oldId = team._id
+
+        team.isNew = true
+        team._id = new Types.ObjectId()
+        if (!copyPlayers) {
+            team.players = []
+        }
+        team.seasonStart = seasonStart
+        team.seasonEnd = seasonEnd
+        team.seasonNumber++
+
+        await team.save()
+
+        for (const i of team.managers) {
+            const managerRecord = await User.findById(i)
+            if (managerRecord) {
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((id) => !id.equals(oldId))
+                managerRecord.managerTeams.push(team._id)
+                await managerRecord.save()
+            }
+        }
+
+        for (const i of team.players) {
+            const playerRecord = await User.findById(i)
+            if (playerRecord) {
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
+                playerRecord.playerTeams.push(team._id)
+                await playerRecord.save()
+            }
+        }
+
         return team
     }
 }
