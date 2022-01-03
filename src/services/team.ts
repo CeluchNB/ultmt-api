@@ -1,4 +1,4 @@
-import { ITeamModel } from '../models/team'
+import Team, { ITeamModel } from '../models/team'
 import User, { IUserModel } from '../models/user'
 import { IArchiveTeamModel } from '../models/archive-team'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
@@ -130,10 +130,21 @@ export default class TeamServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
+        if (seasonStart.getFullYear() < team.seasonEnd.getFullYear()) {
+            throw new ApiError(Constants.SEASON_START_ERROR, 400)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        // close roster for archive and new team
+        team.rosterOpen = false
         await this.archiveTeamModel.insertMany([team])
 
+        // store needed values
         const oldId = team._id
+        const players = team.players
 
+        // update team document and delete old one
         team.isNew = true
         team._id = new Types.ObjectId()
         if (!copyPlayers) {
@@ -144,7 +155,9 @@ export default class TeamServices {
         team.seasonNumber++
 
         await team.save()
+        await Team.deleteOne({ _id: oldId })
 
+        // update team of managers
         for (const i of team.managers) {
             const managerRecord = await User.findById(i)
             if (managerRecord) {
@@ -154,11 +167,14 @@ export default class TeamServices {
             }
         }
 
-        for (const i of team.players) {
+        // update manager of teams
+        for (const i of players) {
             const playerRecord = await User.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
-                playerRecord.playerTeams.push(team._id)
+                if (copyPlayers) {
+                    playerRecord.playerTeams.push(team._id)
+                }
                 await playerRecord.save()
             }
         }
