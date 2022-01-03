@@ -13,8 +13,9 @@ afterEach(async () => {
     await resetDatabase()
 })
 
-afterAll(() => {
+afterAll((done) => {
     tearDownDatabase()
+    done()
 })
 
 describe('test roster request model', () => {

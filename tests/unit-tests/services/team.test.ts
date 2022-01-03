@@ -1,12 +1,13 @@
 import TeamServices from '../../../src/services/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
+import ArchiveTeam from '../../../src/models/archive-team'
 import { ApiError, ITeam, IUser } from '../../../src/types'
 import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 
-const services = new TeamServices(Team, User)
+const services = new TeamServices(Team, User, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -16,8 +17,9 @@ afterEach(async () => {
     await resetDatabase()
 })
 
-afterAll(() => {
+afterAll((done) => {
     tearDownDatabase()
+    done()
 })
 
 describe('test create team', () => {
@@ -167,6 +169,7 @@ describe('test remove player', () => {
     beforeEach(async () => {
         await saveUsers()
     })
+
     it('with valid data', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
@@ -240,5 +243,146 @@ describe('test remove player', () => {
         await expect(services.removePlayer(anonId, team._id, user._id)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 400),
         )
+    })
+})
+
+describe('test team rollover', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid data and copy players', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        expect(newTeam._id.toString()).not.toBe(team._id.toString())
+        expect(newTeam.place).toBe(team.place)
+        expect(newTeam.name).toBe(team.name)
+        expect(newTeam.players.length).toBe(team.players.length)
+        expect(newTeam.managers.length).toBe(team.managers.length)
+        expect(newTeam.managers[0].toString()).toBe(manager._id.toString())
+        expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
+        expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
+
+        const oldTeamRecord = await Team.findById(team._id)
+        expect(oldTeamRecord).toBeNull()
+
+        const archiveTeamRecord = await ArchiveTeam.findById(team._id)
+        expect(archiveTeamRecord?._id.toString()).toBe(team._id.toString())
+        expect(archiveTeamRecord?._id.toString()).not.toBe(newTeam._id.toString())
+        expect(archiveTeamRecord?.place).toBe(team.place)
+        expect(archiveTeamRecord?.name).toBe(team.name)
+        expect(archiveTeamRecord?.players.length).toBe(team.players.length)
+        expect(archiveTeamRecord?.managers.length).toBe(team.managers.length)
+        expect(archiveTeamRecord?.managers[0].toString()).toBe(manager._id.toString())
+        expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
+        expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
+
+        const managerRecord = await User.findById(manager._id)
+        expect(managerRecord?.managerTeams.length).toBe(1)
+        expect(managerRecord?.managerTeams[0].toString()).toBe(newTeam._id.toString())
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(1)
+        expect(userRecord?.playerTeams[0].toString()).toBe(newTeam._id.toString())
+    })
+
+    it('with valid data and not copy players', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        const newTeam = await services.rollover(manager._id, team._id, false, new Date(), new Date())
+        expect(newTeam._id.toString()).not.toBe(team._id.toString())
+        expect(newTeam.place).toBe(team.place)
+        expect(newTeam.name).toBe(team.name)
+        expect(newTeam.players.length).toBe(0)
+        expect(newTeam.managers.length).toBe(team.managers.length)
+        expect(newTeam.managers[0].toString()).toBe(manager._id.toString())
+        expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
+        expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
+
+        const oldTeamRecord = await Team.findById(team._id)
+        expect(oldTeamRecord).toBeNull()
+
+        const archiveTeamRecord = await ArchiveTeam.findById(team._id)
+        expect(archiveTeamRecord?._id.toString()).toBe(team._id.toString())
+        expect(archiveTeamRecord?._id.toString()).not.toBe(newTeam._id.toString())
+        expect(archiveTeamRecord?.place).toBe(team.place)
+        expect(archiveTeamRecord?.name).toBe(team.name)
+        expect(archiveTeamRecord?.players.length).toBe(team.players.length)
+        expect(archiveTeamRecord?.managers.length).toBe(team.managers.length)
+        expect(archiveTeamRecord?.managers[0].toString()).toBe(manager._id.toString())
+        expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
+        expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
+
+        const managerRecord = await User.findById(manager._id)
+        expect(managerRecord?.managerTeams.length).toBe(1)
+        expect(managerRecord?.managerTeams[0].toString()).toBe(newTeam._id.toString())
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.playerTeams.length).toBe(0)
+    })
+
+    it('with invalid manager', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        await expect(services.rollover(anonId, team._id, true, new Date(), new Date())).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with invalid team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        await expect(services.rollover(manager._id, anonId, true, new Date(), new Date())).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+
+    it('with invalid date', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user] = await User.find({})
+        team.managers.push(manager._id)
+        team.players.push(user._id)
+        await team.save()
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        user.playerTeams.push(team._id)
+        await user.save()
+
+        await expect(
+            services.rollover(manager._id, team._id, true, new Date('2019'), new Date('2019')),
+        ).rejects.toThrowError(new ApiError(Constants.SEASON_START_ERROR, 400))
     })
 })

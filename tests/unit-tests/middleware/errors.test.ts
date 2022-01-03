@@ -128,6 +128,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.REQUEST_NOT_IN_LIST, 400),
         )
     })
+
+    it('with season start error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.SEASON_START_ERROR} extra details`)).toEqual(
+            createExpressErrorObject(Constants.SEASON_START_ERROR, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

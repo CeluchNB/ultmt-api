@@ -1,9 +1,9 @@
 import { ITeamDocument } from '../types'
-import { model, Schema, Types } from 'mongoose'
+import { model, Schema, SchemaTypes, Types } from 'mongoose'
 
 const opts = { toJSON: { virtuals: true } }
 
-const schema = new Schema<ITeamDocument>(
+export const schema = new Schema<ITeamDocument>(
     {
         place: { type: String, required: true },
         name: { type: String, required: true },
@@ -15,6 +15,15 @@ const schema = new Schema<ITeamDocument>(
         },
         seasonEnd: {
             type: Date,
+            required: true,
+        },
+        seasonNumber: {
+            type: Number,
+            required: true,
+            default: 1,
+        },
+        continuationId: {
+            type: SchemaTypes.ObjectId,
             required: true,
         },
         rosterOpen: {

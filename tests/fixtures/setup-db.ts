@@ -1,7 +1,9 @@
 import { connect, connection } from 'mongoose'
 import User from '../../src/models/user'
 import Team from '../../src/models/team'
-import { ITeam, IUser } from '../../src/types'
+import { IUser } from '../../src/types'
+import RosterRequest from '../../src/models/roster-request'
+import ArchiveTeam from '../../src/models/archive-team'
 
 export const setUpDatabase = async () => {
     await connect(process.env.MONGOOSE_URL as string)
@@ -39,6 +41,8 @@ export const saveUsers = async () => {
 export const resetDatabase = async () => {
     await User.deleteMany({})
     await Team.deleteMany({})
+    await RosterRequest.deleteMany({})
+    await ArchiveTeam.deleteMany({})
 }
 
 export const tearDownDatabase = () => {

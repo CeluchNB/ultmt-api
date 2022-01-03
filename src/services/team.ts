@@ -1,16 +1,20 @@
-import { ITeamModel } from '../models/team'
-import { IUserModel } from '../models/user'
+import Team, { ITeamModel } from '../models/team'
+import User, { IUserModel } from '../models/user'
+import { IArchiveTeamModel } from '../models/archive-team'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
+import { Types } from 'mongoose'
 
 export default class TeamServices {
     teamModel: ITeamModel
     userModel: IUserModel
+    archiveTeamModel: IArchiveTeamModel
 
-    constructor(teamModel: ITeamModel, userModel: IUserModel) {
+    constructor(teamModel: ITeamModel, userModel: IUserModel, archiveTeamModel: IArchiveTeamModel) {
         this.teamModel = teamModel
         this.userModel = userModel
+        this.archiveTeamModel = archiveTeamModel
     }
 
     /**
@@ -20,6 +24,8 @@ export default class TeamServices {
      * @returns the created team
      */
     createTeam = async (team: ITeam, user: IUserDocument): Promise<ITeamDocument> => {
+        team.seasonStart = new Date(team.seasonStart)
+        team.seasonEnd = new Date(team.seasonEnd)
         const teamObject = await this.teamModel.create(team)
 
         teamObject.managers.push(user._id)
@@ -97,6 +103,84 @@ export default class TeamServices {
 
         await team.save()
         await user.save()
+        return team
+    }
+
+    /**
+     *
+     * @param managerId id of manager requesting rollover
+     * @param teamId id of team to rollover
+     * @param copyPlayers boolean to copy current players over or delete them
+     * @param seasonStart new season start
+     * @param seasonEnd new season end
+     * @returns new team document
+     */
+    rollover = async (
+        managerId: string,
+        teamId: string,
+        copyPlayers: boolean,
+        seasonStart: Date,
+        seasonEnd: Date,
+    ): Promise<ITeamDocument> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        if (seasonStart.getFullYear() < team.seasonEnd.getFullYear()) {
+            throw new ApiError(Constants.SEASON_START_ERROR, 400)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        // close roster for archive and new team
+        team.rosterOpen = false
+        await this.archiveTeamModel.insertMany([team])
+
+        // store needed values
+        const oldId = team._id
+        const players = team.players
+
+        // update team document and delete old one
+        team.isNew = true
+        team._id = new Types.ObjectId()
+        if (!copyPlayers) {
+            team.players = []
+        }
+        team.seasonStart = seasonStart
+        team.seasonEnd = seasonEnd
+        team.seasonNumber++
+
+        await team.save()
+        await Team.deleteOne({ _id: oldId })
+
+        // update team of managers
+        for (const i of team.managers) {
+            const managerRecord = await User.findById(i)
+            if (managerRecord) {
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((id) => !id.equals(oldId))
+                managerRecord.managerTeams.push(team._id)
+                await managerRecord.save()
+            }
+        }
+
+        // update manager of teams
+        for (const i of players) {
+            const playerRecord = await User.findById(i)
+            if (playerRecord) {
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
+                if (copyPlayers) {
+                    playerRecord.playerTeams.push(team._id)
+                }
+                await playerRecord.save()
+            }
+        }
+
         return team
     }
 }
