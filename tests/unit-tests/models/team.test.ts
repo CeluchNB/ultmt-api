@@ -28,6 +28,8 @@ describe('test team model', () => {
         expect(teamRecord.players.length).toBe(team.players.length)
         expect(teamRecord.seasonStart).toBe(team.seasonStart)
         expect(teamRecord.seasonEnd).toBe(team.seasonEnd)
+        expect(teamRecord.seasonNumber).toBe(1)
+        expect(teamRecord.continuationId).toBeDefined()
         expect(teamRecord.requests.length).toBe(0)
         expect(teamRecord.games.length).toBe(0)
     })

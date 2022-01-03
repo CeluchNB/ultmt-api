@@ -16,8 +16,9 @@ afterEach(async () => {
     await resetDatabase()
 })
 
-afterAll(() => {
+afterAll((done) => {
     tearDownDatabase()
+    done()
 })
 
 describe('test create team', () => {
