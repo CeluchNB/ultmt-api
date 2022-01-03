@@ -233,6 +233,8 @@ describe('test set open to requests', () => {
 
     it('with valid close data', async () => {
         const user = await User.create(getUser())
+        user.openToRequests = true
+        await user.save()
 
         const userResponse = await services.setOpenToRequests(user._id, false)
         expect(userResponse.firstName).toBe(user.firstName)

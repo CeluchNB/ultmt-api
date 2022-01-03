@@ -349,6 +349,76 @@ describe('test /DELETE profile', () => {
     })
 })
 
+describe('test /POST set open', () => {
+    it('with valid open data', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .post('/user/open?open=true')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const userResponse = response.body.user as IUserDocument
+        expect(userResponse._id.toString()).toBe(user._id.toString())
+        expect(userResponse.firstName).toBe(user.firstName)
+        expect(userResponse.openToRequests).toBe(true)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(user.firstName)
+        expect(userRecord?.openToRequests).toBe(true)
+    })
+
+    it('with valid close data', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .post('/user/open?open=false')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const userResponse = response.body.user as IUserDocument
+        expect(userResponse._id.toString()).toBe(user._id.toString())
+        expect(userResponse.firstName).toBe(user.firstName)
+        expect(userResponse.openToRequests).toBe(false)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(user.firstName)
+        expect(userRecord?.openToRequests).toBe(false)
+    })
+
+    it('with invalid token', async () => {
+        const user = await User.create(getUser())
+        await user.generateAuthToken()
+
+        await request(app)
+            .post('/user/open?open=false')
+            .set('Authorization', 'Bearer asdf1234.uetrf56.hffgu4234')
+            .send()
+            .expect(401)
+    })
+
+    it('with error', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+
+        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+            throw new ApiError(Constants.GENERIC_ERROR, 500)
+        })
+
+        const response = await request(app)
+            .post('/user/open?open=false')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(500)
+
+        expect(response.body.message).toBe(Constants.GENERIC_ERROR)
+    })
+})
+
 describe('test /POST leave team', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
