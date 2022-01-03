@@ -97,7 +97,7 @@ userRouter.delete(
     },
 )
 
-userRouter.post(
+userRouter.put(
     '/user/open',
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {

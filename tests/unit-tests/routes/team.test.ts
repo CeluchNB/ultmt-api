@@ -339,3 +339,89 @@ describe('test /POST rollover', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test /PUT set open', () => {
+    it('with valid open data', async () => {
+        const manager = await User.create(getUser())
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        const response = await request(app)
+            .put(`/team/open/${team._id}?open=true`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const teamResponse = response.body.team as ITeamDocument
+        expect(teamResponse._id.toString()).toBe(team._id.toString())
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.rosterOpen).toBe(true)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.place).toBe(team.place)
+        expect(teamRecord?.rosterOpen).toBe(true)
+    })
+
+    it('with valid close data', async () => {
+        const manager = await User.create(getUser())
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        const response = await request(app)
+            .put(`/team/open/${team._id}?open=false`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const teamResponse = response.body.team as ITeamDocument
+        expect(teamResponse._id.toString()).toBe(team._id.toString())
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.rosterOpen).toBe(false)
+
+        const teamRecord = await Team.findById(team._id)
+        expect(teamRecord?.place).toBe(team.place)
+        expect(teamRecord?.rosterOpen).toBe(false)
+    })
+
+    it('with invalid token', async () => {
+        const manager = await User.create(getUser())
+        await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        await request(app)
+            .put(`/team/open/${team._id}?open=false`)
+            .set('Authorization', 'Bearer asdf654.asdf4536.vfs934')
+            .send()
+            .expect(401)
+    })
+
+    it('with non-existent team', async () => {
+        const manager = await User.create(getUser())
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        const response = await request(app)
+            .put(`/team/open/${anonId}?open=false`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})

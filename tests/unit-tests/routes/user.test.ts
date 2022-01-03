@@ -349,13 +349,13 @@ describe('test /DELETE profile', () => {
     })
 })
 
-describe('test /POST set open', () => {
+describe('test /PUT set open', () => {
     it('with valid open data', async () => {
         const user = await User.create(getUser())
         const token = await user.generateAuthToken()
 
         const response = await request(app)
-            .post('/user/open?open=true')
+            .put('/user/open?open=true')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -375,7 +375,7 @@ describe('test /POST set open', () => {
         const token = await user.generateAuthToken()
 
         const response = await request(app)
-            .post('/user/open?open=false')
+            .put('/user/open?open=false')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -395,7 +395,7 @@ describe('test /POST set open', () => {
         await user.generateAuthToken()
 
         await request(app)
-            .post('/user/open?open=false')
+            .put('/user/open?open=false')
             .set('Authorization', 'Bearer asdf1234.uetrf56.hffgu4234')
             .send()
             .expect(401)
@@ -410,7 +410,7 @@ describe('test /POST set open', () => {
         })
 
         const response = await request(app)
-            .post('/user/open?open=false')
+            .put('/user/open?open=false')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(500)
