@@ -386,3 +386,68 @@ describe('test team rollover', () => {
         ).rejects.toThrowError(new ApiError(Constants.SEASON_START_ERROR, 400))
     })
 })
+
+describe('test set to open', () => {
+    it('with valid open data', async () => {
+        const manager = await User.create(getUser())
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        const response = await services.setRosterOpen(manager._id, team._id, true)
+        expect(response._id.toString()).toBe(team._id.toString())
+        expect(response.place).toBe(team.place)
+        expect(response.rosterOpen).toBe(true)
+
+        const teamRecord = await Team.findById(team._id.toString())
+        expect(teamRecord?.place).toBe(team.place)
+        expect(teamRecord?.rosterOpen).toBe(true)
+    })
+
+    it('with valid close data', async () => {
+        const manager = await User.create(getUser())
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        team.rosterOpen = true
+        await team.save()
+
+        const response = await services.setRosterOpen(manager._id, team._id, false)
+        expect(response._id.toString()).toBe(team._id.toString())
+        expect(response.place).toBe(team.place)
+        expect(response.rosterOpen).toBe(false)
+
+        const teamRecord = await Team.findById(team._id.toString())
+        expect(teamRecord?.place).toBe(team.place)
+        expect(teamRecord?.rosterOpen).toBe(false)
+    })
+
+    it('with non-existent manager', async () => {
+        const manager = await User.create(getUser())
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        await expect(services.setRosterOpen(anonId, team._id, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with non-existent team', async () => {
+        const manager = await User.create(getUser())
+        const team = await Team.create(getTeam())
+        manager.managerTeams.push(team._id)
+        await manager.save()
+        team.managers.push(manager._id)
+        await team.save()
+
+        await expect(services.setRosterOpen(manager._id, anonId, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+})

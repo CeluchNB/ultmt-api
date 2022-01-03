@@ -183,4 +183,30 @@ export default class TeamServices {
 
         return team
     }
+
+    /**
+     * Method to set team roster open status
+     * @param managerId id of manager
+     * @param teamId id of team
+     * @param open boolean for open
+     * @returns updated team document
+     */
+    setRosterOpen = async (managerId: string, teamId: string, open: boolean): Promise<ITeamDocument> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        team.rosterOpen = open
+        await team.save()
+
+        return team
+    }
 }
