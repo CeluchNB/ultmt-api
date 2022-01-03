@@ -328,4 +328,41 @@ describe('test ultmt validator', () => {
         validator.userOnTeam(user._id, team._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
     })
+
+    it('user accepting requests success case', async () => {
+        const user = await User.create(getUser())
+        user.openToRequests = true
+        await user.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userAcceptingRequests(user._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('user accepting requests failure case', async () => {
+        const user = await User.create(getUser())
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userAcceptingRequests(user._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400))
+    })
+
+    it('team accepting requests success case', async () => {
+        const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.teamAcceptingRequests(team._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('team accepting requests failure case', async () => {
+        const team = await Team.create(getTeam())
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.teamAcceptingRequests(team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400))
+    })
 })

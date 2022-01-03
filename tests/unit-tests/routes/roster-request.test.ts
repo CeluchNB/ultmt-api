@@ -34,6 +34,8 @@ describe('test request from team route', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user.openToRequests = true
+        await user.save()
 
         const response = await request(app)
             .post(`/request/team/${team._id}?user=${user._id}`)
@@ -68,6 +70,8 @@ describe('test request from team route', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        user.openToRequests = true
+        await user.save()
 
         await request(app)
             .post(`/request/team/${team._id}?user=${user._id}`)
@@ -82,6 +86,8 @@ describe('test request from team route', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        user.openToRequests = true
+        await user.save()
 
         const response = await request(app)
             .post(`/request/team/${anonId}?user=${user._id}`)
@@ -114,6 +120,8 @@ describe('test request from user route', () => {
         const [user] = await User.find({})
         const token = await user.generateAuthToken()
         const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
 
         const response = await request(app)
             .post(`/request/user?team=${team._id}`)
@@ -146,6 +154,8 @@ describe('test request from user route', () => {
         const [user] = await User.find({})
         await user.generateAuthToken()
         const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
 
         await request(app)
             .post(`/request/user?team=${team._id}`)

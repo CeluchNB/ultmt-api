@@ -39,6 +39,7 @@ export default class RosterRequestServices {
             .userIsManager(managerId, teamId)
             .noPendingRequest(userId, teamId, Initiator.Team)
             .userNotOnTeam(userId, teamId)
+            .userAcceptingRequests(userId)
             .test()
 
         const requestData: IRosterRequest = {
@@ -67,11 +68,6 @@ export default class RosterRequestServices {
      * @returns roster request document
      */
     requestFromPlayer = async (userId: string, teamId: string): Promise<IRosterRequestDocument> => {
-        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
-            .noPendingRequest(userId, teamId, Initiator.Player)
-            .userNotOnTeam(userId, teamId)
-            .test()
-
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -81,6 +77,12 @@ export default class RosterRequestServices {
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
+
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .noPendingRequest(userId, teamId, Initiator.Player)
+            .userNotOnTeam(userId, teamId)
+            .teamAcceptingRequests(teamId)
+            .test()
 
         const requestData: IRosterRequest = {
             team: team._id,

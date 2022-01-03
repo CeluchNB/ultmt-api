@@ -23,3 +23,4 @@ export const NOT_ALLOWED_TO_RESPOND = 'You are not allowed to respond to this re
 export const REQUEST_ALREADY_RESOLVED = 'This request has already been closed'
 export const REQUEST_NOT_IN_LIST = 'Request is not in your list'
 export const SEASON_START_ERROR = 'Cannot start new season before last season ends'
+export const NOT_ACCEPTING_REQUESTS = 'Requested entity is not accepting requests'

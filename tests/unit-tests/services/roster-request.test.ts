@@ -35,6 +35,8 @@ describe('test request from team', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user.openToRequests = true
+        await user.save()
 
         const request = await services.requestFromTeam(manager._id, team._id, user._id)
         expect(request.team.toString()).toBe(team._id.toString())
@@ -62,6 +64,8 @@ describe('test request from team', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
+        user.openToRequests = true
+        await user.save()
 
         await expect(services.requestFromTeam(anonId, team._id, user._id)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
@@ -75,6 +79,8 @@ describe('test request from team', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user.openToRequests = true
+        await user.save()
 
         await expect(services.requestFromTeam(manager._id, anonId, user._id)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
@@ -101,6 +107,8 @@ describe('test request from team', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user.openToRequests = true
+        await user.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -123,6 +131,8 @@ describe('test request from team', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user1.openToRequests = true
+        await user1.save()
 
         await expect(services.requestFromTeam(user2._id, team._id, user1._id)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
@@ -137,6 +147,8 @@ describe('test request from team', () => {
         await team.save()
         manager.managerTeams.push(team._id)
         await manager.save()
+        user.openToRequests = true
+        await user.save()
 
         await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
@@ -148,6 +160,8 @@ describe('test request from player', () => {
     it('with valid data', async () => {
         const [user] = await User.find({})
         const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
 
         const request = await services.requestFromPlayer(user._id, team._id)
         expect(request.team.toString()).toBe(team._id.toString())
@@ -189,6 +203,8 @@ describe('test request from player', () => {
     it('with previous request', async () => {
         const [user] = await User.find({})
         const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
 
         const request: IRosterRequest = {
             user: user._id,
@@ -207,6 +223,8 @@ describe('test request from player', () => {
     it('with player already on team', async () => {
         const [user] = await User.find({})
         const team = await Team.create(getTeam())
+        team.rosterOpen = true
+        await team.save()
 
         user.playerTeams.push(team._id)
         await user.save()
