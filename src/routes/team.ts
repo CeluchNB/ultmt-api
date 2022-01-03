@@ -67,4 +67,24 @@ teamRouter.post(
     },
 )
 
+teamRouter.post(
+    '/team/rollover/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, ArchiveTeam)
+            const team = await teamServices.rollover(
+                (req.user as IUserDocument)._id,
+                req.params.id,
+                req.body.copyPlayers,
+                new Date(req.body.seasonStart),
+                new Date(req.body.seasonEnd),
+            )
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

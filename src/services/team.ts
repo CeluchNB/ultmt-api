@@ -24,6 +24,8 @@ export default class TeamServices {
      * @returns the created team
      */
     createTeam = async (team: ITeam, user: IUserDocument): Promise<ITeamDocument> => {
+        team.seasonStart = new Date(team.seasonStart)
+        team.seasonEnd = new Date(team.seasonEnd)
         const teamObject = await this.teamModel.create(team)
 
         teamObject.managers.push(user._id)
