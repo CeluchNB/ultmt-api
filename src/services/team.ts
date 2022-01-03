@@ -1,5 +1,5 @@
-import Team, { ITeamModel } from '../models/team'
-import User, { IUserModel } from '../models/user'
+import { ITeamModel } from '../models/team'
+import { IUserModel } from '../models/user'
 import { IArchiveTeamModel } from '../models/archive-team'
 import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
 import * as Constants from '../utils/constants'
@@ -157,11 +157,11 @@ export default class TeamServices {
         team.seasonNumber++
 
         await team.save()
-        await Team.deleteOne({ _id: oldId })
+        await this.teamModel.deleteOne({ _id: oldId })
 
         // update team of managers
         for (const i of team.managers) {
-            const managerRecord = await User.findById(i)
+            const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((id) => !id.equals(oldId))
                 managerRecord.managerTeams.push(team._id)
@@ -171,7 +171,7 @@ export default class TeamServices {
 
         // update manager of teams
         for (const i of players) {
-            const playerRecord = await User.findById(i)
+            const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
                 if (copyPlayers) {
@@ -180,6 +180,32 @@ export default class TeamServices {
                 await playerRecord.save()
             }
         }
+
+        return team
+    }
+
+    /**
+     * Method to set team roster open status
+     * @param managerId id of manager
+     * @param teamId id of team
+     * @param open boolean for open
+     * @returns updated team document
+     */
+    setRosterOpen = async (managerId: string, teamId: string, open: boolean): Promise<ITeamDocument> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        team.rosterOpen = open
+        await team.save()
 
         return team
     }

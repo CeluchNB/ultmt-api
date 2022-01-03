@@ -37,6 +37,11 @@ const schema = new Schema<IUserDocument>({
     playerTeams: [{ type: Types.ObjectId }],
     managerTeams: [{ type: Types.ObjectId }],
     stats: [{ type: Types.ObjectId }],
+    openToRequests: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
 })
 
 const isValidPassword = (password: string): boolean => {

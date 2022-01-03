@@ -100,6 +100,24 @@ export default class UserServices {
     }
 
     /**
+     * Method to change user's open to request status
+     * @param id id of user
+     * @param open boolean for open
+     * @returns updated user document
+     */
+    setOpenToRequests = async (id: string, open: boolean): Promise<IUserDocument> => {
+        const user = await this.userModel.findById(id)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        user.openToRequests = open
+        await user.save()
+
+        return user
+    }
+
+    /**
      * Method to leave a team as a player
      * @param userId id of user
      * @param teamId id of team

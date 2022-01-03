@@ -87,4 +87,22 @@ teamRouter.post(
     },
 )
 
+teamRouter.put(
+    '/team/open/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, ArchiveTeam)
+            const team = await teamServices.setRosterOpen(
+                (req.user as IUserDocument)._id,
+                req.params.id,
+                req.query.open === 'true',
+            )
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

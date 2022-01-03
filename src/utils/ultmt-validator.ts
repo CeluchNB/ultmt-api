@@ -19,6 +19,8 @@ enum ValidationType {
     TEAM_CONTAINS_REQUEST,
     USER_CONTAINS_REQUEST,
     USER_ON_TEAM,
+    USER_ACCEPTING_REQUESTS,
+    TEAM_ACCEPTING_REQUESTS,
 }
 
 type Validation = {
@@ -105,6 +107,16 @@ export default class UltmtValidator {
 
     userOnTeam = (userId: string, teamId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.USER_ON_TEAM, data: { userId, teamId } })
+        return this
+    }
+
+    userAcceptingRequests = (userId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_ACCEPTING_REQUESTS, data: { userId } })
+        return this
+    }
+
+    teamAcceptingRequests = (teamId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.TEAM_ACCEPTING_REQUESTS, data: { teamId } })
         return this
     }
 
@@ -235,6 +247,22 @@ export default class UltmtValidator {
 
                 if (!user?.playerTeams.includes(team?._id) || !team?.players.includes(user._id)) {
                     throw new ApiError(Constants.PLAYER_NOT_ON_TEAM, 400)
+                }
+                break
+            }
+            case ValidationType.USER_ACCEPTING_REQUESTS: {
+                const { userId } = validation.data
+                const user = await this.userModel.findById(userId)
+                if (!user?.openToRequests) {
+                    throw new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400)
+                }
+                break
+            }
+            case ValidationType.TEAM_ACCEPTING_REQUESTS: {
+                const { teamId } = validation.data
+                const team = await this.teamModel.findById(teamId)
+                if (!team?.rosterOpen) {
+                    throw new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400)
                 }
                 break
             }
