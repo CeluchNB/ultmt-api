@@ -37,6 +37,7 @@ describe('test user model', () => {
         expect(userRecord.managerTeams?.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
+        expect(userRecord.openToRequests).toBe(false)
     })
 
     it('save with invalid email', async () => {

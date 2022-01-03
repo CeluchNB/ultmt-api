@@ -15,5 +15,6 @@ export interface IUserDocument extends IUser, Document {
     managerTeams: Types.ObjectId[]
     stats: Types.ObjectId[]
     requests: Types.ObjectId[]
+    openToRequests: boolean
     generateAuthToken(): string
 }

@@ -219,6 +219,37 @@ describe('test delete account', () => {
     })
 })
 
+describe('test set open to requests', () => {
+    it('with valid open data', async () => {
+        const user = await User.create(getUser())
+
+        const userResponse = await services.setOpenToRequests(user._id, true)
+        expect(userResponse.firstName).toBe(user.firstName)
+        expect(userResponse.openToRequests).toBe(true)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.openToRequests).toBe(true)
+    })
+
+    it('with valid close data', async () => {
+        const user = await User.create(getUser())
+
+        const userResponse = await services.setOpenToRequests(user._id, false)
+        expect(userResponse.firstName).toBe(user.firstName)
+        expect(userResponse.openToRequests).toBe(false)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.openToRequests).toBe(false)
+    })
+
+    it('with non-existent user', async () => {
+        await User.create(getUser())
+        await expect(services.setOpenToRequests(anonId, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+})
+
 describe('test leave team', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
