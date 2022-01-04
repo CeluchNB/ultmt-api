@@ -5,8 +5,9 @@ import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import RosterRequest from '../../../src/models/roster-request'
-import { Initiator, IRosterRequestDocument, Status } from '../../../src/types'
+import { Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -30,9 +31,9 @@ describe('test request from team route', () => {
         const [manager, user] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
@@ -43,7 +44,7 @@ describe('test request from team route', () => {
             .send()
             .expect(200)
 
-        const rosterRequest = response.body.request as IRosterRequestDocument
+        const rosterRequest = response.body.request as IRosterRequest
         expect(rosterRequest.user.toString()).toBe(user._id.toString())
         expect(rosterRequest.team.toString()).toBe(team._id.toString())
         expect(rosterRequest.requestSource).toBe(Initiator.Team)
@@ -68,7 +69,7 @@ describe('test request from team route', () => {
         const [manager, user] = await User.find({})
         await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
         user.openToRequests = true
         await user.save()
@@ -84,7 +85,7 @@ describe('test request from team route', () => {
         const [manager, user] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
         user.openToRequests = true
         await user.save()
@@ -102,7 +103,7 @@ describe('test request from team route', () => {
         const [manager] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         const response = await request(app)
@@ -129,7 +130,7 @@ describe('test request from user route', () => {
             .send()
             .expect(200)
 
-        const rosterRequest = response.body.request as IRosterRequestDocument
+        const rosterRequest = response.body.request as IRosterRequest
         expect(rosterRequest.user.toString()).toBe(user._id.toString())
         expect(rosterRequest.team.toString()).toBe(team._id.toString())
         expect(rosterRequest.requestSource).toBe(Initiator.Player)
@@ -186,12 +187,12 @@ describe('test team accept route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -200,7 +201,7 @@ describe('test team accept route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest.user.toString()).toBe(user._id.toString())
         expect(responseRequest.team.toString()).toBe(team._id.toString())
         expect(responseRequest.requestSource).toBe(Initiator.Player)
@@ -214,13 +215,13 @@ describe('test team accept route', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(1)
         expect(userRecord?.requests[0].toString()).toBe(requestRecord?._id.toString())
 
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(1)
-        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.players[0]._id.toString()).toBe(user._id.toString())
         expect(teamRecord?.requests.length).toBe(0)
     })
 
@@ -230,7 +231,7 @@ describe('test team accept route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
@@ -249,7 +250,7 @@ describe('test team accept route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
@@ -272,12 +273,12 @@ describe('test team deny route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -286,7 +287,7 @@ describe('test team deny route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest.user.toString()).toBe(user._id.toString())
         expect(responseRequest.team.toString()).toBe(team._id.toString())
         expect(responseRequest.requestSource).toBe(Initiator.Player)
@@ -314,7 +315,7 @@ describe('test team deny route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
@@ -333,7 +334,7 @@ describe('test team deny route', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
@@ -367,7 +368,7 @@ describe('test user accept route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest._id.toString()).toBe(requestData._id.toString())
         expect(responseRequest.user.toString()).toBe(requestData.user.toString())
         expect(responseRequest.team.toString()).toBe(requestData.team.toString())
@@ -382,12 +383,12 @@ describe('test user accept route', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(0)
 
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(1)
-        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.players[0]._id.toString()).toBe(user._id.toString())
         expect(teamRecord?.requests.length).toBe(1)
         expect(teamRecord?.requests[0].toString()).toBe(requestData._id.toString())
     })
@@ -449,7 +450,7 @@ describe('test user deny route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest._id.toString()).toBe(requestData._id.toString())
         expect(responseRequest.user.toString()).toBe(requestData.user.toString())
         expect(responseRequest.team.toString()).toBe(requestData.team.toString())
@@ -518,12 +519,12 @@ describe('test team delete request', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -555,12 +556,12 @@ describe('test team delete request', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         await request(app)
@@ -576,12 +577,12 @@ describe('test team delete request', () => {
         const team = await Team.create(getTeam())
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(requestData._id)
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)

@@ -1,7 +1,7 @@
 import { connect, connection } from 'mongoose'
 import User from '../../src/models/user'
 import Team from '../../src/models/team'
-import { IUser } from '../../src/types'
+import { CreateUser } from '../../src/types'
 import RosterRequest from '../../src/models/roster-request'
 import ArchiveTeam from '../../src/models/archive-team'
 
@@ -10,14 +10,14 @@ export const setUpDatabase = async () => {
 }
 
 export const saveUsers = async () => {
-    const user1: IUser = {
+    const user1: CreateUser = {
         firstName: 'First1',
         lastName: 'Last1',
         email: 'first.last1@email.com',
         username: 'firstlast1',
         password: 'Pass123!',
     }
-    const user2: IUser = {
+    const user2: CreateUser = {
         firstName: 'First2',
         lastName: 'Last2',
         email: 'first.last2@email.com',
@@ -25,7 +25,7 @@ export const saveUsers = async () => {
         password: 'Pass123!',
     }
 
-    const user3: IUser = {
+    const user3: CreateUser = {
         firstName: 'First3',
         lastName: 'Last3',
         email: 'first.last3@email.com',

@@ -7,6 +7,7 @@ import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 const services = new RosterRequestServices(Team, User, RosterRequest)
 
@@ -31,9 +32,9 @@ describe('test request from team', () => {
     it('with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
@@ -62,7 +63,7 @@ describe('test request from team', () => {
     it('with non-existent manager', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
         user.openToRequests = true
         await user.save()
@@ -75,9 +76,9 @@ describe('test request from team', () => {
     it('with non-existent team', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
@@ -90,9 +91,9 @@ describe('test request from team', () => {
     it('with non-existent player', async () => {
         const [manager] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         await expect(services.requestFromTeam(manager._id, team._id, anonId)).rejects.toThrowError(
@@ -103,14 +104,15 @@ describe('test request from team', () => {
     it('with previous request', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -127,9 +129,9 @@ describe('test request from team', () => {
     it('with unauthorized manager', async () => {
         const [manager, user1, user2] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user1.openToRequests = true
         await user1.save()
@@ -142,10 +144,10 @@ describe('test request from team', () => {
     it('with player already rostered', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
@@ -207,6 +209,7 @@ describe('test request from player', () => {
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -226,7 +229,7 @@ describe('test request from player', () => {
         team.rosterOpen = true
         await team.save()
 
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
@@ -239,12 +242,13 @@ describe('test team respond to request', () => {
     it('accept with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -266,24 +270,25 @@ describe('test team respond to request', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(1)
 
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(1)
-        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.players[0]._id.toString()).toBe(user._id.toString())
         expect(teamRecord?.requests.length).toBe(0)
     })
 
     it('deny with valid data', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -317,6 +322,7 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -337,10 +343,11 @@ describe('test team respond to request', () => {
     it('with non-existent manager', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -361,10 +368,11 @@ describe('test team respond to request', () => {
     it('with non-existent request record', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -385,12 +393,13 @@ describe('test team respond to request', () => {
     it('with non-existent team', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: new Types.ObjectId(anonId),
             requestSource: Initiator.Player,
@@ -411,12 +420,13 @@ describe('test team respond to request', () => {
     it('with non-existent user', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: new Types.ObjectId(anonId),
             team: team._id,
             requestSource: Initiator.Player,
@@ -437,12 +447,13 @@ describe('test team respond to request', () => {
     it('with response to own request', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -463,12 +474,13 @@ describe('test team respond to request', () => {
     it('with response to close requested', async () => {
         const [manager, user] = await User.find({})
         const team = await Team.create(getTeam())
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -493,6 +505,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -514,12 +527,12 @@ describe('test user respond to request', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(0)
 
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(1)
-        expect(teamRecord?.players[0].toString()).toBe(user._id.toString())
+        expect(teamRecord?.players[0]._id.toString()).toBe(user._id.toString())
         expect(teamRecord?.requests.length).toBe(1)
         expect(teamRecord?.requests[0].toString()).toBe(requestRecord._id.toString())
     })
@@ -529,6 +542,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -563,6 +577,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -585,6 +600,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: new Types.ObjectId(anonId),
             requestSource: Initiator.Team,
@@ -607,6 +623,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -629,6 +646,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -651,6 +669,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -673,6 +692,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -696,10 +716,10 @@ describe('test team delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -725,10 +745,10 @@ describe('test team delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -742,9 +762,9 @@ describe('test team delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -760,10 +780,10 @@ describe('test team delete', () => {
         const request = await RosterRequest.create(
             getRosterRequest(team._id, new Types.ObjectId(anonId), Initiator.Team),
         )
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -779,10 +799,10 @@ describe('test team delete', () => {
         const request = await RosterRequest.create(
             getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
         )
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -798,10 +818,10 @@ describe('test user delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -827,10 +847,10 @@ describe('test user delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -844,10 +864,10 @@ describe('test user delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
@@ -859,10 +879,10 @@ describe('test user delete', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()
@@ -878,10 +898,10 @@ describe('test user delete', () => {
         const request = await RosterRequest.create(
             getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
         )
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.requests.push(request._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.requests.push(request._id)
         await user.save()

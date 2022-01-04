@@ -1,14 +1,28 @@
-import { ITeamDocument } from '../types'
+import { ITeam } from '../types'
 import { model, Schema, SchemaTypes, Types } from 'mongoose'
 
 const opts = { toJSON: { virtuals: true } }
 
-export const schema = new Schema<ITeamDocument>(
+export const schema = new Schema<ITeam>(
     {
         place: { type: String, required: true },
         name: { type: String, required: true },
-        managers: [{ type: Types.ObjectId }],
-        players: [{ type: Types.ObjectId }],
+        managers: [
+            {
+                _id: Types.ObjectId,
+                firstName: String,
+                lastName: String,
+                username: String,
+            },
+        ],
+        players: [
+            {
+                _id: Types.ObjectId,
+                firstName: String,
+                lastName: String,
+                username: String,
+            },
+        ],
         seasonStart: {
             type: Date,
             required: true,
@@ -37,19 +51,7 @@ export const schema = new Schema<ITeamDocument>(
     opts,
 )
 
-schema.virtual('managerArray', {
-    ref: 'User',
-    localField: 'managers',
-    foreignField: '_id',
-})
-
-schema.virtual('playerArray', {
-    ref: 'User',
-    localField: 'players',
-    foreignField: '_id',
-})
-
-const Team = model<ITeamDocument>('Team', schema)
+const Team = model<ITeam>('Team', schema)
 
 export type ITeamModel = typeof Team
 export default Team

@@ -1,5 +1,5 @@
 import { Schema, Types, model } from 'mongoose'
-import type { IUserDocument } from '../types/user'
+import type { IUser } from '../types/user'
 import bcrypt from 'bcrypt'
 import PasswordValidator from 'password-validator'
 import validator from 'validator'
@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import { ApiError } from '../types'
 import * as Constants from '../utils/constants'
 
-const schema = new Schema<IUserDocument>({
+const schema = new Schema<IUser>({
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
     email: {
@@ -34,8 +34,24 @@ const schema = new Schema<IUserDocument>({
     private: { type: Boolean, required: true, default: false },
     tokens: [{ type: String }],
     requests: [{ type: Types.ObjectId }],
-    playerTeams: [{ type: Types.ObjectId }],
-    managerTeams: [{ type: Types.ObjectId }],
+    playerTeams: [
+        {
+            _id: { type: Types.ObjectId },
+            place: { type: String },
+            name: { Type: String },
+            seasonStart: { type: Date },
+            seasonEnd: { type: Date },
+        },
+    ],
+    managerTeams: [
+        {
+            _id: { type: Types.ObjectId },
+            place: { type: String },
+            name: { Type: String },
+            seasonStart: { type: Date },
+            seasonEnd: { type: Date },
+        },
+    ],
     stats: [{ type: Types.ObjectId }],
     openToRequests: {
         type: Boolean,
@@ -92,7 +108,7 @@ schema.methods.generateAuthToken = async function () {
     }
 }
 
-const User = model<IUserDocument>('User', schema)
+const User = model<IUser>('User', schema)
 
 export type IUserModel = typeof User
 export default User

@@ -1,8 +1,8 @@
 import { schema } from './team'
 import { model } from 'mongoose'
-import { ITeamDocument } from '../types'
+import { ITeam } from '../types'
 
-const ArchiveTeam = model<ITeamDocument>('ArchiveTeam', schema)
+const ArchiveTeam = model<ITeam>('ArchiveTeam', schema)
 
 export type IArchiveTeamModel = typeof ArchiveTeam
 export default ArchiveTeam

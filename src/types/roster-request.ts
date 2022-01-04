@@ -1,4 +1,4 @@
-import { Types, Document } from 'mongoose'
+import { Types } from 'mongoose'
 
 export enum Initiator {
     Player = 'player',
@@ -12,10 +12,9 @@ export enum Status {
 }
 
 export interface IRosterRequest {
+    _id: Types.ObjectId
     team: Types.ObjectId
     user: Types.ObjectId
     requestSource: string
     status: string
 }
-
-export interface IRosterRequestDocument extends IRosterRequest, Document {}

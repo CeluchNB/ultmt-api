@@ -1,5 +1,4 @@
 import User from '../../../src/models/user'
-import { IUser } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
@@ -20,7 +19,7 @@ afterAll((done) => {
 
 describe('test user model', () => {
     it('save with valid data', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()
@@ -41,7 +40,7 @@ describe('test user model', () => {
     })
 
     it('save with invalid email', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
         userData.email = 'first@email'
 
         const user = new User(userData)
@@ -50,7 +49,7 @@ describe('test user model', () => {
     })
 
     it('save with invalid username', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
         userData.username = 'bad username'
 
         const user = new User(userData)
@@ -58,7 +57,7 @@ describe('test user model', () => {
     })
 
     it('save with invalid password', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
         userData.password = 'Pass1234'
 
         const user = new User(userData)
@@ -67,7 +66,7 @@ describe('test user model', () => {
     })
 
     it('to json', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()
@@ -86,7 +85,7 @@ describe('test user model', () => {
     })
 
     it('generate auth token', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()
@@ -106,7 +105,7 @@ describe('test user model', () => {
     })
 
     it('generate auth token with jwt error', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()
@@ -119,7 +118,7 @@ describe('test user model', () => {
     })
 
     it('generate auth token with save error', async () => {
-        const userData: IUser = getUser()
+        const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()

@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
-import { IUser, ITeam, IRosterRequest, Initiator, Status } from '../../src/types'
+import { CreateUser, ITeam, IRosterRequest, Initiator, Status } from '../../src/types'
 
-export const getUser = (): IUser => {
+export const getUser = (): CreateUser => {
     return {
         firstName: 'First',
         lastName: 'Last',
@@ -13,6 +13,7 @@ export const getUser = (): IUser => {
 
 export const getTeam = (): ITeam => {
     return {
+        _id: new Types.ObjectId(),
         place: 'Pittsburgh',
         name: 'Temper',
         managers: [],
@@ -29,6 +30,7 @@ export const getTeam = (): ITeam => {
 
 export const getRosterRequest = (team: Types.ObjectId, user: Types.ObjectId, source: Initiator): IRosterRequest => {
     return {
+        _id: new Types.ObjectId(),
         team,
         user,
         requestSource: source,

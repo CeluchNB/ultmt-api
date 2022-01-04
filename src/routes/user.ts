@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express'
-import { IUser, IUserDocument } from '../types/user'
+import { CreateUser, IUser } from '../types/user'
 import UserServices from '../services/user'
 import User from '../models/user'
 import Team from '../models/team'
@@ -10,7 +10,7 @@ export const userRouter = Router()
 
 userRouter.post('/user', async (req: Request, res: Response, next) => {
     try {
-        const user: IUser = req.body
+        const user: CreateUser = req.body
         const userService = new UserServices(User, Team)
 
         const userObject = await userService.signUp(user)
@@ -25,7 +25,7 @@ userRouter.post(
     passport.authenticate('local', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const user: IUser = req.user as IUser
+            const user: CreateUser = req.user as CreateUser
             const userService = new UserServices(User, Team)
             const token = await userService.login(user.email)
             return res.json({ token })
@@ -41,7 +41,7 @@ userRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const token = req.header('Authorization')?.replace('Bearer ', '')
-            const email = (req?.user as IUser).email
+            const email = (req?.user as CreateUser).email
 
             const userService = new UserServices(User, Team)
             await userService.logout(email, token as string)
@@ -57,7 +57,7 @@ userRouter.post(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const email = (req?.user as IUser).email
+            const email = (req?.user as CreateUser).email
 
             const userService = new UserServices(User, Team)
             await userService.logoutAll(email)
@@ -87,9 +87,9 @@ userRouter.delete(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const id = (req.user as IUserDocument)._id
+            const id = (req.user as IUser)._id
             const userService = new UserServices(User, Team)
-            await userService.deleteUser(id)
+            await userService.deleteUser(id.toString())
             return res.send()
         } catch (error) {
             next(error)
@@ -102,9 +102,9 @@ userRouter.put(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const id = (req.user as IUserDocument)._id
+            const id = (req.user as IUser)._id
             const userService = new UserServices(User, Team)
-            const user = await userService.setOpenToRequests(id, req.query.open === 'true')
+            const user = await userService.setOpenToRequests(id.toString(), req.query.open === 'true')
             return res.json({ user })
         } catch (error) {
             next(error)
@@ -117,9 +117,9 @@ userRouter.post(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const id = (req.user as IUserDocument)._id
+            const id = (req.user as IUser)._id
             const userService = new UserServices(User, Team)
-            const user = await userService.leaveTeam(id, req.query.team as string)
+            const user = await userService.leaveTeam(id.toString(), req.query.team as string)
             return res.json({ user })
         } catch (error) {
             next(error)

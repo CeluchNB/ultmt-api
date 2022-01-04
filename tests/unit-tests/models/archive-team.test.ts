@@ -1,8 +1,9 @@
 import User from '../../../src/models/user'
-import { ITeam, IUser } from '../../../src/types'
+import { ITeam } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getTeam, getUser } from '../../fixtures/utils'
 import ArchiveTeam from '../../../src/models/archive-team'
+import { getEmbeddedUser } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -20,9 +21,9 @@ afterAll((done) => {
 describe('test archive team model', () => {
     it('with valid data', async () => {
         const team: ITeam = getTeam()
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
-        team.managers.push(userRecord._id)
+        team.managers.push(getEmbeddedUser(userRecord))
 
         const archiveTeam = await ArchiveTeam.create(team)
 

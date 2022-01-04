@@ -1,10 +1,11 @@
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { IArchiveTeamModel } from '../models/archive-team'
-import { ApiError, ITeam, ITeamDocument, IUserDocument } from '../types'
+import { ApiError, ITeam } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam, getEmbeddedUser } from '../utils/utils'
 
 export default class TeamServices {
     teamModel: ITeamModel
@@ -23,16 +24,21 @@ export default class TeamServices {
      * @param user user that is the manager
      * @returns the created team
      */
-    createTeam = async (team: ITeam, user: IUserDocument): Promise<ITeamDocument> => {
+    createTeam = async (team: ITeam, userId: string): Promise<ITeam> => {
+        team._id = new Types.ObjectId()
         team.seasonStart = new Date(team.seasonStart)
         team.seasonEnd = new Date(team.seasonEnd)
         const teamObject = await this.teamModel.create(team)
 
-        teamObject.managers.push(user._id)
-        await teamObject.save()
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user?.managerTeams?.push(getEmbeddedTeam(teamObject))
+        await user?.save()
 
-        user.managerTeams?.push(teamObject._id)
-        await user.save()
+        teamObject.managers.push(getEmbeddedUser(user))
+        await teamObject.save()
 
         // TODO:: Perform creation of RosterRequest objects here
         for (const i of team.requests) {
@@ -41,7 +47,6 @@ export default class TeamServices {
             await requestUser?.save()
         }
 
-        await teamObject.populate('managerArray')
         return teamObject
     }
 
@@ -51,7 +56,7 @@ export default class TeamServices {
      * @param publicReq server side determination of if this is going to a public user or a manager
      * @returns team document object
      */
-    getTeam = async (id: string, publicReq: boolean): Promise<ITeamDocument> => {
+    getTeam = async (id: string, publicReq: boolean): Promise<ITeam> => {
         const teamObject = await this.teamModel.findById(id)
         if (!teamObject) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
@@ -70,7 +75,7 @@ export default class TeamServices {
      * @param userId user that is the manager
      * @returns the team document found
      */
-    getManagedTeam = async (teamId: string, userId: string): Promise<ITeamDocument> => {
+    getManagedTeam = async (teamId: string, userId: string): Promise<ITeam> => {
         await new UltmtValidator(this.userModel, this.teamModel).teamExists(teamId).userIsManager(userId, teamId).test()
         return await this.getTeam(teamId, false)
     }
@@ -82,7 +87,7 @@ export default class TeamServices {
      * @param userId id of user
      * @returns updated team document
      */
-    removePlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeamDocument> => {
+    removePlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeam> => {
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -98,8 +103,8 @@ export default class TeamServices {
             .userIsManager(managerId, teamId)
             .test()
 
-        team.players = team.players.filter((id) => !id.equals(user._id))
-        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
+        team.players = team.players.filter((player) => !player._id.equals(user._id))
+        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
 
         await team.save()
         await user.save()
@@ -121,7 +126,7 @@ export default class TeamServices {
         copyPlayers: boolean,
         seasonStart: Date,
         seasonEnd: Date,
-    ): Promise<ITeamDocument> => {
+    ): Promise<ITeam> => {
         const manager = await this.userModel.findById(managerId)
         if (!manager) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -163,8 +168,8 @@ export default class TeamServices {
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
-                managerRecord.managerTeams = managerRecord.managerTeams.filter((id) => !id.equals(oldId))
-                managerRecord.managerTeams.push(team._id)
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
+                managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
             }
         }
@@ -173,9 +178,9 @@ export default class TeamServices {
         for (const i of players) {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
-                playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
                 if (copyPlayers) {
-                    playerRecord.playerTeams.push(team._id)
+                    playerRecord.playerTeams.push(getEmbeddedTeam(team))
                 }
                 await playerRecord.save()
             }
@@ -191,7 +196,7 @@ export default class TeamServices {
      * @param open boolean for open
      * @returns updated team document
      */
-    setRosterOpen = async (managerId: string, teamId: string, open: boolean): Promise<ITeamDocument> => {
+    setRosterOpen = async (managerId: string, teamId: string, open: boolean): Promise<ITeam> => {
         const manager = await this.userModel.findById(managerId)
         if (!manager) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)

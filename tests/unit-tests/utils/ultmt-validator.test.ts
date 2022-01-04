@@ -7,6 +7,7 @@ import { getUser, getTeam, getRosterRequest, anonId } from '../../fixtures/utils
 import { ApiError, Initiator, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -89,9 +90,9 @@ describe('test ultmt validator', () => {
     it('user is manager success case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
-        team.managers.push(user._id)
+        team.managers.push(getEmbeddedUser(user))
         await team.save()
-        user.managerTeams.push(team._id)
+        user.managerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -103,8 +104,19 @@ describe('test ultmt validator', () => {
     it('user is manager failure case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
-        team.managers.push(user._id)
+        team.managers.push(getEmbeddedUser(user))
         await team.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userIsManager(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
+    })
+
+    it('user is manager second failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
         validator.userIsManager(user._id, team._id)
@@ -219,7 +231,7 @@ describe('test ultmt validator', () => {
     it('player not on team failure on user', async () => {
         const user = await User.create(getUser())
         const team = await Team.create(getTeam())
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -230,7 +242,7 @@ describe('test ultmt validator', () => {
     it('player not on team failure on team', async () => {
         const user = await User.create(getUser())
         const team = await Team.create(getTeam())
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -310,9 +322,9 @@ describe('test ultmt validator', () => {
     it('user on team success case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -324,6 +336,17 @@ describe('test ultmt validator', () => {
     it('user on team failure case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userOnTeam(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
+    })
+
+    it('user on team second failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        team.players.push(getEmbeddedUser(user))
+        await team.save()
+
         const validator = new UltmtValidator(User, Team, RosterRequest)
         validator.userOnTeam(user._id, team._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))

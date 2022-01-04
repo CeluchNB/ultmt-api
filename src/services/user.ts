@@ -1,6 +1,6 @@
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
-import { ApiError, IUser, IUserDocument } from '../types'
+import { ApiError, CreateUser, IUser } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 
@@ -18,7 +18,7 @@ export default class UserServices {
      * @param user data of user to sign up
      * @returns created user document and an authentication token
      */
-    signUp = async (user: IUser): Promise<{ user: IUserDocument; token: string }> => {
+    signUp = async (user: CreateUser): Promise<{ user: IUser; token: string }> => {
         const userObject = await this.userModel.create(user)
         const token = await userObject.generateAuthToken()
 
@@ -74,7 +74,7 @@ export default class UserServices {
      * @param id id of user to get
      * @returns user document
      */
-    getUser = async (id: string): Promise<IUserDocument> => {
+    getUser = async (id: string): Promise<IUser> => {
         const user = await this.userModel.findById(id)
 
         if (!user) {
@@ -105,7 +105,7 @@ export default class UserServices {
      * @param open boolean for open
      * @returns updated user document
      */
-    setOpenToRequests = async (id: string, open: boolean): Promise<IUserDocument> => {
+    setOpenToRequests = async (id: string, open: boolean): Promise<IUser> => {
         const user = await this.userModel.findById(id)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -123,7 +123,7 @@ export default class UserServices {
      * @param teamId id of team
      * @returns updated user document
      */
-    leaveTeam = async (userId: string, teamId: string): Promise<IUserDocument> => {
+    leaveTeam = async (userId: string, teamId: string): Promise<IUser> => {
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -136,8 +136,8 @@ export default class UserServices {
 
         await new UltmtValidator(this.userModel, this.teamModel).userOnTeam(userId, teamId).test()
 
-        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
-        team.players = team.players.filter((id) => !id.equals(user._id))
+        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+        team.players = team.players.filter((player) => !player._id.equals(user._id))
 
         await user.save()
         await team.save()
