@@ -1,7 +1,7 @@
-import { Types, Document } from 'mongoose'
-import { IRosterRequestDocument, IUserDocument } from '.'
+import { Types } from 'mongoose'
 
 export interface ITeam {
+    _id: Types.ObjectId
     place: string
     name: string
     managers: Types.ObjectId[]
@@ -13,10 +13,4 @@ export interface ITeam {
     rosterOpen: boolean
     requests: Types.ObjectId[]
     games: Types.ObjectId[]
-}
-
-export interface ITeamDocument extends ITeam, Document {
-    managerArray: IUserDocument[]
-    playerArray: IUserDocument[]
-    requestsArray: IRosterRequestDocument[]
 }

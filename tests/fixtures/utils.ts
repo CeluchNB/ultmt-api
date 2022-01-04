@@ -13,6 +13,7 @@ export const getUser = (): IUser => {
 
 export const getTeam = (): ITeam => {
     return {
+        _id: new Types.ObjectId(),
         place: 'Pittsburgh',
         name: 'Temper',
         managers: [],
