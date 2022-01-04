@@ -5,6 +5,7 @@ import { ApiError, ITeam } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam } from '../utils/utils'
 
 export default class TeamServices {
     teamModel: ITeamModel
@@ -33,7 +34,7 @@ export default class TeamServices {
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        user?.managerTeams?.push(teamObject._id)
+        user?.managerTeams?.push(getEmbeddedTeam(teamObject))
         await user?.save()
 
         teamObject.managers.push(user?._id)
@@ -103,7 +104,7 @@ export default class TeamServices {
             .test()
 
         team.players = team.players.filter((id) => !id.equals(user._id))
-        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
+        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
 
         await team.save()
         await user.save()
@@ -167,8 +168,8 @@ export default class TeamServices {
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
-                managerRecord.managerTeams = managerRecord.managerTeams.filter((id) => !id.equals(oldId))
-                managerRecord.managerTeams.push(team._id)
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
+                managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
             }
         }
@@ -177,9 +178,9 @@ export default class TeamServices {
         for (const i of players) {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
-                playerRecord.playerTeams = playerRecord.playerTeams.filter((id) => !id.equals(oldId))
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
                 if (copyPlayers) {
-                    playerRecord.playerTeams.push(team._id)
+                    playerRecord.playerTeams.push(getEmbeddedTeam(team))
                 }
                 await playerRecord.save()
             }

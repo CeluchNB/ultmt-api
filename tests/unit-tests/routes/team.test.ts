@@ -8,6 +8,7 @@ import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'
+import { getEmbeddedTeam } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -45,7 +46,7 @@ describe('test /POST team', () => {
 
         const userResponse = await User.findById(userRecord._id)
         expect(userResponse?.managerTeams?.length).toBe(1)
-        expect(userResponse?.managerTeams?.[0].toString()).toBe(teamResponse._id.toString())
+        expect(userResponse?.managerTeams?.[0]._id.toString()).toBe(teamResponse._id.toString())
     })
 
     it('with invalid team', async () => {
@@ -119,7 +120,7 @@ describe('test /GET managed id', () => {
         team.managers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
-        userRecord.managerTeams.push(teamRecord._id)
+        userRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await userRecord.save()
 
         const response = await request(app)
@@ -142,7 +143,7 @@ describe('test /GET managed id', () => {
         team.managers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
-        userRecord.managerTeams.push(teamRecord._id)
+        userRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await userRecord.save()
 
         await request(app)
@@ -161,7 +162,7 @@ describe('test /GET managed id', () => {
         team.managers.push(userRecord._id)
 
         const teamRecord = await Team.create(team)
-        userRecord.managerTeams.push(teamRecord._id)
+        userRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await userRecord.save()
 
         await request(app)
@@ -182,12 +183,12 @@ describe('test /POST remove player', () => {
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
 
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         team.players.push(user._id)
         await team.save()
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const response = await request(app)
@@ -212,12 +213,12 @@ describe('test /POST remove player', () => {
         await manager.generateAuthToken()
         const team = await Team.create(getTeam())
 
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         team.players.push(user._id)
         await team.save()
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         await request(app)
@@ -232,12 +233,12 @@ describe('test /POST remove player', () => {
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
 
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         team.players.push(user._id)
         await team.save()
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const response = await request(app)
@@ -261,7 +262,7 @@ describe('test /POST rollover', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -291,7 +292,7 @@ describe('test /POST rollover', () => {
 
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
-        expect(managerRecord?.managerTeams[0].toString()).toBe(teamRecord?._id.toString())
+        expect(managerRecord?.managerTeams[0]._id.toString()).toBe(teamRecord?._id.toString())
     })
 
     it('with invalid token', async () => {
@@ -300,7 +301,7 @@ describe('test /POST rollover', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         await request(app)
@@ -320,7 +321,7 @@ describe('test /POST rollover', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -342,7 +343,7 @@ describe('test /PUT set open', () => {
         const manager = await User.create(getUser())
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         await team.save()
@@ -367,7 +368,7 @@ describe('test /PUT set open', () => {
         const manager = await User.create(getUser())
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         await team.save()
@@ -392,7 +393,7 @@ describe('test /PUT set open', () => {
         const manager = await User.create(getUser())
         await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         await team.save()
@@ -408,7 +409,7 @@ describe('test /PUT set open', () => {
         const manager = await User.create(getUser())
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         team.managers.push(manager._id)
         await team.save()

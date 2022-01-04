@@ -7,6 +7,7 @@ import { getUser, getTeam, getRosterRequest, anonId } from '../../fixtures/utils
 import { ApiError, Initiator, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -91,7 +92,7 @@ describe('test ultmt validator', () => {
         const user = await User.create(getUser())
         team.managers.push(user._id)
         await team.save()
-        user.managerTeams.push(team._id)
+        user.managerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -219,7 +220,7 @@ describe('test ultmt validator', () => {
     it('player not on team failure on user', async () => {
         const user = await User.create(getUser())
         const team = await Team.create(getTeam())
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
@@ -312,7 +313,7 @@ describe('test ultmt validator', () => {
         const user = await User.create(getUser())
         team.players.push(user._id)
         await team.save()
-        user.playerTeams.push(team._id)
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)

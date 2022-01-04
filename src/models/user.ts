@@ -34,8 +34,24 @@ const schema = new Schema<IUser>({
     private: { type: Boolean, required: true, default: false },
     tokens: [{ type: String }],
     requests: [{ type: Types.ObjectId }],
-    playerTeams: [{ type: Types.ObjectId }],
-    managerTeams: [{ type: Types.ObjectId }],
+    playerTeams: [
+        {
+            _id: { type: Types.ObjectId },
+            place: { type: String },
+            name: { Type: String },
+            seasonStart: { type: Date },
+            seasonEnd: { type: Date },
+        },
+    ],
+    managerTeams: [
+        {
+            _id: { type: Types.ObjectId },
+            place: { type: String },
+            name: { Type: String },
+            seasonStart: { type: Date },
+            seasonEnd: { type: Date },
+        },
+    ],
     stats: [{ type: Types.ObjectId }],
     openToRequests: {
         type: Boolean,

@@ -14,3 +14,11 @@ export interface ITeam {
     requests: Types.ObjectId[]
     games: Types.ObjectId[]
 }
+
+export interface EmbeddedTeam {
+    _id: Types.ObjectId
+    place: string
+    name: string
+    seasonStart: Date
+    seasonEnd: Date
+}

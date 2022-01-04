@@ -136,7 +136,7 @@ export default class UserServices {
 
         await new UltmtValidator(this.userModel, this.teamModel).userOnTeam(userId, teamId).test()
 
-        user.playerTeams = user.playerTeams.filter((id) => !id.equals(team._id))
+        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
         team.players = team.players.filter((id) => !id.equals(user._id))
 
         await user.save()

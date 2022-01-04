@@ -1,4 +1,5 @@
 import { Types } from 'mongoose'
+import { EmbeddedTeam } from '.'
 
 export interface CreateUser {
     firstName: string
@@ -12,8 +13,8 @@ export interface IUser extends CreateUser {
     _id: Types.ObjectId
     private: boolean
     tokens?: string[]
-    playerTeams: Types.ObjectId[]
-    managerTeams: Types.ObjectId[]
+    playerTeams: EmbeddedTeam[]
+    managerTeams: EmbeddedTeam[]
     stats: Types.ObjectId[]
     requests: Types.ObjectId[]
     openToRequests: boolean

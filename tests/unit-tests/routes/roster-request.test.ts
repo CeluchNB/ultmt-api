@@ -7,6 +7,7 @@ import Team from '../../../src/models/team'
 import RosterRequest from '../../../src/models/roster-request'
 import { Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
+import { getEmbeddedTeam } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -32,7 +33,7 @@ describe('test request from team route', () => {
         const team = await Team.create(getTeam())
         team.managers.push(manager._id)
         await team.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
         user.openToRequests = true
         await user.save()
@@ -191,7 +192,7 @@ describe('test team accept route', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -214,7 +215,7 @@ describe('test team accept route', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(1)
         expect(userRecord?.requests[0].toString()).toBe(requestRecord?._id.toString())
 
@@ -277,7 +278,7 @@ describe('test team deny route', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -382,7 +383,7 @@ describe('test user accept route', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
-        expect(userRecord?.playerTeams[0].toString()).toBe(team._id.toString())
+        expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.requests.length).toBe(0)
 
         const teamRecord = await Team.findById(team._id)
@@ -523,7 +524,7 @@ describe('test team delete request', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)
@@ -560,7 +561,7 @@ describe('test team delete request', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         await request(app)
@@ -581,7 +582,7 @@ describe('test team delete request', () => {
         await team.save()
         user.requests.push(requestData._id)
         await user.save()
-        manager.managerTeams.push(team._id)
+        manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
         const response = await request(app)

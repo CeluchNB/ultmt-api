@@ -154,13 +154,18 @@ export default class UltmtValidator {
                 const manager = await this.userModel.findById(validation.data.userId)
                 const managingTeam = await this.teamModel.findById(validation.data.teamId)
 
-                if (
-                    !managingTeam?.managers.includes(manager?._id) ||
-                    !manager?.managerTeams.includes(managingTeam?._id)
-                ) {
+                if (!managingTeam?.managers.includes(manager?._id)) {
                     throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
                 }
-                break
+
+                if (manager) {
+                    for (const i of manager?.managerTeams) {
+                        if (i._id.equals(managingTeam?._id)) {
+                            return
+                        }
+                    }
+                }
+                throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
             }
             case ValidationType.REQUEST_IS_TEAM_INITIATED: {
                 const request = await this.rosterRequestModel.findById(validation.data.id)
@@ -206,8 +211,16 @@ export default class UltmtValidator {
                 const user = await this.userModel.findById(userId)
                 const team = await this.teamModel.findById(teamId)
 
-                if (user?.playerTeams.includes(team?._id) || team?.players.includes(user?._id)) {
+                if (team?.players.includes(user?._id)) {
                     throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
+                }
+
+                if (user) {
+                    for (const i of user?.playerTeams) {
+                        if (i._id.equals(team?._id)) {
+                            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
+                        }
+                    }
                 }
                 break
             }
@@ -245,10 +258,18 @@ export default class UltmtValidator {
                 const user = await this.userModel.findById(userId)
                 const team = await this.teamModel.findById(teamId)
 
-                if (!user?.playerTeams.includes(team?._id) || !team?.players.includes(user._id)) {
+                if (!team?.players.includes(user?._id)) {
                     throw new ApiError(Constants.PLAYER_NOT_ON_TEAM, 400)
                 }
-                break
+
+                if (user) {
+                    for (const i of user.playerTeams) {
+                        if (i._id.equals(team?._id)) {
+                            return
+                        }
+                    }
+                }
+                throw new ApiError(Constants.PLAYER_NOT_ON_TEAM, 400)
             }
             case ValidationType.USER_ACCEPTING_REQUESTS: {
                 const { userId } = validation.data

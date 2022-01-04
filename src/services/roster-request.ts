@@ -5,6 +5,7 @@ import { ApiError, Initiator, IRosterRequest, Status } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
+import { getEmbeddedTeam } from '../utils/utils'
 
 export default class RosterRequestServices {
     teamModel: ITeamModel
@@ -138,10 +139,10 @@ export default class RosterRequestServices {
 
         if (approve) {
             // add player to team and remove request from team's list
-            team.players.push(user?._id)
+            team.players.push(user._id)
 
             // add team to player but don't remove request from list
-            user?.playerTeams.push(team._id)
+            user?.playerTeams.push(getEmbeddedTeam(team))
 
             // set status to approved
             request.status = Status.Approved
@@ -177,20 +178,22 @@ export default class RosterRequestServices {
         }
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
-            .teamExists(request?.team.toString())
             .requestIsTeamInitiated(requestId)
             .requestIsPending(request._id)
             .userOnRequest(user._id, request._id)
             .test()
 
         const team = await this.teamModel.findById(request?.team)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
 
         if (approve) {
             // add player to team and remove request from team's list
             team?.players.push(user._id)
 
             // add team to player but don't remove request from list
-            user.playerTeams.push(team?._id)
+            user.playerTeams.push(getEmbeddedTeam(team))
 
             // set status to approved
             request.status = Status.Approved
