@@ -30,6 +30,7 @@ export const getTeam = (): ITeam => {
 
 export const getRosterRequest = (team: Types.ObjectId, user: Types.ObjectId, source: Initiator): IRosterRequest => {
     return {
+        _id: new Types.ObjectId(),
         team,
         user,
         requestSource: source,

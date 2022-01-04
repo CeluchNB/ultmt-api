@@ -111,6 +111,7 @@ describe('test request from team', () => {
         await user.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -207,6 +208,7 @@ describe('test request from player', () => {
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -245,6 +247,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -284,6 +287,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -317,6 +321,7 @@ describe('test team respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -341,6 +346,7 @@ describe('test team respond to request', () => {
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -365,6 +371,7 @@ describe('test team respond to request', () => {
         await team.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -391,6 +398,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: new Types.ObjectId(anonId),
             requestSource: Initiator.Player,
@@ -417,6 +425,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: new Types.ObjectId(anonId),
             team: team._id,
             requestSource: Initiator.Player,
@@ -443,6 +452,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -469,6 +479,7 @@ describe('test team respond to request', () => {
         await manager.save()
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -493,6 +504,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -529,6 +541,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -563,6 +576,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -585,6 +599,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: new Types.ObjectId(anonId),
             requestSource: Initiator.Team,
@@ -607,6 +622,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -629,6 +645,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,
@@ -651,6 +668,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,
@@ -673,6 +691,7 @@ describe('test user respond to request', () => {
         const team = await Team.create(getTeam())
 
         const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Team,

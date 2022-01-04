@@ -5,7 +5,7 @@ import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import RosterRequest from '../../../src/models/roster-request'
-import { Initiator, IRosterRequestDocument, Status } from '../../../src/types'
+import { Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 
 beforeAll(async () => {
@@ -43,7 +43,7 @@ describe('test request from team route', () => {
             .send()
             .expect(200)
 
-        const rosterRequest = response.body.request as IRosterRequestDocument
+        const rosterRequest = response.body.request as IRosterRequest
         expect(rosterRequest.user.toString()).toBe(user._id.toString())
         expect(rosterRequest.team.toString()).toBe(team._id.toString())
         expect(rosterRequest.requestSource).toBe(Initiator.Team)
@@ -129,7 +129,7 @@ describe('test request from user route', () => {
             .send()
             .expect(200)
 
-        const rosterRequest = response.body.request as IRosterRequestDocument
+        const rosterRequest = response.body.request as IRosterRequest
         expect(rosterRequest.user.toString()).toBe(user._id.toString())
         expect(rosterRequest.team.toString()).toBe(team._id.toString())
         expect(rosterRequest.requestSource).toBe(Initiator.Player)
@@ -200,7 +200,7 @@ describe('test team accept route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest.user.toString()).toBe(user._id.toString())
         expect(responseRequest.team.toString()).toBe(team._id.toString())
         expect(responseRequest.requestSource).toBe(Initiator.Player)
@@ -286,7 +286,7 @@ describe('test team deny route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest.user.toString()).toBe(user._id.toString())
         expect(responseRequest.team.toString()).toBe(team._id.toString())
         expect(responseRequest.requestSource).toBe(Initiator.Player)
@@ -367,7 +367,7 @@ describe('test user accept route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest._id.toString()).toBe(requestData._id.toString())
         expect(responseRequest.user.toString()).toBe(requestData.user.toString())
         expect(responseRequest.team.toString()).toBe(requestData.team.toString())
@@ -449,7 +449,7 @@ describe('test user deny route', () => {
             .send()
             .expect(200)
 
-        const responseRequest = response.body.request as IRosterRequestDocument
+        const responseRequest = response.body.request as IRosterRequest
         expect(responseRequest._id.toString()).toBe(requestData._id.toString())
         expect(responseRequest.user.toString()).toBe(requestData.user.toString())
         expect(responseRequest.team.toString()).toBe(requestData.team.toString())

@@ -4,6 +4,7 @@ import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import { getUser, getTeam } from '../../fixtures/utils'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { Types } from 'mongoose'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -24,6 +25,7 @@ describe('test roster request model', () => {
         const team = await Team.create(getTeam())
 
         const rosterRequest: IRosterRequest = {
+            _id: new Types.ObjectId(),
             user: user._id,
             team: team._id,
             requestSource: Initiator.Player,

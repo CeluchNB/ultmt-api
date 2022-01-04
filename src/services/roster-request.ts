@@ -1,9 +1,10 @@
 import { IRosterRequestModel } from '../models/roster-request'
 import { IUserModel } from '../models/user'
 import { ITeamModel } from '../models/team'
-import { ApiError, Initiator, IRosterRequest, IRosterRequestDocument, Status } from '../types'
+import { ApiError, Initiator, IRosterRequest, Status } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
+import { Types } from 'mongoose'
 
 export default class RosterRequestServices {
     teamModel: ITeamModel
@@ -23,7 +24,7 @@ export default class RosterRequestServices {
      * @param userId id of user requested for roster
      * @returns roster request document
      */
-    requestFromTeam = async (managerId: string, teamId: string, userId: string): Promise<IRosterRequestDocument> => {
+    requestFromTeam = async (managerId: string, teamId: string, userId: string): Promise<IRosterRequest> => {
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
@@ -43,6 +44,7 @@ export default class RosterRequestServices {
             .test()
 
         const requestData: IRosterRequest = {
+            _id: new Types.ObjectId(),
             team: team._id,
             user: user._id,
             requestSource: Initiator.Team,
@@ -67,7 +69,7 @@ export default class RosterRequestServices {
      * @param teamId id of team
      * @returns roster request document
      */
-    requestFromPlayer = async (userId: string, teamId: string): Promise<IRosterRequestDocument> => {
+    requestFromPlayer = async (userId: string, teamId: string): Promise<IRosterRequest> => {
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -85,6 +87,7 @@ export default class RosterRequestServices {
             .test()
 
         const requestData: IRosterRequest = {
+            _id: new Types.ObjectId(),
             team: team._id,
             user: user._id,
             requestSource: Initiator.Player,
@@ -110,11 +113,7 @@ export default class RosterRequestServices {
      * @param approve boolean for approve or deny
      * @returns roster request
      */
-    teamRespondToRequest = async (
-        managerId: string,
-        requestId: string,
-        approve: boolean,
-    ): Promise<IRosterRequestDocument> => {
+    teamRespondToRequest = async (managerId: string, requestId: string, approve: boolean): Promise<IRosterRequest> => {
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
@@ -166,11 +165,7 @@ export default class RosterRequestServices {
      * @param approve boolean for approve or deny
      * @returns
      */
-    userRespondToRequest = async (
-        userId: string,
-        requestId: string,
-        approve: boolean,
-    ): Promise<IRosterRequestDocument> => {
+    userRespondToRequest = async (userId: string, requestId: string, approve: boolean): Promise<IRosterRequest> => {
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
@@ -219,7 +214,7 @@ export default class RosterRequestServices {
      * @param requestId id of request
      * @returns document of deleted roster request
      */
-    teamDelete = async (managerId: string, requestId: string): Promise<IRosterRequestDocument> => {
+    teamDelete = async (managerId: string, requestId: string): Promise<IRosterRequest> => {
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
@@ -257,7 +252,7 @@ export default class RosterRequestServices {
      * @param requestId id of request
      * @returns document of deleted roster request
      */
-    userDelete = async (userId: string, requestId: string): Promise<IRosterRequestDocument> => {
+    userDelete = async (userId: string, requestId: string): Promise<IRosterRequest> => {
         const request = await this.rosterRequestModel.findById(requestId)
         if (!request) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
