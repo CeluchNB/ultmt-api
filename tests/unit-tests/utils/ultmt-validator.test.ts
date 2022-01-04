@@ -112,6 +112,17 @@ describe('test ultmt validator', () => {
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
     })
 
+    it('user is manager second failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userIsManager(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
+    })
+
     it('request is team initiated success case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
@@ -325,6 +336,17 @@ describe('test ultmt validator', () => {
     it('user on team failure case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.userOnTeam(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
+    })
+
+    it('user on team second failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        team.players.push(getEmbeddedUser(user))
+        await team.save()
+
         const validator = new UltmtValidator(User, Team, RosterRequest)
         validator.userOnTeam(user._id, team._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
