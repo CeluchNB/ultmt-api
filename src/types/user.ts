@@ -1,6 +1,6 @@
-import { Types, Document } from 'mongoose'
+import { Types } from 'mongoose'
 
-export interface IUser {
+export interface CreateUser {
     firstName: string
     lastName: string
     email: string
@@ -8,7 +8,8 @@ export interface IUser {
     password?: string
 }
 
-export interface IUserDocument extends IUser, Document {
+export interface IUser extends CreateUser {
+    _id: Types.ObjectId
     private: boolean
     tokens?: string[]
     playerTeams: Types.ObjectId[]

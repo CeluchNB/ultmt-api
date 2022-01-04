@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 import request from 'supertest'
 import app from '../../../src/app'
-import { ApiError, IUser, IUserDocument } from '../../../src/types'
+import { ApiError, IUser } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser, anonId, getTeam } from '../../fixtures/utils'
@@ -25,14 +25,14 @@ afterAll((done) => {
 
 describe('test /POST user', () => {
     it('with valid data', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         const response = await request(app)
             .post('/user')
             .send(user)
             .expect(201)
 
-        const userResponse: IUserDocument = response.body.user
+        const userResponse: IUser = response.body.user
         const token = response.body.token
 
         expect(userResponse.firstName).toBe(user.firstName)
@@ -62,7 +62,7 @@ describe('test /POST user', () => {
 
 describe('test /POST login', () => {
     it('with existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         
         await User.create(user)
 
@@ -76,7 +76,7 @@ describe('test /POST login', () => {
     })
 
     it('with existing username', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         
         await User.create(user)
 
@@ -90,7 +90,7 @@ describe('test /POST login', () => {
     })
 
     it('with wrong password', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
 
@@ -102,7 +102,7 @@ describe('test /POST login', () => {
     })
 
     it('without existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         
         await User.create(user)
 
@@ -114,7 +114,7 @@ describe('test /POST login', () => {
     })
 
     it('with null password on user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
 
@@ -136,7 +136,7 @@ describe('test /POST login', () => {
     })
 
     it('with service error', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
 
@@ -155,7 +155,7 @@ describe('test /POST login', () => {
 
 describe('test /POST logout', () => {
     it('with existing user and valid token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -170,7 +170,7 @@ describe('test /POST logout', () => {
     })
 
     it('with existing user and non-existent token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
@@ -196,7 +196,7 @@ describe('test /POST logout', () => {
     })
 
     it('with service error', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -214,7 +214,7 @@ describe('test /POST logout', () => {
 
 describe('test /POST logout all', () => {
     it('with existing user and multiple tokens', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
         await userRecord.generateAuthToken()
@@ -231,7 +231,7 @@ describe('test /POST logout all', () => {
     })
 
     it('with service error', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -249,7 +249,7 @@ describe('test /POST logout all', () => {
 
 describe('test /GET me', () => {
     it('with valid token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -265,7 +265,7 @@ describe('test /GET me', () => {
     })
 
     it('with invalid token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
@@ -284,7 +284,7 @@ describe('test /GET me', () => {
 
 describe('test /GET user', () => {
     it('with existing user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
 
         const response = await request(app)
@@ -311,7 +311,7 @@ describe('test /GET user', () => {
 
 describe('test /DELETE profile', () => {
     it('test delete with existing token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -333,7 +333,7 @@ describe('test /DELETE profile', () => {
     })
 
     it('test delete with service error', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
@@ -360,7 +360,7 @@ describe('test /PUT set open', () => {
             .send()
             .expect(200)
 
-        const userResponse = response.body.user as IUserDocument
+        const userResponse = response.body.user as IUser
         expect(userResponse._id.toString()).toBe(user._id.toString())
         expect(userResponse.firstName).toBe(user.firstName)
         expect(userResponse.openToRequests).toBe(true)
@@ -380,7 +380,7 @@ describe('test /PUT set open', () => {
             .send()
             .expect(200)
 
-        const userResponse = response.body.user as IUserDocument
+        const userResponse = response.body.user as IUser
         expect(userResponse._id.toString()).toBe(user._id.toString())
         expect(userResponse.firstName).toBe(user.firstName)
         expect(userResponse.openToRequests).toBe(false)

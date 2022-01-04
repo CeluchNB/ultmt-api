@@ -1,5 +1,5 @@
 import { Schema, Types, model } from 'mongoose'
-import type { IUserDocument } from '../types/user'
+import type { IUser } from '../types/user'
 import bcrypt from 'bcrypt'
 import PasswordValidator from 'password-validator'
 import validator from 'validator'
@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import { ApiError } from '../types'
 import * as Constants from '../utils/constants'
 
-const schema = new Schema<IUserDocument>({
+const schema = new Schema<IUser>({
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
     email: {
@@ -92,7 +92,7 @@ schema.methods.generateAuthToken = async function () {
     }
 }
 
-const User = model<IUserDocument>('User', schema)
+const User = model<IUser>('User', schema)
 
 export type IUserModel = typeof User
 export default User

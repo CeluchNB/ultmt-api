@@ -2,7 +2,7 @@ import TeamServices from '../../../src/services/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'
-import { ApiError, ITeam, IUser } from '../../../src/types'
+import { ApiError, ITeam } from '../../../src/types'
 import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
@@ -24,11 +24,11 @@ afterAll((done) => {
 
 describe('test create team', () => {
     it('with minimal, valid data', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userResponse = await User.create(user)
 
         const team: ITeam = getTeam()
-        const teamResponse = await services.createTeam(team, userResponse)
+        const teamResponse = await services.createTeam(team, userResponse._id.toString())
         const teamRecord = await Team.findById(teamResponse._id)
         const userRecord = await User.findById(userResponse._id)
 
@@ -64,7 +64,7 @@ describe('test create team', () => {
             team.requests.push(u._id)
         }
 
-        const teamResponse = await services.createTeam(team, users[0])
+        const teamResponse = await services.createTeam(team, users[0]._id.toString())
 
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
@@ -78,16 +78,18 @@ describe('test create team', () => {
     })
 
     it('with invalid user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         userRecord._id = anonId
-        await expect(services.createTeam(getTeam(), userRecord)).rejects.toThrow()
+        await expect(services.createTeam(getTeam(), userRecord._id.toString())).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
     })
 })
 
 describe('test getTeam', () => {
     it('with valid id and non-public request', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)
@@ -103,7 +105,7 @@ describe('test getTeam', () => {
     })
 
     it('with valid id and public request', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)
@@ -131,7 +133,7 @@ describe('test getTeam', () => {
 
 describe('test getManagedTeam', () => {
     it('with valid manager', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userResponse = await User.create(user)
 
         const team: ITeam = getTeam()
@@ -151,7 +153,7 @@ describe('test getManagedTeam', () => {
         const team: ITeam = getTeam()
         const teamRecord = await Team.create(team)
 
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
 

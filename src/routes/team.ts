@@ -5,7 +5,7 @@ import Team from '../models/team'
 import User from '../models/user'
 import ArchiveTeam from '../models/archive-team'
 import { errorMiddleware } from '../middleware/errors'
-import { IUserDocument } from '../types'
+import { IUser } from '../types'
 
 export const teamRouter = Router()
 
@@ -16,7 +16,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
             const team = req.body.team
-            const teamResponse = await teamServices.createTeam(team, req.user as IUserDocument)
+            const teamResponse = await teamServices.createTeam(team, (req.user as IUser)._id.toString())
 
             return res.status(201).json({ team: teamResponse })
         } catch (error) {
@@ -41,7 +41,7 @@ teamRouter.get(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
-            const team = await teamServices.getManagedTeam(req.params.id, (req.user as IUserDocument)._id)
+            const team = await teamServices.getManagedTeam(req.params.id, (req.user as IUser)._id.toString())
             return res.json({ team })
         } catch (error) {
             next(error)
@@ -56,7 +56,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
             const team = await teamServices.removePlayer(
-                (req.user as IUserDocument)._id,
+                (req.user as IUser)._id.toString(),
                 req.params.id,
                 req.query.user as string,
             )
@@ -74,7 +74,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
             const team = await teamServices.rollover(
-                (req.user as IUserDocument)._id,
+                (req.user as IUser)._id.toString(),
                 req.params.id,
                 req.body.copyPlayers,
                 new Date(req.body.seasonStart),
@@ -94,7 +94,7 @@ teamRouter.put(
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
             const team = await teamServices.setRosterOpen(
-                (req.user as IUserDocument)._id,
+                (req.user as IUser)._id.toString(),
                 req.params.id,
                 req.query.open === 'true',
             )

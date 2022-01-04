@@ -2,7 +2,7 @@
 import request from 'supertest'
 import app from '../../../src/app'
 import User from '../../../src/models/user'
-import { ITeam, IUser } from '../../../src/types'
+import { ITeam, CreateUser } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
@@ -24,7 +24,7 @@ afterAll((done) => {
 
 describe('test /POST team', () => {
     it('with valid team and user', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)
@@ -40,9 +40,6 @@ describe('test /POST team', () => {
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.managers.length).toBe(1)
-        // expect(teamResponse.managerArray.length).toBe(1)
-        // expect(teamResponse.managerArray[0].firstName).toBe(user.firstName)
-        // expect(teamResponse.managerArray[0].lastName).toBe(user.lastName)
         expect(new Date(teamResponse.seasonStart)).toEqual(getTeam().seasonStart)
         expect(new Date(teamResponse.seasonEnd)).toEqual(getTeam().seasonEnd)
 
@@ -52,7 +49,7 @@ describe('test /POST team', () => {
     })
 
     it('with invalid team', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
 
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
@@ -67,7 +64,7 @@ describe('test /POST team', () => {
     })
 
     it('with invalid user', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
 
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
@@ -114,7 +111,7 @@ describe('test /GET public team', () => {
 
 describe('test /GET managed id', () => {
     it('with valid data', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)
@@ -138,7 +135,7 @@ describe('test /GET managed id', () => {
     })
 
     it('with invalid user', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)
@@ -156,7 +153,7 @@ describe('test /GET managed id', () => {
     })
 
     it('with invalid team', async () => {
-        const user: IUser = getUser()
+        const user: CreateUser = getUser()
         const team: ITeam = getTeam()
 
         const userRecord = await User.create(user)

@@ -1,7 +1,6 @@
 import UserServices from '../../../src/services/user'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
-import { IUser } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
@@ -24,7 +23,7 @@ afterAll((done) => {
 
 describe('test sign up', () => {
     it('with valid user data', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         const { user: userRecord, token } = await services.signUp(user)
         expect(userRecord._id).toBeDefined()
@@ -43,7 +42,7 @@ describe('test sign up', () => {
     })
 
     it('with invalid user data', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         user.email = 'bad@email'
 
         await expect(services.signUp(user)).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
@@ -52,7 +51,7 @@ describe('test sign up', () => {
 
 describe('test login', () => {
     it('with existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
         const token = await services.login(user.email)
@@ -63,7 +62,7 @@ describe('test login', () => {
     })
 
     it('with non-existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
         await expect(services.login('absent@email.com')).rejects.toThrowError(
@@ -74,7 +73,7 @@ describe('test login', () => {
 
 describe('test logout', () => {
     it('with existing email and one token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         const userRecord = await User.create(user)
         userRecord.tokens?.push('token1')
@@ -87,7 +86,7 @@ describe('test logout', () => {
     })
 
     it('with existing email and three tokens', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         userRecord.tokens?.push('token1')
         userRecord.tokens?.push('token2')
@@ -102,7 +101,7 @@ describe('test logout', () => {
     })
 
     it('with non-existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
 
         await User.create(user)
         await expect(services.logout('absent@email.com', 'token1')).rejects.toThrowError(
@@ -113,7 +112,7 @@ describe('test logout', () => {
 
 describe('test logout all', () => {
     it('with existing email and one token', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         userRecord.tokens?.push('token1')
         await userRecord.save()
@@ -124,7 +123,7 @@ describe('test logout all', () => {
     })
 
     it('with existing email and three tokens', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         userRecord.tokens?.push('token1')
         userRecord.tokens?.push('token2')
@@ -137,7 +136,7 @@ describe('test logout all', () => {
     })
 
     it('with non-existing email', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         await User.create(user)
 
         await expect(services.logoutAll('absent@email.com')).rejects.toThrowError(
@@ -148,7 +147,7 @@ describe('test logout all', () => {
 
 describe('test get user', () => {
     it('with existing, public user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
 
         const userResponse = await services.getUser(userRecord._id)
@@ -165,7 +164,7 @@ describe('test get user', () => {
     })
 
     it('with existing, private user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
         userRecord.private = true
         await userRecord.save()
@@ -193,8 +192,8 @@ describe('test get user', () => {
 
 describe('test delete account', () => {
     it('with existing user', async () => {
-        const user1: IUser = getUser()
-        const user2: IUser = getUser()
+        const user1 = getUser()
+        const user2 = getUser()
         user2.email = 'first.last2@email.com'
         user2.username = 'lastfirst'
         const userRecord1 = await User.create(user1)
@@ -210,7 +209,7 @@ describe('test delete account', () => {
     })
 
     it('with non-existing user', async () => {
-        const user: IUser = getUser()
+        const user = getUser()
         const userRecord = await User.create(user)
 
         services.deleteUser(anonId)

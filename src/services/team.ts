@@ -1,7 +1,7 @@
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { IArchiveTeamModel } from '../models/archive-team'
-import { ApiError, ITeam, IUserDocument } from '../types'
+import { ApiError, ITeam } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
@@ -23,17 +23,21 @@ export default class TeamServices {
      * @param user user that is the manager
      * @returns the created team
      */
-    createTeam = async (team: ITeam, user: IUserDocument): Promise<ITeam> => {
+    createTeam = async (team: ITeam, userId: string): Promise<ITeam> => {
         team._id = new Types.ObjectId()
         team.seasonStart = new Date(team.seasonStart)
         team.seasonEnd = new Date(team.seasonEnd)
         const teamObject = await this.teamModel.create(team)
 
-        teamObject.managers.push(user._id)
-        await teamObject.save()
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user?.managerTeams?.push(teamObject._id)
+        await user?.save()
 
-        user.managerTeams?.push(teamObject._id)
-        await user.save()
+        teamObject.managers.push(user?._id)
+        await teamObject.save()
 
         // TODO:: Perform creation of RosterRequest objects here
         for (const i of team.requests) {

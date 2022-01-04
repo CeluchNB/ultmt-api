@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
-import { IUser, ITeam, IRosterRequest, Initiator, Status } from '../../src/types'
+import { CreateUser, ITeam, IRosterRequest, Initiator, Status } from '../../src/types'
 
-export const getUser = (): IUser => {
+export const getUser = (): CreateUser => {
     return {
         firstName: 'First',
         lastName: 'Last',
