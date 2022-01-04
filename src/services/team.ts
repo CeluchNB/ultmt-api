@@ -5,7 +5,7 @@ import { ApiError, ITeam } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
-import { getEmbeddedTeam } from '../utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../utils/utils'
 
 export default class TeamServices {
     teamModel: ITeamModel
@@ -37,7 +37,7 @@ export default class TeamServices {
         user?.managerTeams?.push(getEmbeddedTeam(teamObject))
         await user?.save()
 
-        teamObject.managers.push(user?._id)
+        teamObject.managers.push(getEmbeddedUser(user))
         await teamObject.save()
 
         // TODO:: Perform creation of RosterRequest objects here
@@ -103,7 +103,7 @@ export default class TeamServices {
             .userIsManager(managerId, teamId)
             .test()
 
-        team.players = team.players.filter((id) => !id.equals(user._id))
+        team.players = team.players.filter((player) => !player._id.equals(user._id))
         user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
 
         await team.save()

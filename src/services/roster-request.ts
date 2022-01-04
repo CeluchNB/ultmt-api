@@ -5,7 +5,7 @@ import { ApiError, Initiator, IRosterRequest, Status } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
-import { getEmbeddedTeam } from '../utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../utils/utils'
 
 export default class RosterRequestServices {
     teamModel: ITeamModel
@@ -139,7 +139,7 @@ export default class RosterRequestServices {
 
         if (approve) {
             // add player to team and remove request from team's list
-            team.players.push(user._id)
+            team.players.push(getEmbeddedUser(user))
 
             // add team to player but don't remove request from list
             user?.playerTeams.push(getEmbeddedTeam(team))
@@ -190,7 +190,7 @@ export default class RosterRequestServices {
 
         if (approve) {
             // add player to team and remove request from team's list
-            team?.players.push(user._id)
+            team?.players.push(getEmbeddedUser(user))
 
             // add team to player but don't remove request from list
             user.playerTeams.push(getEmbeddedTeam(team))

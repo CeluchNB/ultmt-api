@@ -3,6 +3,7 @@ import { ITeam } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getTeam, getUser } from '../../fixtures/utils'
 import ArchiveTeam from '../../../src/models/archive-team'
+import { getEmbeddedUser } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -22,7 +23,7 @@ describe('test archive team model', () => {
         const team: ITeam = getTeam()
         const user = getUser()
         const userRecord = await User.create(user)
-        team.managers.push(userRecord._id)
+        team.managers.push(getEmbeddedUser(userRecord))
 
         const archiveTeam = await ArchiveTeam.create(team)
 

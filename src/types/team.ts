@@ -1,11 +1,12 @@
 import { Types } from 'mongoose'
+import { EmbeddedUser } from '.'
 
 export interface ITeam {
     _id: Types.ObjectId
     place: string
     name: string
-    managers: Types.ObjectId[]
-    players: Types.ObjectId[]
+    managers: EmbeddedUser[]
+    players: EmbeddedUser[]
     seasonStart: Date
     seasonEnd: Date
     seasonNumber: number

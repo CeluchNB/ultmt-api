@@ -5,7 +5,7 @@ import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/s
 import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
-import { getEmbeddedTeam } from '../../../src/utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -259,7 +259,7 @@ describe('test leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         const result = await services.leaveTeam(user._id, team._id)
@@ -279,7 +279,7 @@ describe('test leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         await expect(services.leaveTeam(anonId, team._id)).rejects.toThrowError(
@@ -293,7 +293,7 @@ describe('test leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         await expect(services.leaveTeam(user._id, anonId)).rejects.toThrowError(

@@ -6,7 +6,7 @@ import { ApiError, ITeam } from '../../../src/types'
 import { getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
-import { getEmbeddedTeam } from '../../../src/utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 const services = new TeamServices(Team, User, ArchiveTeam)
 
@@ -36,7 +36,7 @@ describe('test create team', () => {
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.managers.length).toBe(1)
-        expect(teamResponse.managers[0].toString()).toBe(userResponse._id.toString())
+        expect(teamResponse.managers[0]._id.toString()).toBe(userResponse._id.toString())
         expect(teamResponse.players.length).toBe(0)
         expect(teamResponse.seasonStart).toBe(team.seasonStart)
         expect(teamResponse.seasonEnd).toBe(team.seasonEnd)
@@ -45,7 +45,7 @@ describe('test create team', () => {
         expect(teamRecord?.place).toBe(team.place)
         expect(teamRecord?.name).toBe(team.name)
         expect(teamRecord?.managers.length).toBe(1)
-        expect(teamRecord?.managers[0].toString()).toBe(userResponse._id.toString())
+        expect(teamRecord?.managers[0]._id.toString()).toBe(userResponse._id.toString())
         expect(teamRecord?.players.length).toBe(0)
         expect(teamRecord?.seasonStart.toString()).toBe(team.seasonStart.toString())
         expect(teamRecord?.seasonEnd.toString()).toBe(team.seasonEnd.toString())
@@ -138,7 +138,7 @@ describe('test getManagedTeam', () => {
         const userResponse = await User.create(user)
 
         const team: ITeam = getTeam()
-        team.managers.push(userResponse._id)
+        team.managers.push(getEmbeddedUser(userResponse))
         const teamRecord = await Team.create(team)
 
         userResponse.managerTeams.push(getEmbeddedTeam(teamRecord))
@@ -173,8 +173,8 @@ describe('test remove player', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
 
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
@@ -197,8 +197,8 @@ describe('test remove player', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
 
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
@@ -214,8 +214,8 @@ describe('test remove player', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
 
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
@@ -231,8 +231,8 @@ describe('test remove player', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
 
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
@@ -253,8 +253,8 @@ describe('test team rollover', () => {
     it('with valid data and copy players', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
@@ -267,7 +267,7 @@ describe('test team rollover', () => {
         expect(newTeam.name).toBe(team.name)
         expect(newTeam.players.length).toBe(team.players.length)
         expect(newTeam.managers.length).toBe(team.managers.length)
-        expect(newTeam.managers[0].toString()).toBe(manager._id.toString())
+        expect(newTeam.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
         expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
 
@@ -281,7 +281,7 @@ describe('test team rollover', () => {
         expect(archiveTeamRecord?.name).toBe(team.name)
         expect(archiveTeamRecord?.players.length).toBe(team.players.length)
         expect(archiveTeamRecord?.managers.length).toBe(team.managers.length)
-        expect(archiveTeamRecord?.managers[0].toString()).toBe(manager._id.toString())
+        expect(archiveTeamRecord?.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
         expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
 
@@ -297,8 +297,8 @@ describe('test team rollover', () => {
     it('with valid data and not copy players', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
@@ -311,7 +311,7 @@ describe('test team rollover', () => {
         expect(newTeam.name).toBe(team.name)
         expect(newTeam.players.length).toBe(0)
         expect(newTeam.managers.length).toBe(team.managers.length)
-        expect(newTeam.managers[0].toString()).toBe(manager._id.toString())
+        expect(newTeam.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
         expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
 
@@ -325,7 +325,7 @@ describe('test team rollover', () => {
         expect(archiveTeamRecord?.name).toBe(team.name)
         expect(archiveTeamRecord?.players.length).toBe(team.players.length)
         expect(archiveTeamRecord?.managers.length).toBe(team.managers.length)
-        expect(archiveTeamRecord?.managers[0].toString()).toBe(manager._id.toString())
+        expect(archiveTeamRecord?.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
         expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
 
@@ -340,8 +340,8 @@ describe('test team rollover', () => {
     it('with invalid manager', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
@@ -356,8 +356,8 @@ describe('test team rollover', () => {
     it('with invalid team', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
@@ -372,8 +372,8 @@ describe('test team rollover', () => {
     it('with invalid date', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
-        team.managers.push(manager._id)
-        team.players.push(user._id)
+        team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
@@ -392,7 +392,7 @@ describe('test set to open', () => {
         const team = await Team.create(getTeam())
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         const response = await services.setRosterOpen(manager._id, team._id, true)
@@ -410,7 +410,7 @@ describe('test set to open', () => {
         const team = await Team.create(getTeam())
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         team.rosterOpen = true
         await team.save()
 
@@ -429,7 +429,7 @@ describe('test set to open', () => {
         const team = await Team.create(getTeam())
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         await expect(services.setRosterOpen(anonId, team._id, true)).rejects.toThrowError(
@@ -442,7 +442,7 @@ describe('test set to open', () => {
         const team = await Team.create(getTeam())
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
-        team.managers.push(manager._id)
+        team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
         await expect(services.setRosterOpen(manager._id, anonId, true)).rejects.toThrowError(

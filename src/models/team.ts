@@ -7,8 +7,22 @@ export const schema = new Schema<ITeam>(
     {
         place: { type: String, required: true },
         name: { type: String, required: true },
-        managers: [{ type: Types.ObjectId }],
-        players: [{ type: Types.ObjectId }],
+        managers: [
+            {
+                _id: Types.ObjectId,
+                firstName: String,
+                lastName: String,
+                username: String,
+            },
+        ],
+        players: [
+            {
+                _id: Types.ObjectId,
+                firstName: String,
+                lastName: String,
+                username: String,
+            },
+        ],
         seasonStart: {
             type: Date,
             required: true,

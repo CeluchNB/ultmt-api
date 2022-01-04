@@ -20,3 +20,10 @@ export interface IUser extends CreateUser {
     openToRequests: boolean
     generateAuthToken(): string
 }
+
+export interface EmbeddedUser {
+    _id: Types.ObjectId
+    firstName: string
+    lastName: string
+    username: string
+}

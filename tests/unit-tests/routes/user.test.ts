@@ -9,7 +9,7 @@ import { getUser, anonId, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
 import Team from '../../../src/models/team'
-import { getEmbeddedTeam } from '../../../src/utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -428,7 +428,7 @@ describe('test /POST leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         const response = await request(app)
@@ -455,7 +455,7 @@ describe('test /POST leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         await request(app)
@@ -472,7 +472,7 @@ describe('test /POST leave team', () => {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-        team.players.push(user._id)
+        team.players.push(getEmbeddedUser(user))
         await team.save()
 
         const response = await request(app)
