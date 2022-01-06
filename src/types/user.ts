@@ -1,4 +1,4 @@
-import { Types } from 'mongoose'
+import { Types, Document } from 'mongoose'
 import { EmbeddedTeam } from '.'
 
 export interface CreateUser {
@@ -9,8 +9,7 @@ export interface CreateUser {
     password?: string
 }
 
-export interface IUser extends CreateUser {
-    _id: Types.ObjectId
+export interface IUser extends CreateUser, Document {
     private: boolean
     tokens?: string[]
     playerTeams: EmbeddedTeam[]
