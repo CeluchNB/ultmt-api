@@ -74,7 +74,7 @@ const isValidPassword = (password: string): boolean => {
     return validateSchema.validate(password) as boolean
 }
 
-schema.pre('save', async function (next) {
+schema.pre('save', async function (this: IUser, next) {
     if (this.password !== undefined && this.isModified('password')) {
         if (!isValidPassword(this.password)) {
             next(new ApiError(Constants.INVALID_PASSWORD, 400))
