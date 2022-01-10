@@ -5,7 +5,7 @@ import Team from '../models/team'
 import User from '../models/user'
 import ArchiveTeam from '../models/archive-team'
 import { errorMiddleware } from '../middleware/errors'
-import { IUser } from '../types'
+import { CreateTeam, IUser } from '../types'
 
 export const teamRouter = Router()
 
@@ -15,7 +15,7 @@ teamRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, ArchiveTeam)
-            const team = req.body.team
+            const team = req.body.team as CreateTeam
             const teamResponse = await teamServices.createTeam(team, (req.user as IUser)._id.toString())
 
             return res.status(201).json({ team: teamResponse })

@@ -1,6 +1,13 @@
 import { Types } from 'mongoose'
 import { EmbeddedUser } from '.'
 
+export interface CreateTeam {
+    place: string
+    name: string
+    seasonStart: string
+    seasonEnd: string
+}
+
 export interface ITeam {
     _id: Types.ObjectId
     place: string

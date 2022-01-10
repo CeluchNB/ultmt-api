@@ -1,7 +1,7 @@
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
 import { IArchiveTeamModel } from '../models/archive-team'
-import { ApiError, ITeam } from '../types'
+import { ApiError, CreateTeam, ITeam } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
@@ -24,11 +24,23 @@ export default class TeamServices {
      * @param user user that is the manager
      * @returns the created team
      */
-    createTeam = async (team: ITeam, userId: string): Promise<ITeam> => {
-        team._id = new Types.ObjectId()
-        team.seasonStart = new Date(team.seasonStart)
-        team.seasonEnd = new Date(team.seasonEnd)
-        const teamObject = await this.teamModel.create(team)
+    createTeam = async (team: CreateTeam, userId: string): Promise<ITeam> => {
+        const saveTeam: ITeam = {
+            ...team,
+            _id: new Types.ObjectId(),
+            seasonStart: new Date(team.seasonStart),
+            seasonEnd: new Date(team.seasonEnd),
+            continuationId: new Types.ObjectId(),
+            managers: [],
+            players: [],
+            seasonNumber: 1,
+            rosterOpen: false,
+            requests: [],
+            games: [],
+        }
+
+        saveTeam.continuationId = saveTeam._id
+        const teamObject = await this.teamModel.create(saveTeam)
 
         const user = await this.userModel.findById(userId)
         if (!user) {
@@ -41,11 +53,6 @@ export default class TeamServices {
         await teamObject.save()
 
         // TODO:: Perform creation of RosterRequest objects here
-        for (const i of team.requests) {
-            const requestUser = await this.userModel.findById(i)
-            requestUser?.requests.push(teamObject._id)
-            await requestUser?.save()
-        }
 
         return teamObject
     }

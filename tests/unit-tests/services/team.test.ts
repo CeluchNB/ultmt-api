@@ -2,8 +2,8 @@ import TeamServices from '../../../src/services/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'
-import { ApiError, ITeam } from '../../../src/types'
-import { getTeam, getUser, anonId } from '../../fixtures/utils'
+import { ApiError, CreateTeam, ITeam } from '../../../src/types'
+import { getCreateTeam, getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
@@ -28,7 +28,7 @@ describe('test create team', () => {
         const user = getUser()
         const userResponse = await User.create(user)
 
-        const team: ITeam = getTeam()
+        const team: CreateTeam = getCreateTeam()
         const teamResponse = await services.createTeam(team, userResponse._id.toString())
         const teamRecord = await Team.findById(teamResponse._id)
         const userRecord = await User.findById(userResponse._id)
@@ -38,8 +38,8 @@ describe('test create team', () => {
         expect(teamResponse.managers.length).toBe(1)
         expect(teamResponse.managers[0]._id.toString()).toBe(userResponse._id.toString())
         expect(teamResponse.players.length).toBe(0)
-        expect(teamResponse.seasonStart).toBe(team.seasonStart)
-        expect(teamResponse.seasonEnd).toBe(team.seasonEnd)
+        expect(teamResponse.seasonStart.getFullYear()).toBe(new Date(team.seasonStart).getFullYear())
+        expect(teamResponse.seasonEnd.getFullYear()).toBe(new Date(team.seasonEnd).getFullYear())
         expect(teamResponse.requests.length).toBe(0)
 
         expect(teamRecord?.place).toBe(team.place)
@@ -47,42 +47,19 @@ describe('test create team', () => {
         expect(teamRecord?.managers.length).toBe(1)
         expect(teamRecord?.managers[0]._id.toString()).toBe(userResponse._id.toString())
         expect(teamRecord?.players.length).toBe(0)
-        expect(teamRecord?.seasonStart.toString()).toBe(team.seasonStart.toString())
-        expect(teamRecord?.seasonEnd.toString()).toBe(team.seasonEnd.toString())
+        expect(teamRecord?.seasonStart.getFullYear()).toBe(new Date(team.seasonStart).getFullYear())
+        expect(teamRecord?.seasonEnd.getFullYear()).toBe(new Date(team.seasonEnd).getFullYear())
         expect(teamRecord?.requests.length).toBe(0)
 
         expect(userRecord?.managerTeams?.length).toBe(1)
         expect(userRecord?.managerTeams?.[0]._id.toString()).toBe(teamResponse._id.toString())
     })
 
-    it('with requested players', async () => {
-        await saveUsers()
-
-        const team: ITeam = getTeam()
-        const users = await User.find({})
-        // TODO: Make these use real request objects
-        for (const u of users) {
-            team.requests.push(u._id)
-        }
-
-        const teamResponse = await services.createTeam(team, users[0]._id.toString())
-
-        expect(teamResponse.place).toBe(team.place)
-        expect(teamResponse.name).toBe(team.name)
-        expect(teamResponse.requests.length).toBe(3)
-
-        for (const u of users) {
-            const user = await User.findById(u._id)
-            expect(user?.requests.length).toBe(1)
-            expect(user?.requests[0].toString()).toBe(teamResponse._id.toString())
-        }
-    })
-
     it('with invalid user', async () => {
         const user = getUser()
         const userRecord = await User.create(user)
         userRecord._id = anonId
-        await expect(services.createTeam(getTeam(), userRecord._id.toString())).rejects.toThrowError(
+        await expect(services.createTeam(getCreateTeam(), userRecord._id.toString())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
