@@ -273,6 +273,8 @@ describe('test team respond to request', () => {
         expect(userRecord?.playerTeams[0]._id.toString()).toBe(team._id.toString())
         expect(userRecord?.playerTeams[0].place).toBe(team.place)
         expect(userRecord?.playerTeams[0].name).toBe(team.name)
+        expect(userRecord?.playerTeams[0].seasonStart.getFullYear()).toBe(team.seasonStart.getFullYear())
+        expect(userRecord?.playerTeams[0].seasonEnd.getFullYear()).toBe(team.seasonEnd.getFullYear())
         expect(userRecord?.requests.length).toBe(1)
 
         const teamRecord = await Team.findById(team._id)

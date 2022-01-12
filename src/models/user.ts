@@ -39,8 +39,8 @@ const schema = new Schema<IUser>({
             _id: Types.ObjectId,
             place: String,
             name: String,
-            seasonStarttype: Date,
-            seasonEndtype: Date,
+            seasonStart: Date,
+            seasonEnd: Date,
         },
     ],
     managerTeams: [
