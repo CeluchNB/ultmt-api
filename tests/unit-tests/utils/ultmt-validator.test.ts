@@ -388,4 +388,19 @@ describe('test ultmt validator', () => {
         validator.teamAcceptingRequests(team._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400))
     })
+
+    it('enough characters success case', async () => {
+        const term = 'que'
+        const validator = new UltmtValidator()
+        validator.enoughSearchCharacters(term)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('enough characters failure case', async () => {
+        const term = 'qu'
+        const validator = new UltmtValidator()
+        validator.enoughSearchCharacters(term)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400))
+    })
 })

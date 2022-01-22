@@ -47,6 +47,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.SEASON_START_ERROR, 400)
     } else if (error.includes(Constants.NOT_ACCEPTING_REQUESTS)) {
         return createExpressErrorObject(Constants.NOT_ACCEPTING_REQUESTS, 400)
+    } else if (error.includes(Constants.NOT_ENOUGH_CHARACTERS)) {
+        return createExpressErrorObject(Constants.NOT_ENOUGH_CHARACTERS, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

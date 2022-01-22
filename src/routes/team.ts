@@ -9,6 +9,17 @@ import { CreateTeam, IUser } from '../types'
 
 export const teamRouter = Router()
 
+teamRouter.get('/team/search', async (req: Request, res: Response, next) => {
+    try {
+        const teamServices = new TeamServices(Team, User, ArchiveTeam)
+        const term = (req.query.q as string) || ''
+        const teams = await teamServices.search(term)
+        return res.send(teams)
+    } catch (error) {
+        next(error)
+    }
+})
+
 teamRouter.post(
     '/team',
     passport.authenticate('jwt', { session: false }),

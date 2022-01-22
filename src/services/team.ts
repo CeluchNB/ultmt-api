@@ -235,6 +235,7 @@ export default class TeamServices {
      * @returns array of team objects matching
      */
     search = async (term: string): Promise<ITeam[]> => {
+        await new UltmtValidator().enoughSearchCharacters(term).test()
         // If the search term contains a space, we create a matrix of [place, name] x [split terms]
         // to test in the find method's $or parameter
         const terms = term.split(' ')
