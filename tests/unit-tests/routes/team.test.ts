@@ -423,3 +423,38 @@ describe('test /PUT set open', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test /GET search', () => {
+    beforeEach(async () => {
+        const team1 = getTeam()
+        team1.place = 'Pittsburgh'
+        team1.name = 'Temper'
+        team1.rosterOpen = true
+        await Team.create(team1)
+
+        const team2 = getTeam()
+        team2.place = 'Towson'
+        team2.name = 'Bomb Squad'
+        team2.rosterOpen = true
+        await Team.create(team2)
+    })
+
+    it('with valid query', async () => {
+        const term = 'Pit'
+        const response = await request(app)
+            .get(`/team/search?q=${term}`)
+            .send()
+            .expect(200)
+
+        const json = response.body
+        expect(json.length).toBe(1)
+        expect(json[0].name).toBe('Temper')
+    })
+
+    it('with invalid query', async () => {
+        await request(app)
+            .get('/team/search')
+            .send()
+            .expect(400)
+    })
+})

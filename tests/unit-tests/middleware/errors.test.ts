@@ -140,6 +140,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.NOT_ACCEPTING_REQUESTS, 400),
         )
     })
+
+    it('with not enough characters', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NOT_ENOUGH_CHARACTERS} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NOT_ENOUGH_CHARACTERS, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

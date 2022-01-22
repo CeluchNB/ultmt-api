@@ -6,6 +6,12 @@ import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../utils/utils'
+import levenshtein from 'js-levenshtein'
+
+interface LevenshteinTeam {
+    team: ITeam
+    distance: number
+}
 
 export default class TeamServices {
     teamModel: ITeamModel
@@ -220,5 +226,46 @@ export default class TeamServices {
         await team.save()
 
         return team
+    }
+
+    /**
+     * Method to search for a team by place and/or name.  Functionality attempts to provide
+     * good search results for reasonable search queries
+     * @param term search term
+     * @returns array of team objects matching
+     */
+    search = async (term: string): Promise<ITeam[]> => {
+        await new UltmtValidator().enoughSearchCharacters(term).test()
+        // If the search term contains a space, we create a matrix of [place, name] x [split terms]
+        // to test in the find method's $or parameter
+        const terms = term.split(' ')
+        const regexes = [...terms.map((t) => new RegExp(`^${t}`, 'i'))]
+
+        const tests = []
+        for (const r of regexes) {
+            tests.push({ place: { $regex: r } })
+            tests.push({ name: { $regex: r } })
+        }
+
+        const teams = await this.teamModel.find({
+            $or: tests,
+            rosterOpen: true,
+        })
+
+        // if the search term contains a space, we perform a simple ranking based on the
+        // levenshtein distance between the original term and the full name of the team
+        // i.e. "<place> <name>""
+        if (terms.length >= 2 && teams.length > 0) {
+            const levenshteinTeams: LevenshteinTeam[] = teams.map((t) => {
+                return { team: t, distance: levenshtein(term, `${t.place} ${t.name}`) }
+            })
+            levenshteinTeams.sort((a, b) => {
+                return a.distance - b.distance
+            })
+            // return
+            return levenshteinTeams.map((lt) => lt.team)
+        }
+
+        return teams
     }
 }

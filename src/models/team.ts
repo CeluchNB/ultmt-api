@@ -51,6 +51,8 @@ export const schema = new Schema<ITeam>(
     opts,
 )
 
+schema.index({ place: 'text', name: 'text' })
+
 const Team = model<ITeam>('Team', schema)
 
 export type ITeamModel = typeof Team

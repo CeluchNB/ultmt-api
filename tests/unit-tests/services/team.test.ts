@@ -427,3 +427,97 @@ describe('test set to open', () => {
         )
     })
 })
+
+describe('text search functionality', () => {
+    beforeEach(async () => {
+        const team1: ITeam = getTeam()
+        team1.place = 'Pittsburgh'
+        team1.name = 'Temper'
+        team1.rosterOpen = true
+
+        const team2: ITeam = getTeam()
+        team2.place = 'Pittsburgh'
+        team2.name = 'Crucible'
+        team2.rosterOpen = true
+
+        const team3: ITeam = getTeam()
+        team3.place = 'Bethesda'
+        team3.name = 'Watchdogs'
+        team3.rosterOpen = true
+
+        await Team.create(team1)
+        await Team.create(team2)
+        await Team.create(team3)
+    })
+
+    it('search by partial place', async () => {
+        const resultPit = await services.search('Pit')
+        expect(resultPit.length).toBe(2)
+
+        const resultBet = await services.search('bet')
+        expect(resultBet.length).toBe(1)
+    })
+
+    it('search by partial name', async () => {
+        const resultTem = await services.search('Tem')
+        expect(resultTem.length).toBe(1)
+
+        const resultWat = await services.search('Wat')
+        expect(resultWat.length).toBe(1)
+    })
+
+    it('search by full place', async () => {
+        const resultPittsburgh = await services.search('Pittsburgh')
+        expect(resultPittsburgh.length).toBe(2)
+
+        const resultBethesda = await services.search('Bethesda')
+        expect(resultBethesda.length).toBe(1)
+    })
+
+    it('search by full name', async () => {
+        const resultTemper = await services.search('Temper')
+        expect(resultTemper.length).toBe(1)
+
+        const resultWatchdogs = await services.search('Watchdogs')
+        expect(resultWatchdogs.length).toBe(1)
+    })
+
+    it('search by full name and place', async () => {
+        const resultTemper = await services.search('Pittsburgh Temper')
+        expect(resultTemper.length).toBe(2)
+        expect(resultTemper[0].name).toBe('Temper')
+        expect(resultTemper[1].name).toBe('Crucible')
+
+        const resultWatchdogs = await services.search('Bethesda Watchdogs')
+        expect(resultWatchdogs.length).toBe(1)
+    })
+
+    it('search for very complex name', async () => {
+        const team = getTeam()
+        team.place = 'Los Angeles'
+        team.name = 'Spider Monkeys'
+        team.rosterOpen = true
+        await Team.create(team)
+
+        const result = await services.search('Los Angeles Spider Monkeys')
+        expect(result.length).toBe(1)
+        expect(result[0].place).toBe('Los Angeles')
+        expect(result[0].name).toBe('Spider Monkeys')
+
+        const weirdResult = await services.search('Los Pittsburgh Crucible')
+        expect(weirdResult.length).toBe(3)
+        expect(weirdResult[0].name).toBe('Crucible')
+        expect(weirdResult[1].name).toBe('Temper')
+        expect(weirdResult[2].name).toBe('Spider Monkeys')
+    })
+
+    it('search for closed roster team', async () => {
+        const team = getTeam()
+        team.place = 'Los Angeles'
+        team.name = 'Spider Monkeys'
+        await Team.create(team)
+
+        const result = await services.search('Los Angeles Spider Monkeys')
+        expect(result.length).toBe(0)
+    })
+})

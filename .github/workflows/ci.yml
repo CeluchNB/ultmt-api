@@ -58,13 +58,13 @@ jobs:
     - name: Git checkout
       uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 17
       uses: actions/setup-node@v2.1.5
       with:
-        node-version: '14.x'
+        node-version: '17.x'
 
     - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.6.0
+      uses: supercharge/mongodb-github-action@1.7.0
       with:
         mongodb-version: '4.4'
 

@@ -21,6 +21,7 @@ enum ValidationType {
     USER_ON_TEAM,
     USER_ACCEPTING_REQUESTS,
     TEAM_ACCEPTING_REQUESTS,
+    ENOUGH_SEARCH_CHARACTERS,
 }
 
 type Validation = {
@@ -117,6 +118,11 @@ export default class UltmtValidator {
 
     teamAcceptingRequests = (teamId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.TEAM_ACCEPTING_REQUESTS, data: { teamId } })
+        return this
+    }
+
+    enoughSearchCharacters = (term: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.ENOUGH_SEARCH_CHARACTERS, data: { term } })
         return this
     }
 
@@ -315,6 +321,13 @@ export default class UltmtValidator {
                 const team = await this.teamModel.findById(teamId)
                 if (!team?.rosterOpen) {
                     throw new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400)
+                }
+                break
+            }
+            case ValidationType.ENOUGH_SEARCH_CHARACTERS: {
+                const { term } = validation.data
+                if (term.length < 3) {
+                    throw new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400)
                 }
                 break
             }
