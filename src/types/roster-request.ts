@@ -1,4 +1,5 @@
 import { Types } from 'mongoose'
+import { ITeam, IUser } from '.'
 
 export enum Initiator {
     Player = 'player',
@@ -17,4 +18,9 @@ export interface IRosterRequest {
     user: Types.ObjectId
     requestSource: string
     status: string
+}
+
+export interface IDetailedRosterRequest extends IRosterRequest {
+    teamDetails: ITeam
+    userDetails: IUser
 }

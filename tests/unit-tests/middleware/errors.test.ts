@@ -146,6 +146,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.NOT_ENOUGH_CHARACTERS, 400),
         )
     })
+
+    it('with unauthorized request requester', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_TO_VIEW_REQUEST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 401),
+        )
+    })
 })
 
 describe('test middleware', () => {

@@ -49,6 +49,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.NOT_ACCEPTING_REQUESTS, 400)
     } else if (error.includes(Constants.NOT_ENOUGH_CHARACTERS)) {
         return createExpressErrorObject(Constants.NOT_ENOUGH_CHARACTERS, 400)
+    } else if (error.includes(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)) {
+        return createExpressErrorObject(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 401)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

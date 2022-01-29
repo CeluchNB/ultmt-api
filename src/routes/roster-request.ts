@@ -9,6 +9,20 @@ import { IUser } from '../types'
 
 export const rosterRequestRouter = Router()
 
+rosterRequestRouter.get(
+    '/request/:id',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const request = await services.getRosterRequest(req.params.id, (req.user as IUser)._id.toString())
+            return res.json({ request })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 rosterRequestRouter.post(
     '/request/team/:id',
     passport.authenticate('jwt', { session: false }),

@@ -59,4 +59,24 @@ describe('test roster request model', () => {
             await RosterRequest.create(rosterRequest)
         }).rejects.toThrow()
     })
+
+    it('test virtuals', async () => {
+        const user = await User.create(getUser())
+        const team = await Team.create(getTeam())
+
+        const rosterRequest: IRosterRequest = {
+            _id: new Types.ObjectId(),
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+
+        await RosterRequest.create(rosterRequest)
+
+        const result = await RosterRequest.findById(rosterRequest._id).populate('teamDetails').populate('userDetails')
+        expect(result?._id.toString()).toBe(rosterRequest._id.toString())
+        expect(result?.teamDetails).toBeTruthy()
+        expect(result?.userDetails).toBeTruthy()
+    })
 })

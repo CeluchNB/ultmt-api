@@ -16,6 +16,7 @@ enum ValidationType {
     REQUEST_IS_PENDING,
     PLAYER_NOT_ON_TEAM,
     USER_ON_REQUEST,
+    USER_AUTHORIZED_FOR_REQUEST,
     TEAM_CONTAINS_REQUEST,
     USER_CONTAINS_REQUEST,
     USER_ON_TEAM,
@@ -93,6 +94,11 @@ export default class UltmtValidator {
 
     userOnRequest = (userId: string, requestId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.USER_ON_REQUEST, data: { userId, requestId } })
+        return this
+    }
+
+    userAuthorizedForRequest = (userId: string, requestId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_AUTHORIZED_FOR_REQUEST, data: { userId, requestId } })
         return this
     }
 
@@ -254,6 +260,18 @@ export default class UltmtValidator {
 
                 if (!request?.user.equals(user?._id)) {
                     throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
+                }
+                break
+            }
+            case ValidationType.USER_AUTHORIZED_FOR_REQUEST: {
+                const { userId, requestId } = validation.data
+                const request = await this.rosterRequestModel.findById(requestId)
+                const user = await this.userModel.findById(userId)
+                const team = await this.teamModel.findById(request?.team)
+
+                const managers = team?.managers.map((m) => m._id.toString())
+                if (!(request?.user.equals(user?._id) || managers?.includes(userId.toString()))) {
+                    throw new Error(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)
                 }
                 break
             }

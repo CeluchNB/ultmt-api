@@ -1,55 +1,50 @@
 import { ITeam } from '../types'
 import { model, Schema, SchemaTypes, Types } from 'mongoose'
 
-const opts = { toJSON: { virtuals: true } }
-
-export const schema = new Schema<ITeam>(
-    {
-        place: { type: String, required: true },
-        name: { type: String, required: true },
-        managers: [
-            {
-                _id: Types.ObjectId,
-                firstName: String,
-                lastName: String,
-                username: String,
-            },
-        ],
-        players: [
-            {
-                _id: Types.ObjectId,
-                firstName: String,
-                lastName: String,
-                username: String,
-            },
-        ],
-        seasonStart: {
-            type: Date,
-            required: true,
+export const schema = new Schema<ITeam>({
+    place: { type: String, required: true },
+    name: { type: String, required: true },
+    managers: [
+        {
+            _id: Types.ObjectId,
+            firstName: String,
+            lastName: String,
+            username: String,
         },
-        seasonEnd: {
-            type: Date,
-            required: true,
+    ],
+    players: [
+        {
+            _id: Types.ObjectId,
+            firstName: String,
+            lastName: String,
+            username: String,
         },
-        seasonNumber: {
-            type: Number,
-            required: true,
-            default: 1,
-        },
-        continuationId: {
-            type: SchemaTypes.ObjectId,
-            required: true,
-        },
-        rosterOpen: {
-            type: Boolean,
-            required: true,
-            default: false,
-        },
-        requests: [{ type: Types.ObjectId }],
-        games: [{ type: Types.ObjectId }],
+    ],
+    seasonStart: {
+        type: Date,
+        required: true,
     },
-    opts,
-)
+    seasonEnd: {
+        type: Date,
+        required: true,
+    },
+    seasonNumber: {
+        type: Number,
+        required: true,
+        default: 1,
+    },
+    continuationId: {
+        type: SchemaTypes.ObjectId,
+        required: true,
+    },
+    rosterOpen: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
+    requests: [{ type: Types.ObjectId }],
+    games: [{ type: Types.ObjectId }],
+})
 
 schema.index({ place: 'text', name: 'text' })
 
