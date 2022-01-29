@@ -403,4 +403,44 @@ describe('test ultmt validator', () => {
         validator.enoughSearchCharacters(term)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400))
     })
+
+    it('user authorized for request success with user on request', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        const validator = new UltmtValidator()
+        validator.userAuthorizedForRequest(user._id, request._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('user authorized for request success with team manager', async () => {
+        const managerObj = getUser()
+        managerObj.firstName = 'Manager'
+        managerObj.lastName = 'Last'
+        managerObj.email = 'manager@email.com'
+        managerObj.username = 'manager'
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const manager = await User.create(managerObj)
+        team.managers.push(manager._id)
+        await team.save()
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        const validator = new UltmtValidator()
+        validator.userAuthorizedForRequest(manager._id, request._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('user authorized for request with failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        const validator = new UltmtValidator()
+        validator.userAuthorizedForRequest(anonId, request._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 404))
+    })
 })

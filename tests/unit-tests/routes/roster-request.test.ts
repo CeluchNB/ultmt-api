@@ -26,6 +26,55 @@ afterAll((done) => {
     done()
 })
 
+describe('test /GET request by id', () => {
+    it('with valid data', async () => {
+        const [user] = await User.find({})
+        const token = await user.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        const response = await request(app)
+            .get(`/request/${requestData._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const { request: reqResponse } = response.body
+
+        expect(reqResponse.team.toString()).toBe(team._id.toString())
+        expect(reqResponse.user.toString()).toBe(user._id.toString())
+        expect(reqResponse.teamDetails.place).toBe(team.place)
+        expect(reqResponse.userDetails.username).toBe(user.username)
+    })
+
+    it('with bad token', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        await request(app)
+            .get(`/request/${requestData._id}`)
+            .set('Authorization', `Bearer asdfasdf.asdfadsf.adsfasd`)
+            .send()
+            .expect(401)
+    })
+
+    it('with invalid user', async () => {
+        const [user, manager] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
+
+        const response = await request(app)
+            .get(`/request/${requestData._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(401)
+
+        expect(response.body.message).toBe(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)
+    })
+})
+
 describe('test request from team route', () => {
     it('with valid data', async () => {
         const [manager, user] = await User.find({})

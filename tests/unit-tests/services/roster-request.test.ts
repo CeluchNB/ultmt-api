@@ -28,6 +28,71 @@ afterAll((done) => {
     done()
 })
 
+describe('test get request by id', () => {
+    it('with valid id', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+        await RosterRequest.create(request)
+
+        const result = await services.getRosterRequest(request._id.toString(), user._id)
+        expect(result.team.toString()).toBe(team._id.toString())
+        expect(result.user.toString()).toBe(user._id.toString())
+        expect(result.requestSource).toBe(Initiator.Player)
+        expect(result.status).toBe(Status.Pending)
+        expect(result.teamDetails).toBeTruthy()
+        expect(result.teamDetails.place).toBe(team.place)
+        expect(result.teamDetails.name).toBe(team.name)
+        expect(result.userDetails).toBeTruthy()
+        expect(result.userDetails.firstName).toBe(user.firstName)
+        expect(result.userDetails.lastName).toBe(user.lastName)
+        expect(result.userDetails.username).toBe(user.username)
+    })
+
+    it('with unauthorized user', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+        await RosterRequest.create(request)
+
+        await expect(services.getRosterRequest(request._id.toString(), anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 401),
+        )
+    })
+
+    it('with unfound id', async () => {
+        const [user] = await User.find({})
+        const team = await Team.create(getTeam())
+
+        const request: IRosterRequest = {
+            _id: new Types.ObjectId(),
+            user: user._id,
+            team: team._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        }
+        await RosterRequest.create(request)
+
+        await expect(services.getRosterRequest(anonId, user._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404),
+        )
+    })
+})
+
 describe('test request from team', () => {
     it('with valid data', async () => {
         const [manager, user] = await User.find({})

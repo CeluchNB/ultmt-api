@@ -1,7 +1,7 @@
 import { IRosterRequestModel } from '../models/roster-request'
 import { IUserModel } from '../models/user'
 import { ITeamModel } from '../models/team'
-import { ApiError, Initiator, IRosterRequest, Status } from '../types'
+import { ApiError, IDetailedRosterRequest, Initiator, IRosterRequest, Status } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
 import { Types } from 'mongoose'
@@ -16,6 +16,22 @@ export default class RosterRequestServices {
         this.teamModel = teamModel
         this.userModel = userModel
         this.rosterRequestModel = rosterRequestModel
+    }
+
+    /**
+     * Method to get the details of a roster requets
+     * @param id get roster request details
+     */
+    getRosterRequest = async (id: string, userId: string): Promise<IDetailedRosterRequest> => {
+        const rosterRequest = await this.rosterRequestModel.findById(id).populate('teamDetails').populate('userDetails')
+        if (!rosterRequest) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        }
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .userAuthorizedForRequest(userId, id)
+            .test()
+
+        return rosterRequest
     }
 
     /**
