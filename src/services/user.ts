@@ -1,8 +1,15 @@
 import { ITeamModel } from '../models/team'
 import { IUserModel } from '../models/user'
-import { ApiError, CreateUser, IUser } from '../types'
+import { ApiError, CreateUser, EmbeddedUser, IUser } from '../types'
 import * as Constants from '../utils/constants'
 import UltmtValidator from '../utils/ultmt-validator'
+import { getEmbeddedUser } from '../utils/utils'
+import levenshtein from 'js-levenshtein'
+
+interface LevenshteinUser {
+    user: IUser
+    distance: number
+}
 
 export default class UserServices {
     userModel: IUserModel
@@ -143,5 +150,47 @@ export default class UserServices {
         await team.save()
 
         return user
+    }
+
+    searchUsers = async (term: string): Promise<EmbeddedUser[]> => {
+        await new UltmtValidator().enoughSearchCharacters(term).test()
+
+        const terms = term.split(' ')
+        const regexes = terms.map((t) => {
+            if (t.length >= 3) {
+                return new RegExp(`^${t}`, 'i')
+            }
+        })
+
+        const tests = []
+        for (const r of regexes) {
+            if (r) {
+                tests.push({ firstName: { $regex: r } })
+                tests.push({ lastName: { $regex: r } })
+                tests.push({ username: { $regex: r } })
+            }
+        }
+
+        const users = await this.userModel.find({
+            $or: tests,
+            openToRequests: true,
+        })
+
+        if (terms.length >= 2 && users.length > 1) {
+            const levenshteinUsers: LevenshteinUser[] = users.map((u) => {
+                return {
+                    user: u,
+                    distance: levenshtein(term, `${u.firstName} ${u.lastName}`) + levenshtein(term, u.username),
+                }
+            })
+
+            levenshteinUsers.sort((a, b) => {
+                return a.distance - b.distance
+            })
+
+            return levenshteinUsers.map((lu) => getEmbeddedUser(lu.user))
+        }
+
+        return users.map((u) => getEmbeddedUser(u))
     }
 }

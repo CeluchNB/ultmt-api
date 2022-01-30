@@ -8,6 +8,17 @@ import passport from 'passport'
 
 export const userRouter = Router()
 
+userRouter.get('/user/search', async (req: Request, res: Response, next) => {
+    try {
+        const term = (req.query.q as string) || ''
+        const userService = new UserServices(User, Team)
+        const users = await userService.searchUsers(term)
+        return res.json({ users })
+    } catch (error) {
+        next(error)
+    }
+})
+
 userRouter.post('/user', async (req: Request, res: Response, next) => {
     try {
         const user: CreateUser = req.body

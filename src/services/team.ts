@@ -239,13 +239,11 @@ export default class TeamServices {
         // If the search term contains a space, we create a matrix of [place, name] x [split terms]
         // to test in the find method's $or parameter
         const terms = term.split(' ')
-        const regexes = [
-            ...terms.map((t) => {
-                if (t.length >= 3) {
-                    return new RegExp(`^${t}`, 'i')
-                }
-            }),
-        ]
+        const regexes = terms.map((t) => {
+            if (t.length >= 3) {
+                return new RegExp(`^${t}`, 'i')
+            }
+        })
 
         const tests = []
         for (const r of regexes) {
@@ -264,9 +262,9 @@ export default class TeamServices {
         // if the search term contains a space, we perform a simple ranking based on the
         // levenshtein distance between the original term and the full name of the team
         // i.e. "<place> <name>""
-        if (terms.length >= 2 && teams.length > 0) {
+        if (terms.length >= 2 && teams.length > 1) {
             const levenshteinTeams: LevenshteinTeam[] = teams.map((t) => {
-                return { team: t, distance: levenshtein(term, `${t.place} ${t.name}`) }
+                return { team: t, distance: levenshtein(term, `${t.place} ${t.name}`) + levenshtein(term, t.teamname) }
             })
             levenshteinTeams.sort((a, b) => {
                 return a.distance - b.distance

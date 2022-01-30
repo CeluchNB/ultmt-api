@@ -110,6 +110,8 @@ schema.methods.generateAuthToken = async function () {
     }
 }
 
+schema.index({ firstName: 'text', lastName: 'text', username: 'text' })
+
 const User = model<IUser>('User', schema)
 
 export type IUserModel = typeof User

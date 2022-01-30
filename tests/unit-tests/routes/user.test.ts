@@ -484,3 +484,44 @@ describe('test /POST leave team', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test /GET search users', () => {
+    beforeEach(async () => {
+        const user1 = getUser()
+        user1.firstName = 'Noah'
+        user1.lastName = 'Celuch'
+        user1.username = 'noahceluch'
+        user1.email = 'noahceluch@gmail.com'
+
+        const user2 = getUser()
+        user2.firstName = 'Connor'
+        user2.lastName = 'Tipping'
+        user2.username = 'connortipping'
+        user2.email = 'connortipping@gmail.com'
+
+        const noah = await User.create(user1)
+        noah.openToRequests = true
+        await noah.save()
+        const connor = await User.create(user2)
+        connor.openToRequests = true
+        await connor.save()
+    })
+
+    it('with valid query', async () => {
+        const response = await request(app)
+            .get('/user/search?q=noah')
+            .send()
+            .expect(200)
+
+        const { users } = response.body
+        expect(users.length).toBe(1)
+        expect(users[0].username).toBe('noahceluch')
+    })
+
+    it('with invalid query', async () => {
+        await request(app)
+            .get('/user/search')
+            .send()
+            .expect(400)
+    })
+})
