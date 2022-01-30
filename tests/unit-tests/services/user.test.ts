@@ -365,6 +365,14 @@ describe('test search user', () => {
         expect(result[0].username).toBe('connortipping')
     })
 
+    it('test by full name', async () => {
+        const result = await services.searchUsers('Zach Risinger')
+
+        expect(result.length).toBe(2)
+        expect(result[0].username).toBe('zachris')
+        expect(result[1].username).toBe('zachdahm')
+    })
+
     it('test search username', async () => {
         const result = await services.searchUsers('zachris')
 
