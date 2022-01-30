@@ -57,7 +57,7 @@ export const schema = new Schema<ITeam>({
     games: [{ type: Types.ObjectId }],
 })
 
-schema.index({ place: 'text', name: 'text' })
+schema.index({ place: 'text', name: 'text', teamname: 'text' })
 
 const Team = model<ITeam>('Team', schema)
 

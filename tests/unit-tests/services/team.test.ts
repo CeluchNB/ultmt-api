@@ -495,6 +495,19 @@ describe('text search functionality', () => {
         expect(resultWatchdogs.length).toBe(1)
     })
 
+    it('search by partial teamname', async () => {
+        const resultPgh = await services.search('pgh')
+        expect(resultPgh.length).toBe(2)
+        expect(resultPgh[0].teamname).toBe('pghtemper')
+        expect(resultPgh[1].teamname).toBe('pghcrucible')
+    })
+
+    it('search by full teamname', async () => {
+        const resultWatchdogs = await services.search('bethesdawatchdogs')
+        expect(resultWatchdogs.length).toBe(1)
+        expect(resultWatchdogs[0].teamname).toBe('bethesdawatchdogs')
+    })
+
     it('search for very complex name', async () => {
         const team = getTeam()
         team.place = 'Los Angeles'

@@ -239,12 +239,21 @@ export default class TeamServices {
         // If the search term contains a space, we create a matrix of [place, name] x [split terms]
         // to test in the find method's $or parameter
         const terms = term.split(' ')
-        const regexes = [...terms.map((t) => new RegExp(`^${t}`, 'i'))]
+        const regexes = [
+            ...terms.map((t) => {
+                if (t.length >= 3) {
+                    return new RegExp(`^${t}`, 'i')
+                }
+            }),
+        ]
 
         const tests = []
         for (const r of regexes) {
-            tests.push({ place: { $regex: r } })
-            tests.push({ name: { $regex: r } })
+            if (r) {
+                tests.push({ place: { $regex: r } })
+                tests.push({ name: { $regex: r } })
+                tests.push({ teamname: { $regex: r } })
+            }
         }
 
         const teams = await this.teamModel.find({
