@@ -310,3 +310,90 @@ describe('test leave team', () => {
         )
     })
 })
+
+describe('test search user', () => {
+    beforeEach(async () => {
+        const user1 = getUser()
+        user1.firstName = 'Noah'
+        user1.lastName = 'Celuch'
+        user1.username = 'noahceluch'
+        user1.email = 'noahceluch@gmail.com'
+
+        const user2 = getUser()
+        user2.firstName = 'Connor'
+        user2.lastName = 'Tipping'
+        user2.username = 'connortipping'
+        user2.email = 'connortipping@gmail.com'
+
+        const user3 = getUser()
+        user3.firstName = 'Zach'
+        user3.lastName = 'Risinger'
+        user3.username = 'zachris'
+        user3.email = 'zachris@gmail.com'
+
+        const user4 = getUser()
+        user4.firstName = 'Zach'
+        user4.lastName = 'Dahm'
+        user4.username = 'zachdahm'
+        user4.email = 'zachdahm@gmail.com'
+
+        const noah = await User.create(user1)
+        noah.openToRequests = true
+        await noah.save()
+        const connor = await User.create(user2)
+        connor.openToRequests = true
+        await connor.save()
+        const zachr = await User.create(user3)
+        zachr.openToRequests = true
+        await zachr.save()
+        const zachd = await User.create(user4)
+        zachd.openToRequests = true
+        await zachd.save()
+    })
+
+    it('test search first name', async () => {
+        const result = await services.searchUsers('Noah')
+
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('noahceluch')
+    })
+
+    it('test search last name', async () => {
+        const result = await services.searchUsers('Tipping')
+
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('connortipping')
+    })
+
+    it('test by full name', async () => {
+        const result = await services.searchUsers('Zach Risinger')
+
+        expect(result.length).toBe(2)
+        expect(result[0].username).toBe('zachris')
+        expect(result[1].username).toBe('zachdahm')
+    })
+
+    it('test search username', async () => {
+        const result = await services.searchUsers('zachris')
+
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('zachris')
+    })
+
+    it('test partial name', async () => {
+        const result = await services.searchUsers('Con Tip')
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('connortipping')
+    })
+
+    it('test search zachs', async () => {
+        const result = await services.searchUsers('zach')
+        expect(result.length).toBe(2)
+    })
+
+    it('test not enough characters', async () => {
+        await expect(services.searchUsers('no')).rejects.toThrowError(
+            new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400),
+        )
+    })
+})

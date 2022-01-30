@@ -1,9 +1,20 @@
 import { ITeam } from '../types'
 import { model, Schema, SchemaTypes, Types } from 'mongoose'
+import validator from 'validator'
 
 export const schema = new Schema<ITeam>({
     place: { type: String, required: true },
     name: { type: String, required: true },
+    teamname: {
+        type: String,
+        required: true,
+        unique: true,
+        validate: {
+            validator: function (v: string) {
+                return validator.isAlphanumeric(v)
+            },
+        },
+    },
     managers: [
         {
             _id: Types.ObjectId,
@@ -46,7 +57,7 @@ export const schema = new Schema<ITeam>({
     games: [{ type: Types.ObjectId }],
 })
 
-schema.index({ place: 'text', name: 'text' })
+schema.index({ place: 'text', name: 'text', teamname: 'text' })
 
 const Team = model<ITeam>('Team', schema)
 

@@ -16,6 +16,7 @@ export const getTeam = (): ITeam => {
         _id: new Types.ObjectId(),
         place: 'Pittsburgh',
         name: 'Temper',
+        teamname: 'pittsburghtemper',
         managers: [],
         players: [],
         seasonStart: new Date('2021'),
@@ -32,6 +33,7 @@ export const getCreateTeam = (): CreateTeam => {
     return {
         place: 'Pittsburgh',
         name: 'Temper',
+        teamname: 'pittsburghtemper',
         seasonStart: '2021',
         seasonEnd: '2021',
     }

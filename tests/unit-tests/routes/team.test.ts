@@ -429,12 +429,14 @@ describe('test /GET search', () => {
         const team1 = getTeam()
         team1.place = 'Pittsburgh'
         team1.name = 'Temper'
+        team1.teamname = 'pghtemper'
         team1.rosterOpen = true
         await Team.create(team1)
 
         const team2 = getTeam()
         team2.place = 'Towson'
         team2.name = 'Bomb Squad'
+        team2.teamname = 'towsonbombsquad'
         team2.rosterOpen = true
         await Team.create(team2)
     })

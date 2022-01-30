@@ -433,16 +433,19 @@ describe('text search functionality', () => {
         const team1: ITeam = getTeam()
         team1.place = 'Pittsburgh'
         team1.name = 'Temper'
+        team1.teamname = 'pghtemper'
         team1.rosterOpen = true
 
         const team2: ITeam = getTeam()
         team2.place = 'Pittsburgh'
         team2.name = 'Crucible'
+        team2.teamname = 'pghcrucible'
         team2.rosterOpen = true
 
         const team3: ITeam = getTeam()
         team3.place = 'Bethesda'
         team3.name = 'Watchdogs'
+        team3.teamname = 'bethesdawatchdogs'
         team3.rosterOpen = true
 
         await Team.create(team1)
@@ -490,6 +493,19 @@ describe('text search functionality', () => {
 
         const resultWatchdogs = await services.search('Bethesda Watchdogs')
         expect(resultWatchdogs.length).toBe(1)
+    })
+
+    it('search by partial teamname', async () => {
+        const resultPgh = await services.search('pgh')
+        expect(resultPgh.length).toBe(2)
+        expect(resultPgh[0].teamname).toBe('pghtemper')
+        expect(resultPgh[1].teamname).toBe('pghcrucible')
+    })
+
+    it('search by full teamname', async () => {
+        const resultWatchdogs = await services.search('bethesdawatchdogs')
+        expect(resultWatchdogs.length).toBe(1)
+        expect(resultWatchdogs[0].teamname).toBe('bethesdawatchdogs')
     })
 
     it('search for very complex name', async () => {

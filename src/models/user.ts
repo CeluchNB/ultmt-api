@@ -39,6 +39,7 @@ const schema = new Schema<IUser>({
             _id: Types.ObjectId,
             place: String,
             name: String,
+            teamname: String,
             seasonStart: Date,
             seasonEnd: Date,
         },
@@ -48,6 +49,7 @@ const schema = new Schema<IUser>({
             _id: Types.ObjectId,
             place: String,
             name: String,
+            teamname: String,
             seasonStart: Date,
             seasonEnd: Date,
         },
@@ -107,6 +109,8 @@ schema.methods.generateAuthToken = async function () {
         throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
     }
 }
+
+schema.index({ firstName: 'text', lastName: 'text', username: 'text' })
 
 const User = model<IUser>('User', schema)
 
