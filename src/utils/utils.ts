@@ -9,6 +9,7 @@ export const getEmbeddedTeam = (team: ITeam): EmbeddedTeam => {
         _id: team._id,
         place: team.place,
         name: team.name,
+        teamname: team.teamname,
         seasonStart: team.seasonStart,
         seasonEnd: team.seasonEnd,
     }

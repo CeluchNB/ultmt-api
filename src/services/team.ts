@@ -174,8 +174,8 @@ export default class TeamServices {
         team.seasonEnd = seasonEnd
         team.seasonNumber++
 
-        await team.save()
         await this.teamModel.deleteOne({ _id: oldId })
+        await team.save()
 
         // update team of managers
         for (const i of team.managers) {
