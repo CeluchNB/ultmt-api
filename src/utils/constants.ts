@@ -26,3 +26,5 @@ export const SEASON_START_ERROR = 'Cannot start new season before last season en
 export const NOT_ACCEPTING_REQUESTS = 'Requested entity is not accepting requests'
 export const NOT_ENOUGH_CHARACTERS = 'Not enough characters for querying'
 export const UNAUTHORIZED_TO_VIEW_REQUEST = 'You are unauthorized to view this request'
+export const DUPLICATE_TEAM_NAME = 'This team handle is already taken.'
+export const NON_ALPHANUM_TEAM_NAME = 'Team name must contain only letters and numbers'

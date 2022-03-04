@@ -1,5 +1,6 @@
+import * as Constants from '../utils/constants'
 import { ITeam } from '../types'
-import { model, Schema, SchemaTypes, Types } from 'mongoose'
+import { Document, model, Schema, SchemaTypes, Types } from 'mongoose'
 import validator from 'validator'
 
 export const schema = new Schema<ITeam>({
@@ -9,11 +10,27 @@ export const schema = new Schema<ITeam>({
         type: String,
         required: true,
         unique: true,
-        validate: {
-            validator: function (v: string) {
-                return validator.isAlphanumeric(v)
+        validate: [
+            {
+                validator: function (v: string) {
+                    return validator.isAlphanumeric(v)
+                },
+                message: Constants.NON_ALPHANUM_TEAM_NAME,
             },
-        },
+            {
+                validator: async function (this: Document, value: string) {
+                    if (!this.isNew) {
+                        return true
+                    }
+                    const count = await model('Team').count({ teamname: value })
+                    if (count > 0) {
+                        return false
+                    }
+                    return true
+                },
+                message: Constants.DUPLICATE_TEAM_NAME,
+            },
+        ],
     },
     managers: [
         {
