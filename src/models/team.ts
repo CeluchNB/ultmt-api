@@ -23,10 +23,7 @@ export const schema = new Schema<ITeam>({
                         return true
                     }
                     const count = await model('Team').count({ teamname: value })
-                    if (count > 0) {
-                        return false
-                    }
-                    return true
+                    return count < 1
                 },
                 message: Constants.DUPLICATE_TEAM_NAME,
             },
