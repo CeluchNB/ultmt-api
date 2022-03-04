@@ -170,6 +170,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.DUPLICATE_EMAIL, 400),
         )
     })
+
+    it('with non alphanumeric team name', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NON_ALPHANUM_TEAM_NAME} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NON_ALPHANUM_TEAM_NAME, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {
