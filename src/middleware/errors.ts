@@ -51,6 +51,12 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.NOT_ENOUGH_CHARACTERS, 400)
     } else if (error.includes(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)) {
         return createExpressErrorObject(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 401)
+    } else if (error.includes(Constants.DUPLICATE_TEAM_NAME)) {
+        return createExpressErrorObject(Constants.DUPLICATE_TEAM_NAME, 400)
+    } else if (error.includes(Constants.DUPLICATE_EMAIL)) {
+        return createExpressErrorObject(Constants.DUPLICATE_EMAIL, 400)
+    } else if (error.includes(Constants.DUPLICATE_USERNAME)) {
+        return createExpressErrorObject(Constants.DUPLICATE_USERNAME, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

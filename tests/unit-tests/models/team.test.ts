@@ -1,3 +1,4 @@
+import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
 import { ITeam } from '../../../src/types'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
@@ -31,5 +32,17 @@ describe('test team model', () => {
         expect(teamRecord.continuationId).toBeDefined()
         expect(teamRecord.requests.length).toBe(0)
         expect(teamRecord.games.length).toBe(0)
+    })
+
+    it('test save with invalid team name', async () => {
+        const team1: ITeam = getTeam()
+        team1.teamname = 'N0n-Alph^'
+        await expect(Team.create(team1)).rejects.toThrowError(Constants.NON_ALPHANUM_TEAM_NAME)
+    })
+
+    it('test save with duplicate team name', async () => {
+        const team1: ITeam = getTeam()
+        await Team.create(team1)
+        await expect(Team.create(team1)).rejects.toThrowError(Constants.DUPLICATE_TEAM_NAME)
     })
 })

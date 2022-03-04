@@ -1,4 +1,4 @@
-import { Schema, Types, model } from 'mongoose'
+import { Schema, Types, model, Document } from 'mongoose'
 import type { IUser } from '../types/user'
 import bcrypt from 'bcrypt'
 import PasswordValidator from 'password-validator'
@@ -14,21 +14,53 @@ const schema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true,
-        validate(value: string) {
-            if (!validator.isEmail(value)) {
-                throw new ApiError(Constants.INVALID_EMAIL, 400)
-            }
-        },
+        validate: [
+            {
+                validator: function (value: string) {
+                    if (!validator.isEmail(value)) {
+                        return false
+                    }
+                    return true
+                },
+                message: Constants.INVALID_EMAIL,
+            },
+            {
+                validator: async function (this: Document, value: string) {
+                    if (!this.isNew) {
+                        return true
+                    }
+                    const count = await model('User').count({ email: value })
+                    return count < 1
+                },
+                message: Constants.DUPLICATE_EMAIL,
+            },
+        ],
     },
     username: {
         type: String,
         required: true,
         unique: true,
-        validate(value: string) {
-            if (!validator.isAlphanumeric(value)) {
-                throw new ApiError(Constants.INVALID_USERNAME, 400)
-            }
-        },
+        validate: [
+            {
+                validator: function (value: string) {
+                    if (!validator.isAlphanumeric(value)) {
+                        return false
+                    }
+                    return true
+                },
+                message: Constants.INVALID_USERNAME,
+            },
+            {
+                validator: async function (this: Document, value: string) {
+                    if (!this.isNew) {
+                        return true
+                    }
+                    const count = await model('User').count({ username: value })
+                    return count < 1
+                },
+                message: Constants.DUPLICATE_USERNAME,
+            },
+        ],
     },
     password: { type: String, required: true },
     private: { type: Boolean, required: true, default: false },

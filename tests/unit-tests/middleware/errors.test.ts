@@ -152,6 +152,24 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 401),
         )
     })
+
+    it('with duplicate team name', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.DUPLICATE_TEAM_NAME} extra details`)).toEqual(
+            createExpressErrorObject(Constants.DUPLICATE_TEAM_NAME, 400),
+        )
+    })
+
+    it('with duplicate username', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.DUPLICATE_USERNAME} extra details`)).toEqual(
+            createExpressErrorObject(Constants.DUPLICATE_USERNAME, 400),
+        )
+    })
+
+    it('with duplicate email', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.DUPLICATE_EMAIL} extra details`)).toEqual(
+            createExpressErrorObject(Constants.DUPLICATE_EMAIL, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

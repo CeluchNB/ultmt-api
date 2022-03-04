@@ -129,4 +129,22 @@ describe('test user model', () => {
 
         await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
+
+    it('test with duplicate email', async () => {
+        const user1 = getUser()
+        // setting different username so it's not a duplicate
+        user1.username = 'randomusername'
+        const user2 = getUser()
+        await User.create(user1)
+        await expect(User.create(user2)).rejects.toThrowError(Constants.DUPLICATE_EMAIL)
+    })
+
+    it('test with duplicate username', async () => {
+        const user1 = getUser()
+        // setting different email so it's not a duplicate
+        user1.email = 'randomemail@email.com'
+        const user2 = getUser()
+        await User.create(user1)
+        await expect(User.create(user2)).rejects.toThrowError(Constants.DUPLICATE_USERNAME)
+    })
 })
