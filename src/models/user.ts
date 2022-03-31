@@ -1,6 +1,6 @@
 import { Schema, Types, model, Document } from 'mongoose'
 import type { IUser } from '../types/user'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import PasswordValidator from 'password-validator'
 import validator from 'validator'
 import jwt from 'jsonwebtoken'

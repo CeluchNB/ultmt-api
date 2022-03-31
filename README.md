@@ -8,3 +8,9 @@ API for The Ultmt App
 - Run `yarn` or `npm install`
 - `yarn dev` starts the app with nodemon for development
 - `yarn start` starts the app
+
+**Developing with Docker (Recommended)**
+- Clone repository
+- Download [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Run command `docker compose -f docker-compose.dev.yml up --build`
+- Start coding!
