@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --runInBand --collectCoverage",
+    "test:ci": "jest --runInBand --collectCoverage --verbose",
     "start": "ts-node ./src/index.ts",
     "dev": "nodemon ./src/index.ts",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"

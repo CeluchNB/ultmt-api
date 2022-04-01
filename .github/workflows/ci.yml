@@ -97,6 +97,7 @@ on: [ push, pull_request ]
 jobs:
   build:
     runs-on: ubuntu-latest
+    environ
     steps:
       - name: Check Out Repo 
         uses: actions/checkout@v2
@@ -135,18 +136,22 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    
+    environment:
+      name: Test
+
     steps:
       - name: Check Out Repo 
         uses: actions/checkout@v2
 
       - name: Create env
         run: |
-          cd src
+          cd tests
           mkdir config
           cd config
           touch .env
           echo PORT=${{ secrets.PORT }} >> .env
-          echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
+          echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
           cd ..
       
@@ -154,10 +159,10 @@ jobs:
         run: docker compose -f docker-compose.dev.yml up -d --build
 
       - name: Add dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Run tests
-        run: yarn test
+        run: yarn test:ci
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
