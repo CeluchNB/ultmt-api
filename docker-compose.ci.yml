@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ci.Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/app
+  
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+      - mongodb_config:/data/configdb
+volumes:
+ mongodb:
+ mongodb_config:
