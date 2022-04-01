@@ -158,7 +158,7 @@ jobs:
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
 
-      - name: Output information for testing:
+      - name: Output information for testing
         run: |
           docker ps
           docker info
