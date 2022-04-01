@@ -153,10 +153,16 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          cat .env
           cd ..
       
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
 
       - name: Add dependencies
         run: yarn install
