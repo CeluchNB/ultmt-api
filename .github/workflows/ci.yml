@@ -1,92 +1,92 @@
 
-name: Node CI
+# name: Node CI
 
-on: [push, pull_request]
+# on: [push, pull_request]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    environment:
-      name: Development
+#     environment:
+#       name: Development
 
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x]
-        mongodb-version: ['4.2', '4.4']
+#     strategy:
+#       matrix:
+#         node-version: [12.x, 14.x]
+#         mongodb-version: ['4.2', '4.4']
 
-    steps:
-    - name: Git checkout
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Git checkout
+#       uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2.1.5
-      with:
-        node-version: ${{ matrix.node-version }}
+#     - name: Use Node.js ${{ matrix.node-version }}
+#       uses: actions/setup-node@v2.1.5
+#       with:
+#         node-version: ${{ matrix.node-version }}
 
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.6.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
+#     - name: Start MongoDB
+#       uses: supercharge/mongodb-github-action@1.6.0
+#       with:
+#         mongodb-version: ${{ matrix.mongodb-version }}
     
-    - name: Create env
-      run: |
-        cd src
-        mkdir config
-        cd config
-        touch .env
-        echo PORT=${{ secrets.PORT }} >> .env
-        echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
-        echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
-        cd ..
+#     - name: Create env
+#       run: |
+#         cd src
+#         mkdir config
+#         cd config
+#         touch .env
+#         echo PORT=${{ secrets.PORT }} >> .env
+#         echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
+#         echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+#         cd ..
         
-    - name: Install and Build
-      run: |
-        npm install
-        npm ci
-        npm build --if-present
-      env:
-        CI: true
+#     - name: Install and Build
+#       run: |
+#         npm install
+#         npm ci
+#         npm build --if-present
+#       env:
+#         CI: true
 
-  test:
-    runs-on: ubuntu-latest
+#   test:
+#     runs-on: ubuntu-latest
 
-    environment:
-      name: Test
+#     environment:
+#       name: Test
 
-    steps:
-    - name: Git checkout
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Git checkout
+#       uses: actions/checkout@v2
 
-    - name: Use Node.js 17
-      uses: actions/setup-node@v2.1.5
-      with:
-        node-version: '17.x'
+#     - name: Use Node.js 17
+#       uses: actions/setup-node@v2.1.5
+#       with:
+#         node-version: '17.x'
 
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.7.0
-      with:
-        mongodb-version: '4.4'
+#     - name: Start MongoDB
+#       uses: supercharge/mongodb-github-action@1.7.0
+#       with:
+#         mongodb-version: '4.4'
 
-    - name: Create env
-      run: |
-        cd tests
-        mkdir config
-        cd config
-        touch .env
-        echo PORT=${{ secrets.PORT }} >> .env
-        echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
-        echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
-        cd ..
+#     - name: Create env
+#       run: |
+#         cd tests
+#         mkdir config
+#         cd config
+#         touch .env
+#         echo PORT=${{ secrets.PORT }} >> .env
+#         echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
+#         echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+#         cd ..
     
-    - name: Test
-      run: |
-        npm install
-        npm ci
-        npm test
-      env:
-        CI: true
+#     - name: Test
+#       run: |
+#         npm install
+#         npm ci
+#         npm test
+#       env:
+#         CI: true
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+#     - name: Upload coverage to Codecov
+#       uses: codecov/codecov-action@v1
     
