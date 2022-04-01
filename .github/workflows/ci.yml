@@ -97,7 +97,7 @@ on: [ push, pull_request ]
 jobs:
   build:
     runs-on: ubuntu-latest
-    environ
+
     steps:
       - name: Check Out Repo 
         uses: actions/checkout@v2
