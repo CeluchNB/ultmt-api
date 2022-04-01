@@ -158,11 +158,11 @@ jobs:
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
 
-      - name: Install node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
+      - name: Output information for testing:
+        run: |
+          docker ps
+          docker info
+        
       - name: Add dependencies
         run: yarn install
 
