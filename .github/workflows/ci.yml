@@ -90,3 +90,27 @@
 #     - name: Upload coverage to Codecov
 #       uses: codecov/codecov-action@v1
     
+name: Docker CI
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+
+      - name: Create env
+        run: |
+          cd src
+          mkdir config
+          cd config
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          cd ..
+      
+      - name: Run docker
+        run: docker compose -f docker-compose.dev.yml up --build
