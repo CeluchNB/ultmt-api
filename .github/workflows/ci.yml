@@ -153,6 +153,9 @@ jobs:
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
 
+      - name: Add dependencies
+        run: yarn install --frozen-lockfile
+
       - name: Run tests
         run: yarn test
       
