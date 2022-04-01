@@ -157,19 +157,12 @@ jobs:
       
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
-
-      - name: Output information for testing
-        run: |
-          docker ps
-          docker info
         
       - name: Add dependencies
         run: yarn install
 
       - name: Run tests
         run: yarn test
-        env:
-          CI: true
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
