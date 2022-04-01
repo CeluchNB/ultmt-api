@@ -132,3 +132,33 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+
+      - name: Create env
+        run: |
+          cd src
+          mkdir config
+          cd config
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo MONGOOSE_URL=${{ secrets.MONGOOSE_URL }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          cd ..
+      
+      - name: Run Docker CI container
+        run: docker compose -f docker-compose.dev.yml up -d --build
+
+      - name: Run tests
+        run: yarn test
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
