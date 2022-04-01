@@ -154,7 +154,9 @@ jobs:
         run: docker compose -f docker-compose.dev.yml up -d --build
 
       - name: Run tests
-        run: yarn test
+        run: |
+          cd app
+          yarn test
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
