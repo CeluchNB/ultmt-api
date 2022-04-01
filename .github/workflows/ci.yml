@@ -155,7 +155,9 @@ jobs:
 
       - name: Run tests
         run: |
-          cd app
+          pwd
+          ls
+          cd ..
           yarn test
       
       - name: Upload coverage to Codecov
