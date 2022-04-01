@@ -153,7 +153,6 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
-          cat .env
           cd ..
       
       - name: Run Docker CI container
@@ -168,7 +167,9 @@ jobs:
         run: yarn install
 
       - name: Run tests
-        run: yarn test:ci
+        run: yarn test
+        env:
+          CI: true
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
