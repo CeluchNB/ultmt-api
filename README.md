@@ -1,7 +1,8 @@
+[![Docker CI](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/CeluchNB/ultmt-api/branch/main/graph/badge.svg?token=5TZJ3CJOJ9)](https://codecov.io/gh/CeluchNB/ultmt-api)
+
 # ultmt-api
 API for The Ultmt App
-
-[![codecov](https://codecov.io/gh/CeluchNB/ultmt-api/branch/main/graph/badge.svg?token=5TZJ3CJOJ9)](https://codecov.io/gh/CeluchNB/ultmt-api)
 
 ## Installation Directions
 - Install and run [MongoDB](https://www.mongodb.com/try/download/community) locally
