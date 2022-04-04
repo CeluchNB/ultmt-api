@@ -19,4 +19,8 @@ app.use(Routes.userRouter)
 app.use(Routes.teamRouter)
 app.use(Routes.rosterRequestRouter)
 
+app.get('/', async (req, res) => {
+    res.send('<h1>The Ultmt App is a work in progress</h1>')
+})
+
 export default app
