@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    run-on: ubuntu-latest
+    steps:
+      - uses: ./.github/workflows/ci.yml
+
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    needs: build-and-test
+    steps:
+      checkout:
+        - name: Check Out Repo 
+          uses: actions/checkout@v3
+      
+      auth-gcp: 'Authenticate to GCP'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/267063385539/locations/global/workloadIdentityPools/dev-ultmt-pool/providers/dev-ultmt-provider'
+          service_account: 'ultmt-service-account@dev-ultmt-app.iam.gserviceaccount.com'
+      
+      deploy-registry:
+        run: |
+          gcloud builds submit --tag 'gcr.io/dev-ultmt-app/ultmt-api' .
+
+      deploy-cloud-run:
+        uses: 'google-github-actions/deploy-cloudrun@v0'
+        with:
+          service: 'ultmt-api'
+          image: 'gcr.io/dev-ultmt-app/ultmt-api'
+
