@@ -66,9 +66,7 @@ jobs:
       
       - name: "Deploy Registry"
         run: |
-          gcloud builds submit --tag 'gcr.io/dev-ultmt-app/ultmt-api' .
-        options:
-          logging: CLOUD_LOGGING_ONLY
+          gcloud builds submit --tag 'gcr.io/dev-ultmt-app/ultmt-api' . --suppress-logs
 
       - name: "Deploy cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v0'
