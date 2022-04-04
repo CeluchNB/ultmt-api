@@ -61,6 +61,9 @@ jobs:
           workload_identity_provider: 'projects/267063385539/locations/global/workloadIdentityPools/dev-ultmt-pool/providers/dev-ultmt-provider'
           service_account: 'ultmt-service-account@dev-ultmt-app.iam.gserviceaccount.com'
       
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      
       - name: "Deploy Registry"
         run: |
           gcloud builds submit --tag 'gcr.io/dev-ultmt-app/ultmt-api' .
