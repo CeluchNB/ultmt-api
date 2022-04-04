@@ -7,16 +7,45 @@ on:
   workflow_call:
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
+    
+    environment:
+      name: Test
+
     steps:
       - name: Check Out Repo 
         uses: actions/checkout@v2
 
-      - uses: ./../.github/workflows/ci.yml
+      - name: Create env
+        run: |
+          cd tests
+          mkdir config
+          cd config
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          cd ..
+      
+      - name: Run Docker CI container
+        run: docker compose -f docker-compose.dev.yml up -d --build
+        
+      - name: Add dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
 
   deploy:
-    needs: build-and-test
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
