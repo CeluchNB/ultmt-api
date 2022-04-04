@@ -66,7 +66,7 @@ jobs:
       
       - name: "Deploy Registry"
         run: |
-          gcloud builds submit --config cloudbuild.dev.yml .
+          gcloud builds submit --quiet --tag "gcr.io/dev-ultmt-app/ultmt-api"
 
       - name: "Deploy cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v0'
