@@ -8,7 +8,7 @@ API for The Ultmt App
 - Install and run [MongoDB](https://www.mongodb.com/try/download/community) locally
 - Clone repository
 - Run `yarn` to install dependencies
-- Depending on OS add `mongodb://127.0.0.1/27017` to `src/config/.env` && `tests/config/.env`
+- Reach out to other dev for `.env` file
 - `yarn dev` starts the app with nodemon for development
 - `yarn start` starts the app
 - `yarn test` runs tests
@@ -27,3 +27,6 @@ API for The Ultmt App
 - App is running on `localhost:3000`
 - Start coding!
 - To run tests, open a terminal in VS code and run `yarn test`
+
+## CI/CD
+- Currently, pushing to `develop` deploys to a Cloud Run service, available at dev.theultmtapp.com

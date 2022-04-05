@@ -4,7 +4,6 @@ name: Docker CI
 on:
   push:
     branches-ignore:
-      - main
       - develop
   pull_request:
   workflow_call:
