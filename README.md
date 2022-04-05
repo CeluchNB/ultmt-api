@@ -1,4 +1,5 @@
-[![Docker CI](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml)
+[![Docker CI](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml/badge.svg)](https://github.com/CeluchNB/ultmt-api/actions/workflows/ci.yml)
+[![Develop Deployment](https://github.com/CeluchNB/ultmt-api/actions/workflows/cd-dev.yml/badge.svg)](https://github.com/CeluchNB/ultmt-api/actions/workflows/cd-dev.yml)
 [![codecov](https://codecov.io/gh/CeluchNB/ultmt-api/branch/main/graph/badge.svg?token=5TZJ3CJOJ9)](https://codecov.io/gh/CeluchNB/ultmt-api)
 
 # ultmt-api
@@ -12,6 +13,10 @@ API for The Ultmt App
 - `yarn dev` starts the app with nodemon for development
 - `yarn start` starts the app
 - `yarn test` runs tests
+
+## Developing Guidelines
+- Commits should follow the [Convential Commit](https://www.conventionalcommits.org/en/v1.0.0/) standard
+- Test coverage should stay at 100%
 
 ## Developing with Docker (Recommended)
 - Clone repository
