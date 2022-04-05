@@ -1,0 +1,76 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: Test
+
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+
+      - name: Create env
+        run: |
+          cd tests
+          mkdir config
+          cd config
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          cd ..
+      
+      - name: Run Docker CI container
+        run: docker compose -f docker-compose.dev.yml up -d --build
+        
+      - name: Add dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+      
+      - name: 'Authenticate to GCP'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/267063385539/locations/global/workloadIdentityPools/dev-ultmt-pool/providers/dev-ultmt-provider'
+          service_account: 'ultmt-service-account@dev-ultmt-app.iam.gserviceaccount.com'
+      
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      
+      - name: "Deploy Registry"
+        run: |
+          gcloud builds submit --config=cloudbuild.ci-dev.yml .
+
+      - name: "Deploy cloud Run"
+        uses: 'google-github-actions/deploy-cloudrun@v0'
+        with:
+          service: 'ultmt-api'
+          image: 'gcr.io/dev-ultmt-app/ultmt-api'
+

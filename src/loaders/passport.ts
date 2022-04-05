@@ -2,7 +2,7 @@ import passport from 'passport'
 import passportLocal from 'passport-local'
 import passportJwt, { StrategyOptions } from 'passport-jwt'
 import User from '../models/user'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import * as Constants from '../utils/constants'
 import jwt from 'jsonwebtoken'
 
