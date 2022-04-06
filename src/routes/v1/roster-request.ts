@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express'
 import passport from 'passport'
-import RosterRequestServices from '../services/roster-request'
-import RosterRequest from '../models/roster-request'
-import Team from '../models/team'
-import User from '../models/user'
-import { errorMiddleware } from '../middleware/errors'
-import { IUser } from '../types'
+import RosterRequestServices from '../../services/v1/roster-request'
+import RosterRequest from '../../models/roster-request'
+import Team from '../../models/team'
+import User from '../../models/user'
+import { errorMiddleware } from '../../middleware/errors'
+import { IUser } from '../../types'
 
 export const rosterRequestRouter = Router()
 

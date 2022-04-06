@@ -1,4 +1,4 @@
-import UserServices from '../../../src/services/user'
+import UserServices from '../../../src/services/v1/user'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'

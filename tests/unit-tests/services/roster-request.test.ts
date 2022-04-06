@@ -1,7 +1,7 @@
 import RosterRequest from '../../../src/models/roster-request'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
-import RosterRequestServices from '../../../src/services/roster-request'
+import RosterRequestServices from '../../../src/services/v1/roster-request'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'

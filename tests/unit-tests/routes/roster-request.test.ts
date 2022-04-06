@@ -34,7 +34,7 @@ describe('test /GET request by id', () => {
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const response = await request(app)
-            .get(`/request/${requestData._id}`)
+            .get(`/api/v1/request/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -53,7 +53,7 @@ describe('test /GET request by id', () => {
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         await request(app)
-            .get(`/request/${requestData._id}`)
+            .get(`/api/v1/request/${requestData._id}`)
             .set('Authorization', `Bearer asdfasdf.asdfadsf.adsfasd`)
             .send()
             .expect(401)
@@ -66,7 +66,7 @@ describe('test /GET request by id', () => {
         const requestData = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const response = await request(app)
-            .get(`/request/${requestData._id}`)
+            .get(`/api/v1/request/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(401)
@@ -88,7 +88,7 @@ describe('test request from team route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/team/${team._id}?user=${user._id}`)
+            .post(`/api/v1/request/team/${team._id}?user=${user._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -124,7 +124,7 @@ describe('test request from team route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/team/${team._id}?user=${user._id}`)
+            .post(`/api/v1/request/team/${team._id}?user=${user._id}`)
             .set('Authorization', 'Bearer averybad.34sadf23.token')
             .send()
             .expect(401)
@@ -140,7 +140,7 @@ describe('test request from team route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/team/${anonId}?user=${user._id}`)
+            .post(`/api/v1/request/team/${anonId}?user=${user._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -156,7 +156,7 @@ describe('test request from team route', () => {
         await team.save()
 
         const response = await request(app)
-            .post(`/request/team/${team._id}?user=${anonId}`)
+            .post(`/api/v1/request/team/${team._id}?user=${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -174,7 +174,7 @@ describe('test request from user route', () => {
         await team.save()
 
         const response = await request(app)
-            .post(`/request/user?team=${team._id}`)
+            .post(`/api/v1/request/user?team=${team._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -208,7 +208,7 @@ describe('test request from user route', () => {
         await team.save()
 
         await request(app)
-            .post(`/request/user?team=${team._id}`)
+            .post(`/api/v1/request/user?team=${team._id}`)
             .set('Authorization', 'Bearer averybad.asdf43rasd.token')
             .send()
             .expect(401)
@@ -220,7 +220,7 @@ describe('test request from user route', () => {
         await Team.create(getTeam())
 
         const response = await request(app)
-            .post(`/request/user?team=${anonId}`)
+            .post(`/api/v1/request/user?team=${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -245,7 +245,7 @@ describe('test team accept route', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/request/team/accept/${requestData._id}`)
+            .post(`/api/v1/request/team/accept/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -287,7 +287,7 @@ describe('test team accept route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/team/accept/${requestData._id}`)
+            .post(`/api/v1/request/team/accept/${requestData._id}`)
             .set('Authorization', 'Bearer asdfasdf123.sdfgad43243.1324123arfad')
             .send()
             .expect(401)
@@ -306,7 +306,7 @@ describe('test team accept route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/team/accept/${anonId}`)
+            .post(`/api/v1/request/team/accept/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -331,7 +331,7 @@ describe('test team deny route', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/request/team/deny/${requestData._id}`)
+            .post(`/api/v1/request/team/deny/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -371,7 +371,7 @@ describe('test team deny route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/team/deny/${requestData._id}`)
+            .post(`/api/v1/request/team/deny/${requestData._id}`)
             .set('Authorization', 'Bearer asdfa1234.adsf34asdf.asdfaf431')
             .send()
             .expect(401)
@@ -390,7 +390,7 @@ describe('test team deny route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/team/deny/${anonId}`)
+            .post(`/api/v1/request/team/deny/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -412,7 +412,7 @@ describe('test user accept route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/accept/${requestData._id}`)
+            .post(`/api/v1/request/user/accept/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -454,7 +454,7 @@ describe('test user accept route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/user/accept/${requestData._id}`)
+            .post(`/api/v1/request/user/accept/${requestData._id}`)
             .set('Authorization', 'Bearer asdfa1234.asdfar342a.asdf3214')
             .send()
             .expect(401)
@@ -472,7 +472,7 @@ describe('test user accept route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/accept/${anonId}`)
+            .post(`/api/v1/request/user/accept/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -494,7 +494,7 @@ describe('test user deny route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/deny/${requestData._id}`)
+            .post(`/api/v1/request/user/deny/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -534,7 +534,7 @@ describe('test user deny route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/user/deny/${requestData._id}`)
+            .post(`/api/v1/request/user/deny/${requestData._id}`)
             .set('Authorization', 'Bearer asdfa1234.asdfar342a.asdf3214')
             .send()
             .expect(401)
@@ -552,7 +552,7 @@ describe('test user deny route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/deny/${anonId}`)
+            .post(`/api/v1/request/user/deny/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -577,7 +577,7 @@ describe('test team delete request', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/request/team/delete/${requestData._id}`)
+            .post(`/api/v1/request/team/delete/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -614,7 +614,7 @@ describe('test team delete request', () => {
         await manager.save()
 
         await request(app)
-            .post(`/request/team/delete/${requestData._id}`)
+            .post(`/api/v1/request/team/delete/${requestData._id}`)
             .set('Authorization', 'Bearer asdfa324.asdft421df.a3294fa')
             .send()
             .expect(401)
@@ -635,7 +635,7 @@ describe('test team delete request', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/request/team/delete/${anonId}`)
+            .post(`/api/v1/request/team/delete/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -657,7 +657,7 @@ describe('test user delete route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/delete/${requestData._id}`)
+            .post(`/api/v1/request/user/delete/${requestData._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -691,7 +691,7 @@ describe('test user delete route', () => {
         await user.save()
 
         await request(app)
-            .post(`/request/user/delete/${requestData._id}`)
+            .post(`/api/v1/request/user/delete/${requestData._id}`)
             .set('Authorization', 'Bearer asdf1234.asdfasdg.324513dsfae')
             .send()
             .expect(401)
@@ -709,7 +709,7 @@ describe('test user delete route', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/request/user/delete/${anonId}`)
+            .post(`/api/v1/request/user/delete/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
