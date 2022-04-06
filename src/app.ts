@@ -15,4 +15,8 @@ app.get('/', async (req, res) => {
     res.json({ message: 'The official API of The Ultmt App' })
 })
 
+app.get('/', async (req, res) => {
+    res.json({ message: 'The official API of The Ultmt App' })
+})
+
 export default app
