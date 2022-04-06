@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express'
 import passport from 'passport'
-import TeamServices from '../services/team'
-import Team from '../models/team'
-import User from '../models/user'
-import ArchiveTeam from '../models/archive-team'
-import { errorMiddleware } from '../middleware/errors'
-import { CreateTeam, IUser } from '../types'
+import TeamServices from '../../services/v1/team'
+import Team from '../../models/team'
+import User from '../../models/user'
+import ArchiveTeam from '../../models/archive-team'
+import { errorMiddleware } from '../../middleware/errors'
+import { CreateTeam, IUser } from '../../types'
 
 export const teamRouter = Router()
 

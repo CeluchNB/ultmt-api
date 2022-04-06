@@ -32,7 +32,7 @@ describe('test /POST team', () => {
         const token = await userRecord.generateAuthToken()
 
         const response = await request(app)
-            .post('/team')
+            .post('/api/v1/team')
             .set('Authorization', `Bearer ${token}`)
             .send({ team })
             .expect(201)
@@ -56,7 +56,7 @@ describe('test /POST team', () => {
         const token = await userRecord.generateAuthToken()
 
         const response = await request(app)
-            .post('/team')
+            .post('/api/v1/team')
             .set('Authorization', `Bearer ${token}`)
             .send({ team: {} })
             .expect(400)
@@ -71,7 +71,7 @@ describe('test /POST team', () => {
         await userRecord.generateAuthToken()
 
         await request(app)
-            .post('/team')
+            .post('/api/v1/team')
             .set('Authorization', `Bearer ${anonId}`)
             .send({ team: {} })
             .expect(401)
@@ -85,7 +85,7 @@ describe('test /GET public team', () => {
         const teamRecord = await Team.create(team)
 
         const response = await request(app)
-            .get(`/team/${teamRecord._id}`)
+            .get(`/api/v1/team/${teamRecord._id}`)
             .send()
             .expect(200)
 
@@ -102,7 +102,7 @@ describe('test /GET public team', () => {
         await Team.create(team)
 
         const response = await request(app)
-            .get(`/team/${anonId}`)
+            .get(`/api/v1/team/${anonId}`)
             .send()
             .expect(404)
 
@@ -124,7 +124,7 @@ describe('test /GET managed id', () => {
         await userRecord.save()
 
         const response = await request(app)
-            .get(`/team/managing/${teamRecord._id}`)
+            .get(`/api/v1/team/managing/${teamRecord._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -147,7 +147,7 @@ describe('test /GET managed id', () => {
         await userRecord.save()
 
         await request(app)
-            .get(`/team/managing/${teamRecord._id}`)
+            .get(`/api/v1/team/managing/${teamRecord._id}`)
             .set('Authorization', 'Bearer badadf.asdf.token1')
             .send()
             .expect(401)
@@ -166,7 +166,7 @@ describe('test /GET managed id', () => {
         await userRecord.save()
 
         await request(app)
-            .get(`/team/managing/${anonId}`)
+            .get(`/api/v1/team/managing/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -192,7 +192,7 @@ describe('test /POST remove player', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/team/remove/player/${team._id}?user=${user._id}`)
+            .post(`/api/v1/team/remove/player/${team._id}?user=${user._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -222,7 +222,7 @@ describe('test /POST remove player', () => {
         await user.save()
 
         await request(app)
-            .post(`/team/remove/player/${team._id}?user=${user._id}`)
+            .post(`/api/v1/team/remove/player/${team._id}?user=${user._id}`)
             .set('Authorization', 'Bearer asfd1234.asdf341.asdf5341')
             .send()
             .expect(401)
@@ -242,7 +242,7 @@ describe('test /POST remove player', () => {
         await user.save()
 
         const response = await request(app)
-            .post(`/team/remove/player/${anonId}?user=${user._id}`)
+            .post(`/api/v1/team/remove/player/${anonId}?user=${user._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -266,7 +266,7 @@ describe('test /POST rollover', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/team/rollover/${team._id}`)
+            .post(`/api/v1/team/rollover/${team._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send({
                 copyPlayers: true,
@@ -305,7 +305,7 @@ describe('test /POST rollover', () => {
         await manager.save()
 
         await request(app)
-            .post(`/team/rollover/${team._id}`)
+            .post(`/api/v1/team/rollover/${team._id}`)
             .set('Authorization', 'Bearer adsf5431.asdf415g.gbhso54')
             .send({
                 copyPlayers: true,
@@ -325,7 +325,7 @@ describe('test /POST rollover', () => {
         await manager.save()
 
         const response = await request(app)
-            .post(`/team/rollover/${anonId}`)
+            .post(`/api/v1/team/rollover/${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send({
                 copyPlayers: true,
@@ -349,7 +349,7 @@ describe('test /PUT set open', () => {
         await team.save()
 
         const response = await request(app)
-            .put(`/team/open/${team._id}?open=true`)
+            .put(`/api/v1/team/open/${team._id}?open=true`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -374,7 +374,7 @@ describe('test /PUT set open', () => {
         await team.save()
 
         const response = await request(app)
-            .put(`/team/open/${team._id}?open=false`)
+            .put(`/api/v1/team/open/${team._id}?open=false`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -399,7 +399,7 @@ describe('test /PUT set open', () => {
         await team.save()
 
         await request(app)
-            .put(`/team/open/${team._id}?open=false`)
+            .put(`/api/v1/team/open/${team._id}?open=false`)
             .set('Authorization', 'Bearer asdf654.asdf4536.vfs934')
             .send()
             .expect(401)
@@ -415,7 +415,7 @@ describe('test /PUT set open', () => {
         await team.save()
 
         const response = await request(app)
-            .put(`/team/open/${anonId}?open=false`)
+            .put(`/api/v1/team/open/${anonId}?open=false`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -444,7 +444,7 @@ describe('test /GET search', () => {
     it('with valid query', async () => {
         const term = 'Pit'
         const response = await request(app)
-            .get(`/team/search?q=${term}`)
+            .get(`/api/v1/team/search?q=${term}`)
             .send()
             .expect(200)
 
@@ -455,7 +455,7 @@ describe('test /GET search', () => {
 
     it('with invalid query', async () => {
         await request(app)
-            .get('/team/search')
+            .get('/api/v1/team/search')
             .send()
             .expect(400)
     })

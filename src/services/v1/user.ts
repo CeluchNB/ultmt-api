@@ -1,9 +1,9 @@
-import { ITeamModel } from '../models/team'
-import { IUserModel } from '../models/user'
-import { ApiError, CreateUser, EmbeddedUser, IUser } from '../types'
-import * as Constants from '../utils/constants'
-import UltmtValidator from '../utils/ultmt-validator'
-import { getEmbeddedUser } from '../utils/utils'
+import { ITeamModel } from '../../models/team'
+import { IUserModel } from '../../models/user'
+import { ApiError, CreateUser, EmbeddedUser, IUser } from '../../types'
+import * as Constants from '../../utils/constants'
+import UltmtValidator from '../../utils/ultmt-validator'
+import { getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 
 interface LevenshteinUser {

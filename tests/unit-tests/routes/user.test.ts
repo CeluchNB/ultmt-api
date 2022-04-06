@@ -29,7 +29,7 @@ describe('test /POST user', () => {
         const user = getUser()
 
         const response = await request(app)
-            .post('/user')
+            .post('/api/v1/user')
             .send(user)
             .expect(201)
 
@@ -51,7 +51,7 @@ describe('test /POST user', () => {
 
     it('with invalid data', async () => {
         const response = await request(app)
-            .post('/user')
+            .post('/api/v1/user')
             .send({
                 bad: 'data'
             })
@@ -68,7 +68,7 @@ describe('test /POST login', () => {
         await User.create(user)
 
         const response = await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: user.email, password: user.password })
             .expect(200)
 
@@ -82,7 +82,7 @@ describe('test /POST login', () => {
         await User.create(user)
 
         const response = await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: user.username, password: user.password })
             .expect(200)
         
@@ -96,7 +96,7 @@ describe('test /POST login', () => {
         await User.create(user)
 
         await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: user.email, password: 'nottherealpassword' })
             .expect(401)
 
@@ -108,7 +108,7 @@ describe('test /POST login', () => {
         await User.create(user)
 
         await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: 'absent@email.com', password: user.password })
             .expect(401)
 
@@ -131,7 +131,7 @@ describe('test /POST login', () => {
         })
 
         await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: user.email, password: user.password })
             .expect(401)
     })
@@ -146,7 +146,7 @@ describe('test /POST login', () => {
         })
 
         const response = await request(app)
-            .post('/user/login')
+            .post('/api/v1/user/login')
             .send({ email: user.email, password: user.password })
             .expect(500)
 
@@ -161,7 +161,7 @@ describe('test /POST logout', () => {
         const token = await userRecord.generateAuthToken()
 
         await request(app)
-            .post('/user/logout')
+            .post('/api/v1/user/logout')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -177,7 +177,7 @@ describe('test /POST logout', () => {
         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         await request(app)
-            .post('/user/logout')
+            .post('/api/v1/user/logout')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(401)
@@ -190,7 +190,7 @@ describe('test /POST logout', () => {
         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         await request(app)
-            .post('/user/logout')
+            .post('/api/v1/user/logout')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(401)
@@ -206,7 +206,7 @@ describe('test /POST logout', () => {
         })
 
         await request(app)
-            .post('/user/logout')
+            .post('/api/v1/user/logout')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -222,7 +222,7 @@ describe('test /POST logout all', () => {
         await userRecord.generateAuthToken()
 
         await request(app)
-            .post('/user/logoutAll')
+            .post('/api/v1/user/logoutAll')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -241,7 +241,7 @@ describe('test /POST logout all', () => {
         })
 
         await request(app)
-            .post('/user/logoutAll')
+            .post('/api/v1/user/logoutAll')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -255,7 +255,7 @@ describe('test /GET me', () => {
         const token = await userRecord.generateAuthToken()
 
         const response = await request(app)
-            .get('/user/me')
+            .get('/api/v1/user/me')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -272,7 +272,7 @@ describe('test /GET me', () => {
         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         const response = await request(app)
-            .get('/user/me')
+            .get('/api/v1/user/me')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(401)
@@ -289,7 +289,7 @@ describe('test /GET user', () => {
         const userRecord = await User.create(user)
 
         const response = await request(app)
-            .get(`/user/${userRecord._id}`)
+            .get(`/api/v1/user/${userRecord._id}`)
             .send()
             .expect(200)
         
@@ -302,7 +302,7 @@ describe('test /GET user', () => {
 
     it('with non-existing user', async () => {
         const response = await request(app)
-            .get(`/user/${anonId}`)
+            .get(`/api/v1/user/${anonId}`)
             .send()
             .expect(404)
 
@@ -317,7 +317,7 @@ describe('test /DELETE profile', () => {
         const token = await userRecord.generateAuthToken()
 
         await request(app)
-            .delete('/user/me')
+            .delete('/api/v1/user/me')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -327,7 +327,7 @@ describe('test /DELETE profile', () => {
         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         await request(app)
-            .delete('/user/me')
+            .delete('/api/v1/user/me')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(401)
@@ -343,7 +343,7 @@ describe('test /DELETE profile', () => {
         })
 
         await request(app)
-            .delete('/user/me')
+            .delete('/api/v1/user/me')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(500)
@@ -356,7 +356,7 @@ describe('test /PUT set open', () => {
         const token = await user.generateAuthToken()
 
         const response = await request(app)
-            .put('/user/open?open=true')
+            .put('/api/v1/user/open?open=true')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -376,7 +376,7 @@ describe('test /PUT set open', () => {
         const token = await user.generateAuthToken()
 
         const response = await request(app)
-            .put('/user/open?open=false')
+            .put('/api/v1/user/open?open=false')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -396,7 +396,7 @@ describe('test /PUT set open', () => {
         await user.generateAuthToken()
 
         await request(app)
-            .put('/user/open?open=false')
+            .put('/api/v1/user/open?open=false')
             .set('Authorization', 'Bearer asdf1234.uetrf56.hffgu4234')
             .send()
             .expect(401)
@@ -411,7 +411,7 @@ describe('test /PUT set open', () => {
         })
 
         const response = await request(app)
-            .put('/user/open?open=false')
+            .put('/api/v1/user/open?open=false')
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(500)
@@ -432,7 +432,7 @@ describe('test /POST leave team', () => {
         await team.save()
 
         const response = await request(app)
-            .post(`/user/leave/team?team=${team._id}`)
+            .post(`/api/v1/user/leave/team?team=${team._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
@@ -459,7 +459,7 @@ describe('test /POST leave team', () => {
         await team.save()
 
         await request(app)
-            .post(`/user/leave/team?team=${team._id}`)
+            .post(`/api/v1/user/leave/team?team=${team._id}`)
             .set('Authorization', 'Bearer asdf431gf.asdft541fg.g86f9jf')
             .send()
             .expect(401)
@@ -476,7 +476,7 @@ describe('test /POST leave team', () => {
         await team.save()
 
         const response = await request(app)
-            .post(`/user/leave/team?team=${anonId}`)
+            .post(`/api/v1/user/leave/team?team=${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
@@ -509,7 +509,7 @@ describe('test /GET search users', () => {
 
     it('with valid query', async () => {
         const response = await request(app)
-            .get('/user/search?q=noah')
+            .get('/api/v1/user/search?q=noah')
             .send()
             .expect(200)
 
@@ -520,7 +520,7 @@ describe('test /GET search users', () => {
 
     it('with invalid query', async () => {
         await request(app)
-            .get('/user/search')
+            .get('/api/v1/user/search')
             .send()
             .expect(400)
     })

@@ -1,4 +1,4 @@
-import TeamServices from '../../../src/services/team'
+import TeamServices from '../../../src/services/v1/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'

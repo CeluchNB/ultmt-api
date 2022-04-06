@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express'
-import { CreateUser, IUser } from '../types/user'
-import UserServices from '../services/user'
-import User from '../models/user'
-import Team from '../models/team'
-import { errorMiddleware } from '../middleware/errors'
+import { CreateUser, IUser } from '../../types/user'
+import UserServices from '../../services/v1/user'
+import User from '../../models/user'
+import Team from '../../models/team'
+import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 
 export const userRouter = Router()

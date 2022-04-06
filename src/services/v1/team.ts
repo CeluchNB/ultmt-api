@@ -1,11 +1,11 @@
-import { ITeamModel } from '../models/team'
-import { IUserModel } from '../models/user'
-import { IArchiveTeamModel } from '../models/archive-team'
-import { ApiError, CreateTeam, ITeam } from '../types'
-import * as Constants from '../utils/constants'
-import UltmtValidator from '../utils/ultmt-validator'
+import { ITeamModel } from '../../models/team'
+import { IUserModel } from '../../models/user'
+import { IArchiveTeamModel } from '../../models/archive-team'
+import { ApiError, CreateTeam, ITeam } from '../../types'
+import * as Constants from '../../utils/constants'
+import UltmtValidator from '../../utils/ultmt-validator'
 import { Types } from 'mongoose'
-import { getEmbeddedTeam, getEmbeddedUser } from '../utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 
 interface LevenshteinTeam {

@@ -14,14 +14,10 @@ API for The Ultmt App
 - `yarn start` starts the app
 - `yarn test` runs tests
 
-## Developing Guidelines
-- Commits should follow the [Convential Commit](https://www.conventionalcommits.org/en/v1.0.0/) standard
-- Test coverage should stay at 100%
-
 ## Developing with Docker (Recommended)
 - Clone repository
 - Download [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-### Without VS Code**
+### Without VS Code
 - Run command `docker compose -f docker-compose.dev.yml up --build`
 - Docker starts the app on in a container `localhost:3000` connected to a mongo instance on port `27017`
 - Start coding!
@@ -32,6 +28,13 @@ API for The Ultmt App
 - App is running on `localhost:3000`
 - Start coding!
 - To run tests, open a terminal in VS code and run `yarn test`
+
+## Developing Guidelines
+- Commits should follow the [Convential Commit](https://www.conventionalcommits.org/en/v1.0.0/) standard
+- Test coverage should stay at 100%
+- API design uses resource-level versioning, while striving for API evolution (essentially never violating the \
+contract). Currently the only client is the mobile app, as clients evolve this strategy will need to evolve.
+
 
 ## CI/CD
 - Currently, pushing to `develop` deploys to a Cloud Run service, available at dev.theultmtapp.com
