@@ -1,5 +1,6 @@
 import { ITeamModel } from '../../models/team'
 import { IUserModel } from '../../models/user'
+import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
 import { ApiError, CreateTeam, ITeam } from '../../types'
 import * as Constants from '../../utils/constants'
@@ -16,11 +17,18 @@ interface LevenshteinTeam {
 export default class TeamServices {
     teamModel: ITeamModel
     userModel: IUserModel
+    requestModel: IRosterRequestModel
     archiveTeamModel: IArchiveTeamModel
 
-    constructor(teamModel: ITeamModel, userModel: IUserModel, archiveTeamModel: IArchiveTeamModel) {
+    constructor(
+        teamModel: ITeamModel,
+        userModel: IUserModel,
+        requestModel: IRosterRequestModel,
+        archiveTeamModel: IArchiveTeamModel,
+    ) {
         this.teamModel = teamModel
         this.userModel = userModel
+        this.requestModel = requestModel
         this.archiveTeamModel = archiveTeamModel
     }
 
@@ -174,10 +182,28 @@ export default class TeamServices {
         team.seasonEnd = seasonEnd
         team.seasonNumber++
 
+        // Delete any requests related to the team
+        for (const id of team.requests) {
+            const request = await this.requestModel.findById(id)
+            if (!request) {
+                continue
+            }
+            const user = await this.userModel.findById(request.user)
+            if (!user) {
+                continue
+            }
+
+            user.requests = user.requests.filter((reqId) => !reqId.equals(id))
+            await user.save()
+            await request.delete()
+        }
+
+        team.requests = []
+
         await this.teamModel.deleteOne({ _id: oldId })
         await team.save()
 
-        // update team of managers
+        // update managers
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
@@ -187,7 +213,7 @@ export default class TeamServices {
             }
         }
 
-        // update manager of teams
+        // update players
         for (const i of players) {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {

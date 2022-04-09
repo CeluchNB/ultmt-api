@@ -1,14 +1,15 @@
 import TeamServices from '../../../src/services/v1/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
+import RosterRequest from '../../../src/models/roster-request'
 import ArchiveTeam from '../../../src/models/archive-team'
-import { ApiError, CreateTeam, ITeam } from '../../../src/types'
+import { ApiError, CreateTeam, ITeam, Status, Initiator } from '../../../src/types'
 import { getCreateTeam, getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
-const services = new TeamServices(Team, User, ArchiveTeam)
+const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -360,6 +361,40 @@ describe('test team rollover', () => {
         await expect(
             services.rollover(manager._id, team._id, true, new Date('2019'), new Date('2019')),
         ).rejects.toThrowError(new ApiError(Constants.SEASON_START_ERROR, 400))
+    })
+
+    it('with pending requests', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, reqUser1, reqUser2] = await User.find({})
+        const req1 = await RosterRequest.create({
+            team: team._id,
+            user: reqUser1._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+        const req2 = await RosterRequest.create({
+            team: team._id,
+            user: reqUser2._id,
+            requestSource: Initiator.Team,
+            status: Status.Approved,
+        })
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(req1._id)
+        team.requests.push(req2._id)
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        reqUser1.requests.push(req1._id)
+        await reqUser1.save()
+        reqUser2.requests.push(req2._id)
+        await reqUser2.save()
+
+        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        expect(newTeam.requests.length).toBe(0)
+        const updatedUser1 = await User.findById(reqUser1._id)
+        expect(updatedUser1?.requests.length).toBe(0)
+        const updatedUser2 = await User.findById(reqUser2._id)
+        expect(updatedUser2?.requests.length).toBe(0)
     })
 })
 
