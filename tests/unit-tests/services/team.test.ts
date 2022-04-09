@@ -8,6 +8,7 @@ import { getCreateTeam, getTeam, getUser, anonId } from '../../fixtures/utils'
 import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import { Types } from 'mongoose'
 
 const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
@@ -396,6 +397,44 @@ describe('test team rollover', () => {
         const updatedUser2 = await User.findById(reqUser2._id)
         expect(updatedUser2?.requests.length).toBe(0)
     })
+
+    it('with open requests that have old data', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, reqUser1, reqUser2] = await User.find({})
+        const req1 = await RosterRequest.create({
+            team: team._id,
+            user: reqUser1._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+        const req2 = await RosterRequest.create({
+            team: team._id,
+            user: anonId,
+            requestSource: Initiator.Team,
+            status: Status.Approved,
+        })
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(req1._id)
+        team.requests.push(req2._id)
+        team.requests.push(new Types.ObjectId())
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        reqUser1.requests.push(req1._id)
+        await reqUser1.save()
+        reqUser2.requests.push(req2._id)
+        await reqUser2.save()
+
+        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        expect(newTeam.requests.length).toBe(0)
+        const updatedUser1 = await User.findById(reqUser1._id)
+        expect(updatedUser1?.requests.length).toBe(0)
+        const updatedUser2 = await User.findById(reqUser2._id)
+        expect(updatedUser2?.requests.length).toBe(1)
+
+        const resultRequest = await RosterRequest.find({})
+        expect(resultRequest?.length).toBe(1)
+    })
 })
 
 describe('test set to open', () => {
@@ -570,5 +609,71 @@ describe('text search functionality', () => {
 
         const result = await services.search('Los Angeles Spider Monkeys')
         expect(result.length).toBe(0)
+    })
+})
+
+describe('test add manager functionality', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('should add manager with expected data', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, newManager] = await User.find({})
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        newManager.openToRequests = true
+        await newManager.save()
+
+        const resultTeam = await services.addManager(manager._id, newManager._id, team._id)
+
+        expect(resultTeam.managers.length).toBe(2)
+        expect(resultTeam.managers[1].username).toBe(newManager.username)
+
+        const resultManager = await User.findById(newManager._id)
+
+        expect(resultManager?.managerTeams.length).toBe(1)
+        expect(resultManager?.managerTeams[0].teamname).toBe(team.teamname)
+    })
+
+    it('should fail if new manager not accepting requests', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, newManager] = await User.find({})
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.addManager(manager._id, newManager._id, team._id)).rejects.toThrowError(
+            Constants.NOT_ACCEPTING_REQUESTS,
+        )
+    })
+
+    it('should fail if team not found', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, newManager] = await User.find({})
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.addManager(manager._id, newManager._id, anonId)).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('should fail if new manager not found', async () => {
+        const team = await Team.create(getTeam())
+        const [manager] = await User.find({})
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.addManager(manager._id, anonId, team._id)).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_USER,
+        )
     })
 })

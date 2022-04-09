@@ -301,4 +301,39 @@ export default class TeamServices {
 
         return teams
     }
+
+    /**
+     * Method to add a manager to a team. New manager must be accepting requests to be added as a manager.
+     * @param currentManagerId ID of manager making the request
+     * @param newManagerId ID of user to make a manager of the team
+     * @param teamId ID of team to add manager to
+     * @returns Updated team
+     */
+    addManager = async (currentManagerId: string, newManagerId: string, teamId: string): Promise<ITeam> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const newManager = await this.userModel.findById(newManagerId)
+        if (!newManager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel)
+            .userIsManager(currentManagerId, teamId)
+            .userAcceptingRequests(newManagerId)
+            .test()
+
+        const embeddedManager = getEmbeddedUser(newManager)
+        team.managers.push(embeddedManager)
+
+        const embeddedTeam = getEmbeddedTeam(team)
+        newManager.managerTeams.push(embeddedTeam)
+
+        await team.save()
+        await newManager.save()
+
+        return team
+    }
 }
