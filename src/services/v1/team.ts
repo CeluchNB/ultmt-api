@@ -322,6 +322,7 @@ export default class TeamServices {
 
         await new UltmtValidator(this.userModel, this.teamModel)
             .userIsManager(currentManagerId, teamId)
+            .userIsNotManager(newManagerId, teamId)
             .userAcceptingRequests(newManagerId)
             .test()
 

@@ -460,3 +460,74 @@ describe('test /GET search', () => {
             .expect(400)
     })
 })
+
+describe('test /POST add manager', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid query', async () =>{
+        const [manager, user] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user.openToRequests = true
+        await user.save()
+
+        const response = await request(app)
+            .post(`/api/v1/team/${team._id}/addManager?manager=${user._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const resultTeam = response.body.team as ITeam
+        expect(resultTeam._id.toString()).toBe(team._id.toString())
+        expect(resultTeam.managers.length).toBe(2)
+
+        const newManager = await User.findById(user._id)
+        expect(newManager?.managerTeams.length).toBe(1)
+    })
+
+    it('with unauthorized requesting user', async () => {
+        const [manager, user] = await User.find({})
+        await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user.openToRequests = true
+        await user.save()
+
+        await request(app)
+            .post(`/api/v1/team/${team._id}/addManager?manager=${user._id}`)
+            .set('Authorization', 'Bearer 1234.asdgf.4313f')
+            .send()
+            .expect(401)
+    })
+
+    it('adding already managing user', async () => {
+        const [manager, user] = await User.find({})
+        const token = await manager.generateAuthToken()
+        await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user.openToRequests = true
+        await user.save()
+
+        const response = await request(app)
+            .post(`/api/v1/team/${team._id}/addManager?manager=${user._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(400)
+        
+        expect(response.body.message).toEqual(Constants.USER_ALREADY_MANAGES_TEAM)
+    })
+})

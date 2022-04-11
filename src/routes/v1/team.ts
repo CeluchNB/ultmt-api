@@ -117,4 +117,22 @@ teamRouter.put(
     },
 )
 
+teamRouter.post(
+    '/team/:id/addManager',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.addManager(
+                (req.user as IUser)._id,
+                req.query.manager as string,
+                req.params.id,
+            )
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

@@ -59,6 +59,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.DUPLICATE_USERNAME, 400)
     } else if (error.includes(Constants.NON_ALPHANUM_TEAM_NAME)) {
         return createExpressErrorObject(Constants.NON_ALPHANUM_TEAM_NAME, 400)
+    } else if (error.includes(Constants.USER_ALREADY_MANAGES_TEAM)) {
+        return createExpressErrorObject(Constants.USER_ALREADY_MANAGES_TEAM, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }
