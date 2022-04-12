@@ -31,3 +31,5 @@ export const NON_ALPHANUM_TEAM_NAME = 'Team name must contain only letters and n
 export const DUPLICATE_EMAIL = 'This email is already in use.'
 export const DUPLICATE_USERNAME = 'This username is already in use.'
 export const USER_ALREADY_MANAGES_TEAM = 'This user already manages this team.'
+export const USER_IS_ONLY_MANAGER =
+    'This user is the only manager of this team. Add another manager to leave this team.'
