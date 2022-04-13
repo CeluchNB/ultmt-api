@@ -193,4 +193,36 @@ export default class UserServices {
 
         return users.map((u) => getEmbeddedUser(u))
     }
+
+    /**
+     * Method to leave a team as a manager.  User can only remove himself as a manager.
+     * @param teamId team that manager is leaving
+     * @param managerId manager to remove
+     * @returns new team
+     */
+    leaveManagerRole = async (teamId: string, managerId: string): Promise<IUser> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        if (team.managers.length < 2) {
+            throw new ApiError(Constants.USER_IS_ONLY_MANAGER, 400)
+        }
+
+        team.managers = team.managers.filter((user) => !user._id.equals(managerId))
+        await team.save()
+
+        manager.managerTeams = manager.managerTeams.filter((t) => !t._id.equals(teamId))
+        await manager.save()
+
+        return manager
+    }
 }

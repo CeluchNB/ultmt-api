@@ -138,4 +138,18 @@ userRouter.post(
     },
 )
 
+userRouter.put(
+    '/user/managerLeave',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userServices = new UserServices(User, Team)
+            const user = await userServices.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)
