@@ -4,7 +4,7 @@ import request from 'supertest'
 import app from '../../../src/app'
 import { ApiError, IUser } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
-import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getUser, anonId, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import jwt from 'jsonwebtoken'
@@ -523,5 +523,75 @@ describe('test /GET search users', () => {
             .get('/api/v1/user/search')
             .send()
             .expect(400)
+    })
+})
+
+describe('test /PUT leave manager', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid data', async () => {
+        const [manager, manager2] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        team.managers.push(getEmbeddedUser(manager2))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        manager2.managerTeams.push(getEmbeddedTeam(team))
+        await manager2.save()
+
+        const response = await request(app)
+            .put(`/api/v1/user/managerLeave?team=${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const resultUser = response.body.user
+        expect(resultUser._id.toString()).toBe(manager._id.toString())
+        expect(resultUser.managerTeams.length).toBe(0)
+
+        const resultTeam = await Team.findById(team._id)
+        expect(resultTeam?.managers.length).toBe(1)
+    })
+
+    it('with unauthenticated manager', async () => {
+        const [manager, manager2] = await User.find({})
+        await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        team.managers.push(getEmbeddedUser(manager2))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        manager2.managerTeams.push(getEmbeddedTeam(team))
+        await manager2.save()
+
+        await request(app)
+            .put(`/api/v1/user/managerLeave?team=${team._id}`)
+            .set('Authorization', 'Bearer adf432.fdt543fggd.5432rffgt')
+            .send()
+            .expect(401)
+    })
+
+    it('with last manager error', async () => {
+        const [manager] = await User.find({})
+        const token = await manager.generateAuthToken()
+        const team = await Team.create(getTeam())
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        const response = await request(app)
+            .put(`/api/v1/user/managerLeave?team=${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(400)
+
+        expect(response.body.message).toBe(Constants.USER_IS_ONLY_MANAGER)
+
     })
 })

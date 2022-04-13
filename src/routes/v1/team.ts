@@ -135,18 +135,4 @@ teamRouter.post(
     },
 )
 
-teamRouter.put(
-    '/team/:id/managerLeave',
-    passport.authenticate('jwt', { session: false }),
-    async (req: Request, res: Response, next) => {
-        try {
-            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-            const team = await teamServices.leaveManagerRole(req.params.id, (req.user as IUser)._id)
-            return res.json({ team })
-        } catch (error) {
-            next(error)
-        }
-    },
-)
-
 teamRouter.use(errorMiddleware)
