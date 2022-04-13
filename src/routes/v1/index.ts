@@ -1,6 +1,3 @@
-// export * from './user'
-// export * from './team'
-// export * from './roster-request'
 import { userRouter } from './user'
 import { teamRouter } from './team'
 import { rosterRequestRouter } from './roster-request'

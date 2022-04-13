@@ -23,6 +23,7 @@ enum ValidationType {
     USER_ACCEPTING_REQUESTS,
     TEAM_ACCEPTING_REQUESTS,
     ENOUGH_SEARCH_CHARACTERS,
+    USER_NOT_MANAGER,
 }
 
 type Validation = {
@@ -129,6 +130,11 @@ export default class UltmtValidator {
 
     enoughSearchCharacters = (term: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.ENOUGH_SEARCH_CHARACTERS, data: { term } })
+        return this
+    }
+
+    userIsNotManager = (userId: string, teamId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_NOT_MANAGER, data: { userId, teamId } })
         return this
     }
 
@@ -346,6 +352,30 @@ export default class UltmtValidator {
                 const { term } = validation.data
                 if (term.length < 3) {
                     throw new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400)
+                }
+                break
+            }
+            case ValidationType.USER_NOT_MANAGER: {
+                const { userId, teamId } = validation.data
+                const team = await this.teamModel.findById(teamId)
+                if (!team) {
+                    throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+                }
+                for (const manager of team.managers) {
+                    if (manager._id.equals(userId)) {
+                        throw new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400)
+                    }
+                }
+
+                const user = await this.userModel.findById(userId)
+                if (!user) {
+                    throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+                }
+
+                for (const t of user.managerTeams) {
+                    if (t._id.equals(teamId)) {
+                        throw new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400)
+                    }
                 }
                 break
             }

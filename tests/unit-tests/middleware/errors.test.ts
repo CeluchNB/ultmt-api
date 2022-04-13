@@ -176,6 +176,18 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.NON_ALPHANUM_TEAM_NAME, 400),
         )
     })
+
+    it('with user already manager', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.USER_ALREADY_MANAGES_TEAM} extra details`)).toEqual(
+            createExpressErrorObject(Constants.USER_ALREADY_MANAGES_TEAM, 400),
+        )
+    })
+
+    it('with user as only manager', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.USER_IS_ONLY_MANAGER} extra details`)).toEqual(
+            createExpressErrorObject(Constants.USER_IS_ONLY_MANAGER, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

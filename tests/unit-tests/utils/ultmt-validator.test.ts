@@ -443,4 +443,51 @@ describe('test ultmt validator', () => {
         validator.userAuthorizedForRequest(anonId, request._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 404))
     })
+
+    it('test user is not manager success case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+
+        const validator = new UltmtValidator()
+        validator.userIsNotManager(user._id, team._id)
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('test user is not manager with first failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+
+        const validator = new UltmtValidator()
+        validator.userIsNotManager(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400))
+    })
+
+    it('test user is not manager with second failure case', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        const validator = new UltmtValidator()
+        validator.userIsNotManager(user._id, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400))
+    })
+
+    it('test user is not manager with missing team', async () => {
+        const user = await User.create(getUser())
+
+        const validator = new UltmtValidator()
+        validator.userIsNotManager(user._id, anonId)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 400))
+    })
+
+    it('test user is not manager with missing user', async () => {
+        const team = await Team.create(getTeam())
+        const validator = new UltmtValidator()
+        validator.userIsNotManager(anonId, team._id)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 400))
+    })
 })
