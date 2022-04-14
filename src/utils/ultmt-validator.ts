@@ -24,6 +24,7 @@ enum ValidationType {
     TEAM_ACCEPTING_REQUESTS,
     ENOUGH_SEARCH_CHARACTERS,
     USER_NOT_MANAGER,
+    VALID_SEASON_DATES,
 }
 
 type Validation = {
@@ -135,6 +136,11 @@ export default class UltmtValidator {
 
     userIsNotManager = (userId: string, teamId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.USER_NOT_MANAGER, data: { userId, teamId } })
+        return this
+    }
+
+    validSeasonDates = (seasonStart: Date, seasonEnd: Date): UltmtValidator => {
+        this.validations.push({ type: ValidationType.VALID_SEASON_DATES, data: { seasonStart, seasonEnd } })
         return this
     }
 
@@ -376,6 +382,23 @@ export default class UltmtValidator {
                     if (t._id.equals(teamId)) {
                         throw new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400)
                     }
+                }
+                break
+            }
+            case ValidationType.VALID_SEASON_DATES: {
+                const { seasonStart, seasonEnd } = validation.data
+                const currentYear = new Date().getFullYear()
+
+                if (seasonStart.getFullYear() < currentYear || seasonStart.getFullYear() > currentYear + 1) {
+                    throw new ApiError(Constants.INVALID_SEASON_DATE, 400)
+                }
+
+                if (seasonEnd.getFullYear() < currentYear || seasonEnd.getFullYear() > currentYear + 1) {
+                    throw new ApiError(Constants.INVALID_SEASON_DATE, 400)
+                }
+
+                if (seasonStart > seasonEnd) {
+                    throw new ApiError(Constants.INVALID_SEASON_DATE, 400)
                 }
                 break
             }

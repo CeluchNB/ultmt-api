@@ -9,11 +9,13 @@ import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../..
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import { Types } from 'mongoose'
+import MockDate from 'mockdate'
 
 const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
+    MockDate.set(new Date('2022'))
 })
 
 afterEach(async () => {
@@ -21,6 +23,7 @@ afterEach(async () => {
 })
 
 afterAll((done) => {
+    MockDate.reset()
     tearDownDatabase()
     done()
 })

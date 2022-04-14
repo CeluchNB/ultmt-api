@@ -39,11 +39,16 @@ export default class TeamServices {
      * @returns the created team
      */
     createTeam = async (team: CreateTeam, userId: string): Promise<ITeam> => {
+        const seasonStart = new Date(team.seasonStart)
+        const seasonEnd = new Date(team.seasonEnd)
+
+        await new UltmtValidator().validSeasonDates(seasonStart, seasonEnd).test()
+
         const saveTeam: ITeam = {
             ...team,
             _id: new Types.ObjectId(),
-            seasonStart: new Date(team.seasonStart),
-            seasonEnd: new Date(team.seasonEnd),
+            seasonStart,
+            seasonEnd,
             continuationId: new Types.ObjectId(),
             managers: [],
             players: [],
@@ -162,7 +167,10 @@ export default class TeamServices {
             throw new ApiError(Constants.SEASON_START_ERROR, 400)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+        await new UltmtValidator(this.userModel, this.teamModel)
+            .userIsManager(managerId, teamId)
+            .validSeasonDates(seasonStart, seasonEnd)
+            .test()
 
         // close roster for archive and new team
         team.rosterOpen = false

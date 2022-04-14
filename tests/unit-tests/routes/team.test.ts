@@ -9,8 +9,10 @@ import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import MockDate from 'mockdate'
 
 beforeAll(async () => {
+    MockDate.set(new Date('2022'))
     await setUpDatabase()
 })
 
@@ -19,6 +21,7 @@ afterEach(async () => {
 })
 
 afterAll((done) => {
+    MockDate.reset()
     tearDownDatabase()
     done()
 })
