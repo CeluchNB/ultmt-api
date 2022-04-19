@@ -5,10 +5,11 @@ import User from '../../models/user'
 import Team from '../../models/team'
 import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
+import { body, query, param } from 'express-validator'
 
 export const userRouter = Router()
 
-userRouter.get('/user/search', async (req: Request, res: Response, next) => {
+userRouter.get('/user/search', query('q').escape(), async (req: Request, res: Response, next) => {
     try {
         const term = (req.query.q as string) || ''
         const userService = new UserServices(User, Team)
@@ -19,17 +20,24 @@ userRouter.get('/user/search', async (req: Request, res: Response, next) => {
     }
 })
 
-userRouter.post('/user', async (req: Request, res: Response, next) => {
-    try {
-        const user: CreateUser = req.body
-        const userService = new UserServices(User, Team)
+userRouter.post(
+    '/user',
+    body('firstName').escape().isString(),
+    body('lastName').escape().isString(),
+    body('username').escape().isString(),
+    body('password').isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const user: CreateUser = req.body
+            const userService = new UserServices(User, Team)
 
-        const userObject = await userService.signUp(user)
-        return res.status(201).json(userObject)
-    } catch (error) {
-        next(error)
-    }
-})
+            const userObject = await userService.signUp(user)
+            return res.status(201).json(userObject)
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 userRouter.post(
     '/user/login',
@@ -83,7 +91,7 @@ userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), asy
     return res.send(req.user)
 })
 
-userRouter.get('/user/:id', async (req: Request, res: Response, next) => {
+userRouter.get('/user/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
     try {
         const userService = new UserServices(User, Team)
         const user = await userService.getUser(req.params.id)
@@ -125,6 +133,7 @@ userRouter.put(
 
 userRouter.post(
     '/user/leave/team',
+    query('team').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -140,6 +149,7 @@ userRouter.post(
 
 userRouter.put(
     '/user/managerLeave',
+    query('team').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {

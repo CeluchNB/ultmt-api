@@ -7,10 +7,11 @@ import RosterRequest from '../../models/roster-request'
 import ArchiveTeam from '../../models/archive-team'
 import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam, IUser } from '../../types'
+import { query, body, param } from 'express-validator'
 
 export const teamRouter = Router()
 
-teamRouter.get('/team/search', async (req: Request, res: Response, next) => {
+teamRouter.get('/team/search', query('q').escape().isString(), async (req: Request, res: Response, next) => {
     try {
         const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
         const term = (req.query.q as string) || ''
@@ -23,6 +24,11 @@ teamRouter.get('/team/search', async (req: Request, res: Response, next) => {
 
 teamRouter.post(
     '/team',
+    body('place').escape().isString(),
+    body('name').escape().isString(),
+    body('teamname').escape().isString(),
+    body('seasonStart').escape().isString(),
+    body('seasonEnd').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -37,7 +43,7 @@ teamRouter.post(
     },
 )
 
-teamRouter.get('/team/:id', async (req: Request, res: Response, next) => {
+teamRouter.get('/team/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
     try {
         const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
         const team = await teamServices.getTeam(req.params.id, true)
@@ -49,6 +55,7 @@ teamRouter.get('/team/:id', async (req: Request, res: Response, next) => {
 
 teamRouter.get(
     '/team/managing/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -63,6 +70,8 @@ teamRouter.get(
 
 teamRouter.post(
     '/team/remove/player/:id',
+    param('id').escape().isString(),
+    query('user').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -81,6 +90,10 @@ teamRouter.post(
 
 teamRouter.post(
     '/team/rollover/:id',
+    param('id').escape().isString(),
+    body('copyPlayers').escape().isBoolean(),
+    body('seasonStart').escape().isString(),
+    body('seasonEnd').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -101,6 +114,8 @@ teamRouter.post(
 
 teamRouter.put(
     '/team/open/:id',
+    param('id').escape().isString(),
+    query('open').escape().isBoolean(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -119,6 +134,8 @@ teamRouter.put(
 
 teamRouter.post(
     '/team/:id/addManager',
+    param('id').escape().isString(),
+    query('manager').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {

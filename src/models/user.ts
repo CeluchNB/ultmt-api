@@ -8,8 +8,8 @@ import { ApiError } from '../types'
 import * as Constants from '../utils/constants'
 
 const schema = new Schema<IUser>({
-    firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
+    firstName: { type: String, required: true, trim: true, maxLength: 20 },
+    lastName: { type: String, required: true, trim: true, maxLength: 30 },
     email: {
         type: String,
         required: true,
@@ -40,6 +40,8 @@ const schema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true,
+        minLength: 2,
+        maxLength: 20,
         validate: [
             {
                 validator: function (value: string) {
