@@ -152,4 +152,14 @@ teamRouter.post(
     },
 )
 
+teamRouter.get('/archiveTeam/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
+    try {
+        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+        const team = await teamServices.getArchivedTeam(req.params.id)
+        return res.json({ team })
+    } catch (error) {
+        next(error)
+    }
+})
+
 teamRouter.use(errorMiddleware)

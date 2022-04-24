@@ -345,4 +345,18 @@ export default class TeamServices {
 
         return team
     }
+
+    /**
+     * Method to get archived team
+     * @param id id of team to get
+     * @returns archived team
+     */
+    getArchivedTeam = async (id: string): Promise<ITeam> => {
+        const team = await this.archiveTeamModel.findById(id)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        return team
+    }
 }

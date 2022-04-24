@@ -534,3 +534,33 @@ describe('test /POST add manager', () => {
         expect(response.body.message).toEqual(Constants.USER_ALREADY_MANAGES_TEAM)
     })
 })
+
+describe('test get archived team route', () => {
+    it('with valid team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        const response = await request(app)
+            .get(`/api/v1/archiveTeam/${team._id}`)
+            .send()
+            .expect(200)
+
+        const { team: teamResponse } = response.body
+        expect(teamResponse._id.toString()).toBe(team._id.toString())
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.teamname).toBe(team.teamname)
+    })
+
+    it('with invalid team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        const response = await request(app)
+            .get(`/api/v1/archiveTeam/${anonId}`)
+            .send()
+            .expect(404)
+        
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})

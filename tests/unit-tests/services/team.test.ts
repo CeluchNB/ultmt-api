@@ -680,3 +680,23 @@ describe('test add manager functionality', () => {
         )
     })
 })
+
+describe('test get archived team', () => {
+    it('with existing team', async () => {
+        const team = getTeam()
+        const teamRecord = await ArchiveTeam.create(team)
+
+        const result = await services.getArchivedTeam(teamRecord._id.toString())
+        expect(result._id.toString()).toBe(teamRecord._id.toString())
+        expect(result.place).toBe(team.place)
+        expect(result.name).toBe(team.name)
+        expect(result.teamname).toBe(team.teamname)
+    })
+
+    it('with non-existing team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        expect(services.getArchivedTeam(anonId)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
