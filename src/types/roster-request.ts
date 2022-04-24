@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import { ITeam, IUser } from '.'
+import { EmbeddedTeam, EmbeddedUser } from '.'
 
 export enum Initiator {
     Player = 'player',
@@ -21,6 +21,6 @@ export interface IRosterRequest {
 }
 
 export interface IDetailedRosterRequest extends IRosterRequest {
-    teamDetails: ITeam
-    userDetails: IUser
+    teamDetails: EmbeddedTeam
+    userDetails: EmbeddedUser
 }

@@ -43,6 +43,7 @@ describe('test /POST user', () => {
         expect(userResponse.tokens).toBeUndefined()
         expect(userResponse.playerTeams?.length).toBe(0)
         expect(userResponse.managerTeams?.length).toBe(0)
+        expect(userResponse.archiveTeams?.length).toBe(0)
         expect(userResponse.stats?.length).toBe(0)
 
         expect(token).toBeDefined()

@@ -8,6 +8,7 @@ import { ApiError, Initiator, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import MockDate from 'mockdate'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -489,5 +490,46 @@ describe('test ultmt validator', () => {
         const validator = new UltmtValidator()
         validator.userIsNotManager(anonId, team._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 400))
+    })
+
+    it('test valid dates with season start failure case', async () => {
+        MockDate.set(new Date('2022'))
+        const validator1 = new UltmtValidator()
+        validator1.validSeasonDates(new Date('2021'), new Date('2022'))
+        await expect(validator1.test()).rejects.toThrowError(new ApiError(Constants.INVALID_SEASON_DATE, 400))
+
+        const validator2 = new UltmtValidator()
+        validator2.validSeasonDates(new Date('2024'), new Date('2022'))
+        await expect(validator2.test()).rejects.toThrowError(new ApiError(Constants.INVALID_SEASON_DATE, 400))
+        MockDate.reset()
+    })
+
+    it('test valid dates with season end failure case', async () => {
+        MockDate.set(new Date('2022'))
+        const validator1 = new UltmtValidator()
+        validator1.validSeasonDates(new Date('2022'), new Date('2021'))
+        await expect(validator1.test()).rejects.toThrowError(new ApiError(Constants.INVALID_SEASON_DATE, 400))
+
+        const validator2 = new UltmtValidator()
+        validator2.validSeasonDates(new Date('2024'), new Date('2022'))
+        await expect(validator2.test()).rejects.toThrowError(new ApiError(Constants.INVALID_SEASON_DATE, 400))
+        MockDate.reset()
+    })
+
+    it('test valid dates with season end before season start', async () => {
+        MockDate.set(new Date('2022'))
+        const validator = new UltmtValidator()
+        validator.validSeasonDates(new Date('2023'), new Date('2022'))
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.INVALID_SEASON_DATE, 400))
+        MockDate.reset()
+    })
+
+    it('test valid dates with success case', async () => {
+        MockDate.set(new Date('2022'))
+        const validator = new UltmtValidator()
+        validator.validSeasonDates(new Date('2022'), new Date('2022'))
+        const result = await validator.test()
+        expect(result).toBe(true)
+        MockDate.reset()
     })
 })

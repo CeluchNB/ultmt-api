@@ -35,6 +35,7 @@ describe('test sign up', () => {
         expect(userRecord.tokens?.length).toBe(1)
         expect(userRecord.playerTeams.length).toBe(0)
         expect(userRecord.managerTeams.length).toBe(0)
+        expect(userRecord.archiveTeams.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
@@ -160,6 +161,7 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.toString()).toBe(userRecord.playerTeams?.toString())
         expect(userResponse.managerTeams.toString()).toBe(userRecord.managerTeams?.toString())
+        expect(userResponse.archiveTeams.toString()).toBe(userRecord.archiveTeams?.toString())
         expect(userResponse.requests.length).toBe(0)
         expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
@@ -178,6 +180,7 @@ describe('test get user', () => {
         expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.length).toBe(0)
         expect(userResponse.managerTeams.length).toBe(0)
+        expect(userResponse.archiveTeams.length).toBe(0)
         expect(userResponse.requests.length).toBe(0)
         expect(userResponse.stats.length).toBe(0)
     })

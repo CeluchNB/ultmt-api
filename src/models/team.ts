@@ -4,12 +4,14 @@ import { Document, model, Schema, SchemaTypes, Types } from 'mongoose'
 import validator from 'validator'
 
 export const schema = new Schema<ITeam>({
-    place: { type: String, required: true },
-    name: { type: String, required: true },
+    place: { type: String, required: true, maxLength: 20 },
+    name: { type: String, required: true, maxLength: 20 },
     teamname: {
         type: String,
         required: true,
         unique: true,
+        minLength: 2,
+        maxLength: 20,
         validate: [
             {
                 validator: function (v: string) {

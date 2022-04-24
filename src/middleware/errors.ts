@@ -63,6 +63,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.USER_ALREADY_MANAGES_TEAM, 400)
     } else if (error.includes(Constants.USER_IS_ONLY_MANAGER)) {
         return createExpressErrorObject(Constants.USER_IS_ONLY_MANAGER, 400)
+    } else if (error.includes(Constants.INVALID_SEASON_DATE)) {
+        return createExpressErrorObject(Constants.INVALID_SEASON_DATE, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

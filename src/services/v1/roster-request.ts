@@ -23,7 +23,10 @@ export default class RosterRequestServices {
      * @param id get roster request details
      */
     getRosterRequest = async (id: string, userId: string): Promise<IDetailedRosterRequest> => {
-        const rosterRequest = await this.rosterRequestModel.findById(id).populate('teamDetails').populate('userDetails')
+        const rosterRequest = await this.rosterRequestModel
+            .findById(id)
+            .populate('teamDetails', ['_id', 'place', 'name', 'teamname', 'seasonStart', 'seasonEnd'])
+            .populate('userDetails', ['_id', 'firstName', 'lastName', 'username'])
         if (!rosterRequest) {
             throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
         }

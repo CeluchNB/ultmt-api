@@ -188,6 +188,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.USER_IS_ONLY_MANAGER, 400),
         )
     })
+
+    it('with invalid date error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_SEASON_DATE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_SEASON_DATE, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

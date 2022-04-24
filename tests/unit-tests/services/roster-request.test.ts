@@ -4,7 +4,7 @@ import Team from '../../../src/models/team'
 import RosterRequestServices from '../../../src/services/v1/roster-request'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
-import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
+import { ApiError, Initiator, IRosterRequest, ITeam, IUser, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
@@ -50,10 +50,12 @@ describe('test get request by id', () => {
         expect(result.teamDetails).toBeTruthy()
         expect(result.teamDetails.place).toBe(team.place)
         expect(result.teamDetails.name).toBe(team.name)
+        expect((result.teamDetails as ITeam).rosterOpen).toBeUndefined()
         expect(result.userDetails).toBeTruthy()
         expect(result.userDetails.firstName).toBe(user.firstName)
         expect(result.userDetails.lastName).toBe(user.lastName)
         expect(result.userDetails.username).toBe(user.username)
+        expect((result.userDetails as IUser).email).toBeUndefined()
     })
 
     it('with unauthorized user', async () => {

@@ -33,3 +33,5 @@ export const DUPLICATE_USERNAME = 'This username is already in use.'
 export const USER_ALREADY_MANAGES_TEAM = 'This user already manages this team.'
 export const USER_IS_ONLY_MANAGER =
     'This user is the only manager of this team. Add another manager to leave this team.'
+export const INVALID_SEASON_DATE =
+    'The dates you provided for the season are not valid. The season must start and end this year or next year.'

@@ -9,8 +9,10 @@ import * as Constants from '../../../src/utils/constants'
 import Team from '../../../src/models/team'
 import ArchiveTeam from '../../../src/models/archive-team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import MockDate from 'mockdate'
 
 beforeAll(async () => {
+    MockDate.set(new Date('2022'))
     await setUpDatabase()
 })
 
@@ -19,6 +21,7 @@ afterEach(async () => {
 })
 
 afterAll((done) => {
+    MockDate.reset()
     tearDownDatabase()
     done()
 })
@@ -293,6 +296,8 @@ describe('test /POST rollover', () => {
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
         expect(managerRecord?.managerTeams[0]._id.toString()).toBe(teamRecord?._id.toString())
+        expect(managerRecord?.archiveTeams.length).toBe(1)
+        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
     })
 
     it('with invalid token', async () => {
@@ -529,5 +534,35 @@ describe('test /POST add manager', () => {
             .expect(400)
         
         expect(response.body.message).toEqual(Constants.USER_ALREADY_MANAGES_TEAM)
+    })
+})
+
+describe('test get archived team route', () => {
+    it('with valid team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        const response = await request(app)
+            .get(`/api/v1/archiveTeam/${team._id}`)
+            .send()
+            .expect(200)
+
+        const { team: teamResponse } = response.body
+        expect(teamResponse._id.toString()).toBe(team._id.toString())
+        expect(teamResponse.place).toBe(team.place)
+        expect(teamResponse.name).toBe(team.name)
+        expect(teamResponse.teamname).toBe(team.teamname)
+    })
+
+    it('with invalid team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        const response = await request(app)
+            .get(`/api/v1/archiveTeam/${anonId}`)
+            .send()
+            .expect(404)
+        
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })

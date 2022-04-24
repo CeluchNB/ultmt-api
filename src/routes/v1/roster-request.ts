@@ -6,11 +6,13 @@ import Team from '../../models/team'
 import User from '../../models/user'
 import { errorMiddleware } from '../../middleware/errors'
 import { IUser } from '../../types'
+import { param, query } from 'express-validator'
 
 export const rosterRequestRouter = Router()
 
 rosterRequestRouter.get(
     '/request/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -25,6 +27,8 @@ rosterRequestRouter.get(
 
 rosterRequestRouter.post(
     '/request/team/:id',
+    param('id').escape().isString(),
+    query('user').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -44,6 +48,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/user',
+    query('team').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -61,6 +66,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/team/accept/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -75,6 +81,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/team/deny/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -93,6 +100,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/user/accept/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -107,6 +115,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/user/deny/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -125,6 +134,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/team/delete/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
@@ -139,6 +149,7 @@ rosterRequestRouter.post(
 
 rosterRequestRouter.post(
     '/request/user/delete/:id',
+    param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {

@@ -9,11 +9,13 @@ import { setUpDatabase, saveUsers, tearDownDatabase, resetDatabase } from '../..
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import { Types } from 'mongoose'
+import MockDate from 'mockdate'
 
 const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
+    MockDate.set(new Date('2022'))
 })
 
 afterEach(async () => {
@@ -21,6 +23,7 @@ afterEach(async () => {
 })
 
 afterAll((done) => {
+    MockDate.reset()
     tearDownDatabase()
     done()
 })
@@ -267,10 +270,14 @@ describe('test team rollover', () => {
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
         expect(managerRecord?.managerTeams[0]._id.toString()).toBe(newTeam._id.toString())
+        expect(managerRecord?.archiveTeams.length).toBe(1)
+        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
         expect(userRecord?.playerTeams[0]._id.toString()).toBe(newTeam._id.toString())
+        expect(userRecord?.archiveTeams.length).toBe(1)
+        expect(userRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
     })
 
     it('with valid data and not copy players', async () => {
@@ -675,5 +682,25 @@ describe('test add manager functionality', () => {
         await expect(services.addManager(manager._id, anonId, team._id)).rejects.toThrowError(
             Constants.UNABLE_TO_FIND_USER,
         )
+    })
+})
+
+describe('test get archived team', () => {
+    it('with existing team', async () => {
+        const team = getTeam()
+        const teamRecord = await ArchiveTeam.create(team)
+
+        const result = await services.getArchivedTeam(teamRecord._id.toString())
+        expect(result._id.toString()).toBe(teamRecord._id.toString())
+        expect(result.place).toBe(team.place)
+        expect(result.name).toBe(team.name)
+        expect(result.teamname).toBe(team.teamname)
+    })
+
+    it('with non-existing team', async () => {
+        const team = getTeam()
+        await ArchiveTeam.create(team)
+
+        expect(services.getArchivedTeam(anonId)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
     })
 })

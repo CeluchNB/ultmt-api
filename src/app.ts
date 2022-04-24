@@ -2,10 +2,12 @@ import cors from 'cors'
 import express, { Application } from 'express'
 import { router as v1Router } from './routes/v1'
 import passport from 'passport'
+import logger from './loaders/winston'
 
 const app: Application = express()
 app.use(cors())
 app.use(express.json())
+app.use(logger)
 app.use(passport.initialize())
 require('./loaders/passport')
 // Version 1 of API

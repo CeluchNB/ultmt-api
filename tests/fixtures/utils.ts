@@ -19,7 +19,7 @@ export const getTeam = (): ITeam => {
         teamname: 'pittsburghtemper',
         managers: [],
         players: [],
-        seasonStart: new Date('2021'),
+        seasonStart: new Date('2022'),
         seasonEnd: new Date('2022'),
         seasonNumber: 1,
         continuationId: new Types.ObjectId(),
@@ -34,8 +34,8 @@ export const getCreateTeam = (): CreateTeam => {
         place: 'Pittsburgh',
         name: 'Temper',
         teamname: 'pittsburghtemper',
-        seasonStart: '2021',
-        seasonEnd: '2021',
+        seasonStart: '2022',
+        seasonEnd: '2022',
     }
 }
 

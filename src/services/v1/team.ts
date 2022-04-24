@@ -39,11 +39,16 @@ export default class TeamServices {
      * @returns the created team
      */
     createTeam = async (team: CreateTeam, userId: string): Promise<ITeam> => {
+        const seasonStart = new Date(team.seasonStart)
+        const seasonEnd = new Date(team.seasonEnd)
+
+        await new UltmtValidator().validSeasonDates(seasonStart, seasonEnd).test()
+
         const saveTeam: ITeam = {
             ...team,
             _id: new Types.ObjectId(),
-            seasonStart: new Date(team.seasonStart),
-            seasonEnd: new Date(team.seasonEnd),
+            seasonStart,
+            seasonEnd,
             continuationId: new Types.ObjectId(),
             managers: [],
             players: [],
@@ -162,7 +167,10 @@ export default class TeamServices {
             throw new ApiError(Constants.SEASON_START_ERROR, 400)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+        await new UltmtValidator(this.userModel, this.teamModel)
+            .userIsManager(managerId, teamId)
+            .validSeasonDates(seasonStart, seasonEnd)
+            .test()
 
         // close roster for archive and new team
         team.rosterOpen = false
@@ -208,6 +216,9 @@ export default class TeamServices {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
+                if (!managerRecord.archiveTeams.includes(oldId)) {
+                    managerRecord.archiveTeams.push(oldId)
+                }
                 managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
             }
@@ -218,6 +229,9 @@ export default class TeamServices {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
+                if (!playerRecord.archiveTeams.includes(oldId)) {
+                    playerRecord.archiveTeams.push(oldId)
+                }
                 if (copyPlayers) {
                     playerRecord.playerTeams.push(getEmbeddedTeam(team))
                 }
@@ -334,6 +348,20 @@ export default class TeamServices {
 
         await team.save()
         await newManager.save()
+
+        return team
+    }
+
+    /**
+     * Method to get archived team
+     * @param id id of team to get
+     * @returns archived team
+     */
+    getArchivedTeam = async (id: string): Promise<ITeam> => {
+        const team = await this.archiveTeamModel.findById(id)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
 
         return team
     }
