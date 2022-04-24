@@ -88,6 +88,16 @@ const schema = new Schema<IUser>({
             seasonEnd: Date,
         },
     ],
+    archiveTeams: [
+        {
+            _id: Types.ObjectId,
+            place: String,
+            name: String,
+            teamname: String,
+            seasonStart: Date,
+            seasonEnd: Date,
+        },
+    ],
     stats: [{ type: Types.ObjectId }],
     openToRequests: {
         type: Boolean,

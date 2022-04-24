@@ -270,10 +270,14 @@ describe('test team rollover', () => {
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
         expect(managerRecord?.managerTeams[0]._id.toString()).toBe(newTeam._id.toString())
+        expect(managerRecord?.archiveTeams.length).toBe(1)
+        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
         expect(userRecord?.playerTeams[0]._id.toString()).toBe(newTeam._id.toString())
+        expect(userRecord?.archiveTeams.length).toBe(1)
+        expect(userRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
     })
 
     it('with valid data and not copy players', async () => {

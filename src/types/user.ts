@@ -14,6 +14,7 @@ export interface IUser extends CreateUser, Document {
     tokens?: string[]
     playerTeams: EmbeddedTeam[]
     managerTeams: EmbeddedTeam[]
+    archiveTeams: EmbeddedTeam[]
     stats: Types.ObjectId[]
     requests: Types.ObjectId[]
     openToRequests: boolean

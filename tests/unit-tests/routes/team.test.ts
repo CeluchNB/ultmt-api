@@ -296,6 +296,8 @@ describe('test /POST rollover', () => {
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
         expect(managerRecord?.managerTeams[0]._id.toString()).toBe(teamRecord?._id.toString())
+        expect(managerRecord?.archiveTeams.length).toBe(1)
+        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
     })
 
     it('with invalid token', async () => {
