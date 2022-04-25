@@ -596,3 +596,49 @@ describe('test /PUT leave manager', () => {
 
     })
 })
+
+describe('test change user password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const oldPassword = user.password
+
+        const response = await request(app)
+            .put('/api/v1/user/changePassword')
+            .send({ email: 'firstlast', password: 'Pass123!', newPassword: 'Test987!' })
+            .expect(200)
+        
+        const { user: userResponse, token } = response.body
+        expect(userResponse.password).toBeUndefined()
+        expect(userResponse.email).toBe(user.email)
+        expect(userResponse.username).toBe(user.username)
+        expect(userResponse.firstName).toBe(user.firstName)
+        expect(token).not.toBeNull()
+
+        const userRecord = await User.findById(user._id.toString())
+        expect(userRecord?.password).not.toEqual(oldPassword)
+
+        await request(app)
+            .post('/api/v1/user/login')
+            .send({ email: 'firstlast', password: 'Test987!' })
+            .expect(200)
+    })
+
+    it('with invalid login', async () => {
+        await User.create(getUser())
+        await request(app)
+            .put('/api/v1/user/changePassword')
+            .send({ email: 'firstlast', password: 'test123', newPassword: 'Test987!' })
+            .expect(401)
+
+    })
+
+    it('with invalid new password', async () => {
+        await User.create(getUser())
+        const response = await request(app)
+            .put('/api/v1/user/changePassword')
+            .send({ email: 'firstlast', password: 'Pass123!', newPassword: 'test234' })
+            .expect(400)
+        
+        expect(response.body.message).toBe(Constants.INVALID_PASSWORD)
+    })
+})

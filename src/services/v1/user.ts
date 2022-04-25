@@ -152,6 +152,11 @@ export default class UserServices {
         return user
     }
 
+    /**
+     * Method to search for users by text
+     * @param term term to search users with
+     * @returns array of embedded users
+     */
     searchUsers = async (term: string): Promise<EmbeddedUser[]> => {
         await new UltmtValidator().enoughSearchCharacters(term).test()
 
@@ -224,5 +229,24 @@ export default class UserServices {
         await manager.save()
 
         return manager
+    }
+
+    /**
+     * Method to update user's password
+     * @param userId user id to change
+     * @param newPassword new password of user
+     * @returns updated user
+     */
+    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; token: string }> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.tokens = []
+        user.password = newPassword
+        await user.save()
+        const token = await user.generateAuthToken()
+
+        return { user, token }
     }
 }

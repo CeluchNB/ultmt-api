@@ -6,6 +6,7 @@ import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import bcrypt from 'bcryptjs'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -465,5 +466,40 @@ describe('test manager leave functionality', () => {
         await expect(services.leaveManagerRole(team._id, manager._id)).rejects.toThrowError(
             Constants.USER_IS_ONLY_MANAGER,
         )
+    })
+})
+
+describe('test change user password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.tokens = ['token1', 'token2']
+        await user.save()
+        const oldPassword = user.password
+
+        const { user: newUser, token } = await services.changePassword(user._id.toString(), 'Test987!')
+        const newPassword = newUser.password as string
+        expect(oldPassword).not.toBe(newPassword)
+        expect(bcrypt.compareSync('Test987!', newPassword)).toBe(true)
+
+        const newUserRecord = await User.findById(user._id.toString())
+        expect(newUserRecord?.password).toBe(newPassword)
+        expect(newUserRecord?.tokens?.length).toBe(1)
+        expect(newUserRecord?.tokens?.[0]).toBe(token)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+
+        expect(services.changePassword(anonId, 'Test987!')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with invalid password', async () => {
+        const user = await User.create(getUser())
+        const oldPassword = user.password
+
+        expect(services.changePassword(user._id.toString(), 'test')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+
+        const userRecord = await User.findById(user._id.toString())
+        expect(userRecord?.password).toBe(oldPassword)
     })
 })

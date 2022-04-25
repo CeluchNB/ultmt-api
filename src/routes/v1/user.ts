@@ -88,7 +88,7 @@ userRouter.post(
 )
 
 userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
-    return res.send(req.user)
+    return res.json(req.user)
 })
 
 userRouter.get('/user/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
@@ -156,6 +156,21 @@ userRouter.put(
             const userServices = new UserServices(User, Team)
             const user = await userServices.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
             return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.put(
+    '/user/changePassword',
+    query('newPassword').escape().isString(),
+    passport.authenticate('local', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userServices = new UserServices(User, Team)
+            const { user, token } = await userServices.changePassword((req.user as IUser)._id, req.body.newPassword)
+            return res.json({ user, token })
         } catch (error) {
             next(error)
         }
