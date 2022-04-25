@@ -177,4 +177,19 @@ userRouter.put(
     },
 )
 
+userRouter.put(
+    '/user/changeEmail',
+    query('newEmail').escape().isString(),
+    passport.authenticate('local', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userServices = new UserServices(User, Team)
+            const user = await userServices.changeEmail((req.user as IUser)._id, req.body.newEmail)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)

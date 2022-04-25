@@ -233,7 +233,7 @@ export default class UserServices {
 
     /**
      * Method to update user's password
-     * @param userId user id to change
+     * @param userId id of user
      * @param newPassword new password of user
      * @returns updated user
      */
@@ -248,5 +248,22 @@ export default class UserServices {
         const token = await user.generateAuthToken()
 
         return { user, token }
+    }
+
+    /**
+     * Method to change the email of user
+     * @param userId id of user
+     * @param newEmail new email of user
+     * @returns updated user
+     */
+    changeEmail = async (userId: string, newEmail: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.email = newEmail
+        await user.save()
+
+        return user
     }
 }

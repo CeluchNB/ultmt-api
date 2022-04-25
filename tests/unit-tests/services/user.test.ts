@@ -503,3 +503,32 @@ describe('test change user password', () => {
         expect(userRecord?.password).toBe(oldPassword)
     })
 })
+
+describe('test change user email', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+
+        const newUser = await services.changeEmail(user._id.toString(), 'newemail@hotmail.com')
+        expect(newUser._id.toString()).toBe(user._id.toString())
+        expect(newUser.firstName).toBe(user.firstName)
+        expect(newUser.email).toBe('newemail@hotmail.com')
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.email).toBe('newemail@hotmail.com')
+    })
+
+    it('with invalid email', async () => {
+        const user = await User.create(getUser())
+
+        expect(services.changeEmail(user._id.toString(), 'newemail@hotmailcom')).rejects.toThrowError(
+            Constants.INVALID_EMAIL,
+        )
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.email).toBe(user.email)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.changeEmail(anonId, 'newemail@hotmail.com')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+})

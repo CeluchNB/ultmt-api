@@ -642,3 +642,44 @@ describe('test change user password', () => {
         expect(response.body.message).toBe(Constants.INVALID_PASSWORD)
     })
 })
+
+describe('test change user email', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+
+        const response = await request(app)
+            .put('/api/v1/user/changeEmail')
+            .send({ email: 'first.last@email.com', password: 'Pass123!', newEmail: 'newemail@hotmail.com' })
+            .expect(200)
+        
+        const { user: userResponse } = response.body
+        expect(userResponse._id.toString()).toBe(user._id.toString())
+        expect(userResponse.email).toBe('newemail@hotmail.com')
+        
+        const newUserRecord = await User.findById(userResponse._id)
+        expect(newUserRecord?.email).toBe('newemail@hotmail.com')
+    })
+
+    it('with invalid login', async () => {
+        await User.create(getUser())
+
+        await request(app)
+            .put('/api/v1/user/changeEmail')
+            .send({ email: 'first.last@email.com', password: 'test!', newEmail: 'newemail@hotmail.com' })
+            .expect(401)
+    })
+
+    it('with invalid new email', async () => {
+        const user = await User.create(getUser())
+
+        const response = await request(app)
+            .put('/api/v1/user/changeEmail')
+            .send({ email: 'first.last@email.com', password: 'Pass123!', newEmail: 'newemail@hotmailcom' })
+            .expect(400)
+        
+        expect(response.body.message).toBe(Constants.INVALID_EMAIL)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.email).toBe('first.last@email.com')
+    })
+})
