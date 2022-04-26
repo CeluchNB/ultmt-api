@@ -266,4 +266,29 @@ export default class UserServices {
 
         return user
     }
+
+    /**
+     * Method to change a user's name
+     * @param userId id of user
+     * @param newFirstName optional new first name for user
+     * @param newLastName optional new last name for user
+     * @return updated user
+     */
+    changeName = async (userId: string, newFirstName?: string, newLastName?: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        if (newFirstName) {
+            user.firstName = newFirstName
+        }
+
+        if (newLastName) {
+            user.lastName = newLastName
+        }
+        await user.save()
+
+        return user
+    }
 }

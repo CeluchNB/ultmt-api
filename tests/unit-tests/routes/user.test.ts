@@ -597,7 +597,7 @@ describe('test /PUT leave manager', () => {
     })
 })
 
-describe('test change user password', () => {
+describe('test /PUT change user password', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
         const oldPassword = user.password
@@ -643,7 +643,7 @@ describe('test change user password', () => {
     })
 })
 
-describe('test change user email', () => {
+describe('test /PUT change user email', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
 
@@ -681,5 +681,51 @@ describe('test change user email', () => {
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.email).toBe('first.last@email.com')
+    })
+})
+
+describe('test /PUT change user names', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .put('/api/v1/user/changeName')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ newFirstName: 'New First', newLastName: 'New Last' })
+            .expect(200)
+        
+        const { user: userResponse } = response.body
+        expect(userResponse.firstName).toBe('New First')
+        expect(userResponse.lastName).toBe('New Last')
+        expect(userResponse.username).toBe(user.username)
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.firstName).toBe('New First')
+        expect(newUserRecord?.lastName).toBe('New Last')
+    })
+
+    it('with invalid token', async () => {
+        const user = await User.create(getUser())
+        await user.generateAuthToken()
+
+        await request(app)
+            .put('/api/v1/user/changeName')
+            .set('Authorization', `Bearer 1234sdf.fadt43rth5.44far42sfhasd`)
+            .send({ newFirstName: 'New First', newLastName: 'New Last' })
+            .expect(401)
+    })
+
+    it('with invalid name', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .put('/api/v1/user/changeName')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ newFirstName: 'waytoolongofafirstname', newLastName: '' })
+            .expect(400)
+        
+        expect(response.body.message).toBe(Constants.NAME_TOO_LONG)
     })
 })

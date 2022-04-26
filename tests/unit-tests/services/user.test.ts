@@ -532,3 +532,61 @@ describe('test change user email', () => {
         expect(services.changeEmail(anonId, 'newemail@hotmail.com')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
     })
 })
+
+describe('test change user name', () => {
+    it('with valid first name and last name data', async () => {
+        const user = await User.create(getUser())
+
+        const newUser = await services.changeName(user._id.toString(), 'New First', 'New Last')
+
+        expect(newUser.firstName).toBe('New First')
+        expect(newUser.lastName).toBe('New Last')
+        expect(newUser.username).toBe(user.username)
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.firstName).toBe('New First')
+        expect(newUserRecord?.lastName).toBe('New Last')
+    })
+
+    it('with neither first name nor last name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        const newUser = await services.changeName(user._id.toString())
+
+        expect(newUser.firstName).toBe(userData.firstName)
+        expect(newUser.lastName).toBe(userData.lastName)
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.firstName).toBe(userData.firstName)
+        expect(newUserRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with invalid (too long) first name and valid last name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        expect(
+            services.changeName(user._id.toString(), 'thisiswaytoolongforonepersonsname', 'New Last'),
+        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(userData.firstName)
+        expect(userRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with invalid last name and valid first name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        expect(
+            services.changeName(user._id.toString(), 'New First', 'thisiswaytoolongforonepersonsname'),
+        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(userData.firstName)
+        expect(userRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.changeName(anonId, 'New First', 'New Last')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+})

@@ -153,8 +153,8 @@ userRouter.put(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userServices = new UserServices(User, Team)
-            const user = await userServices.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
+            const userService = new UserServices(User, Team)
+            const user = await userService.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
             return res.json({ user })
         } catch (error) {
             next(error)
@@ -164,12 +164,12 @@ userRouter.put(
 
 userRouter.put(
     '/user/changePassword',
-    query('newPassword').escape().isString(),
+    body('newPassword').escape().isString(),
     passport.authenticate('local', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userServices = new UserServices(User, Team)
-            const { user, token } = await userServices.changePassword((req.user as IUser)._id, req.body.newPassword)
+            const userService = new UserServices(User, Team)
+            const { user, token } = await userService.changePassword((req.user as IUser)._id, req.body.newPassword)
             return res.json({ user, token })
         } catch (error) {
             next(error)
@@ -179,12 +179,32 @@ userRouter.put(
 
 userRouter.put(
     '/user/changeEmail',
-    query('newEmail').escape().isString(),
+    body('newEmail').escape().isString(),
     passport.authenticate('local', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userServices = new UserServices(User, Team)
-            const user = await userServices.changeEmail((req.user as IUser)._id, req.body.newEmail)
+            const userService = new UserServices(User, Team)
+            const user = await userService.changeEmail((req.user as IUser)._id, req.body.newEmail)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.put(
+    '/user/changeName',
+    body('newFirstName').escape(),
+    body('newLastName').escape(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.changeName(
+                (req.user as IUser)._id.toString(),
+                req.body.newFirstName,
+                req.body.newLastName,
+            )
             return res.json({ user })
         } catch (error) {
             next(error)

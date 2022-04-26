@@ -35,3 +35,4 @@ export const USER_IS_ONLY_MANAGER =
     'This user is the only manager of this team. Add another manager to leave this team.'
 export const INVALID_SEASON_DATE =
     'The dates you provided for the season are not valid. The season must start and end this year or next year.'
+export const NAME_TOO_LONG = 'The provided name is too long.'

@@ -194,6 +194,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.INVALID_SEASON_DATE, 400),
         )
     })
+
+    it('with name too long error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NAME_TOO_LONG} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NAME_TOO_LONG, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {
