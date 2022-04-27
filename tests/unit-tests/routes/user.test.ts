@@ -7,9 +7,11 @@ import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getUser, anonId, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
+import OneTimePasscode from '../../../src/models/one-time-passcode'
 import jwt from 'jsonwebtoken'
 import Team from '../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import sgMail from '@sendgrid/mail'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -727,5 +729,65 @@ describe('test /PUT change user names', () => {
             .expect(400)
         
         expect(response.body.message).toBe(Constants.NAME_TOO_LONG)
+    })
+})
+
+describe('test /POST request password recovery', () => {
+    it('with valid data', async () => {
+        const spy = jest.spyOn(sgMail, 'send').mockReturnValueOnce(
+            Promise.resolve([
+                {
+                    statusCode: 200,
+                    body: {},
+                    headers: {},
+                },
+                {},
+            ]),
+        )
+        const user = await User.create(getUser())
+
+        const response = await request(app)
+            .post('/api/v1/user/requestPasswordRecovery')
+            .send({ email: user.email })
+            .expect(200)
+
+        expect(response.body).toEqual({})
+        
+        const [otp] = await OneTimePasscode.find({})
+        expect(otp).toBeDefined()
+        expect(otp?.passcode.length).toBe(6)
+        
+        expect(spy).toHaveBeenCalled()
+    })
+
+    it('with sendgrid error', async () => {
+        jest.spyOn(sgMail, 'send').mockImplementationOnce(
+            () => {
+                throw new ApiError('', 400)
+            }
+        )
+        const user = await User.create(getUser())
+
+        const response = await request(app)
+            .post('/api/v1/user/requestPasswordRecovery')
+            .send({ email: user.email })
+            .expect(500)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_SEND_EMAIL)
+        const [otp] = await OneTimePasscode.find({})
+        expect(otp).toBeUndefined()
+    })
+
+    it('with find user error', async () => {
+        await User.create(getUser())
+
+        const response = await request(app)
+            .post('/api/v1/user/requestPasswordRecovery')
+            .send({ email: 'fakeemail@test1234.com' })
+            .expect(200)
+
+        expect(response.body).toEqual({})
+        const [otp] = await OneTimePasscode.find({})
+        expect(otp).toBeUndefined()
     })
 })

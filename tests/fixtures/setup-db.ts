@@ -4,6 +4,7 @@ import Team from '../../src/models/team'
 import { CreateUser } from '../../src/types'
 import RosterRequest from '../../src/models/roster-request'
 import ArchiveTeam from '../../src/models/archive-team'
+import OneTimePasscode from '../../src/models/one-time-passcode'
 
 export const setUpDatabase = async () => {
     await connect(process.env.MONGOOSE_URL as string)
@@ -43,6 +44,7 @@ export const resetDatabase = async () => {
     await Team.deleteMany({})
     await RosterRequest.deleteMany({})
     await ArchiveTeam.deleteMany({})
+    await OneTimePasscode.deleteMany({})
 }
 
 export const tearDownDatabase = () => {

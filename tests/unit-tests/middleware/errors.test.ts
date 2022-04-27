@@ -200,6 +200,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.NAME_TOO_LONG, 400),
         )
     })
+
+    it('with unable to send email error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_SEND_EMAIL} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_SEND_EMAIL, 500),
+        )
+    })
 })
 
 describe('test middleware', () => {

@@ -1,12 +1,14 @@
 import UserServices from '../../../src/services/v1/user'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
+import OneTimePasscode from '../../../src/models/one-time-passcode'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
-import { ApiError } from '../../../src/types'
+import { ApiError, OTPReason } from '../../../src/types'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import bcrypt from 'bcryptjs'
+import sgMail from '@sendgrid/mail'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -588,5 +590,48 @@ describe('test change user name', () => {
     it('with unfound user', async () => {
         await User.create(getUser())
         expect(services.changeName(anonId, 'New First', 'New Last')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+})
+
+describe('test request password recovery', () => {
+    it('with valid data', async () => {
+        const spy = jest.spyOn(sgMail, 'send').mockReturnValueOnce(
+            Promise.resolve([
+                {
+                    statusCode: 200,
+                    body: {},
+                    headers: {},
+                },
+                {},
+            ]),
+        )
+        const user = await User.create(getUser())
+
+        await services.requestPasswordRecovery(user.email)
+
+        const [otp] = await OneTimePasscode.find({})
+
+        expect(otp).toBeDefined()
+        expect(otp?.passcode.length).toBe(6)
+        expect(otp?.reason).toBe(OTPReason.PasswordRecovery)
+        expect(spy).toHaveBeenCalledTimes(1)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.requestPasswordRecovery('unknown@email.com')).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_USER,
+        )
+    })
+
+    it('with send error', async () => {
+        const spy = jest.spyOn(sgMail, 'send').mockImplementationOnce(() => {
+            throw new ApiError('', 400)
+        })
+        const user = await User.create(getUser())
+        expect(services.requestPasswordRecovery(user.email)).rejects.toThrowError(Constants.UNABLE_TO_SEND_EMAIL)
+        expect(spy).toHaveBeenCalled()
+        const [otp] = await OneTimePasscode.find({})
+        expect(otp).toBeUndefined()
     })
 })

@@ -1,10 +1,12 @@
 import { ITeamModel } from '../../models/team'
-import { IUserModel } from '../../models/user'
-import { ApiError, CreateUser, EmbeddedUser, IUser } from '../../types'
+import User, { IUserModel } from '../../models/user'
+import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
+import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
+import sgMail from '@sendgrid/mail'
 
 interface LevenshteinUser {
     user: IUser
@@ -14,10 +16,12 @@ interface LevenshteinUser {
 export default class UserServices {
     userModel: IUserModel
     teamModel: ITeamModel
+    otpModel: IOneTimePasscodeModel
 
-    constructor(userModel: IUserModel, teamModel: ITeamModel) {
+    constructor(userModel: IUserModel, teamModel: ITeamModel, otpModel: IOneTimePasscodeModel = OneTimePasscode) {
         this.userModel = userModel
         this.teamModel = teamModel
+        this.otpModel = otpModel
     }
 
     /**
@@ -291,4 +295,49 @@ export default class UserServices {
 
         return user
     }
+
+    /**
+     * Method for a user to generate an OTP for password recovery
+     * @param userEmail email of user to request password reset
+     * @returns nothing
+     */
+    requestPasswordRecovery = async (userEmail: string): Promise<void> => {
+        const user = await User.findOne({ email: userEmail })
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const otp = await this.otpModel.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        try {
+            await sgMail.send({
+                to: userEmail,
+                from: 'passwordrecovery@theultmtapp.com',
+                subject: 'Create a new password!',
+                text: `Your password recovery code is: ${otp.passcode}. \
+                This code is valid for 1 (one) hour. You can recover your \
+                password by opening The Ultmt App, pressing "Forgot Password?" \
+                , and pressing "I Have a Code."  Please email passwordrecovery@theultmtapp.com \
+                with any questions.
+                `,
+            })
+        } catch (error) {
+            await otp.delete()
+            throw new ApiError(Constants.UNABLE_TO_SEND_EMAIL, 500)
+        }
+    }
+
+    /**
+     * Reset password
+     */
+    // resetPassword = async (passcode: string, newPassword: string): Promise<IUser> => {
+    //     // validate OTP
+
+    //     // set passwrod
+
+    //     // return user
+    // }
 }

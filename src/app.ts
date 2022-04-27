@@ -3,6 +3,7 @@ import express, { Application } from 'express'
 import { router as v1Router } from './routes/v1'
 import passport from 'passport'
 import logger from './loaders/winston'
+import './loaders/sendgrid'
 
 const app: Application = express()
 app.use(cors())

@@ -67,6 +67,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.INVALID_SEASON_DATE, 400)
     } else if (error.includes(Constants.NAME_TOO_LONG)) {
         return createExpressErrorObject(Constants.NAME_TOO_LONG, 400)
+    } else if (error.includes(Constants.UNABLE_TO_SEND_EMAIL)) {
+        return createExpressErrorObject(Constants.UNABLE_TO_SEND_EMAIL, 500)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

@@ -1,11 +1,12 @@
 import { Request, Response, Router } from 'express'
-import { CreateUser, IUser } from '../../types/user'
+import { ApiError, CreateUser, IUser } from '../../types'
 import UserServices from '../../services/v1/user'
 import User from '../../models/user'
 import Team from '../../models/team'
 import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import { body, query, param } from 'express-validator'
+import OneTimePasscode from '../../models/one-time-passcode'
 
 export const userRouter = Router()
 
@@ -208,6 +209,24 @@ userRouter.put(
             return res.json({ user })
         } catch (error) {
             next(error)
+        }
+    },
+)
+
+userRouter.post(
+    '/user/requestPasswordRecovery',
+    body('email').escape().isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team, OneTimePasscode)
+            await userService.requestPasswordRecovery(req.body.email)
+            return res.json({})
+        } catch (error) {
+            if ((error as ApiError).code === 500) {
+                next(error)
+            } else {
+                return res.json({})
+            }
         }
     },
 )
