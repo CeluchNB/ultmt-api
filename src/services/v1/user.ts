@@ -4,7 +4,7 @@ import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-pa
 import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
-import { getEmbeddedUser } from '../../utils/utils'
+import { getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import sgMail from '@sendgrid/mail'
 
@@ -317,12 +317,7 @@ export default class UserServices {
                 to: userEmail,
                 from: 'passwordrecovery@theultmtapp.com',
                 subject: 'Create a new password!',
-                text: `Your password recovery code is: ${otp.passcode}. \
-                This code is valid for 1 (one) hour. You can recover your \
-                password by opening The Ultmt App, pressing "Forgot Password?" \
-                , and pressing "I Have a Code."  Please email passwordrecovery@theultmtapp.com \
-                with any questions.
-                `,
+                html: getPasscodeHtml(user.firstName, otp.passcode),
             })
         } catch (error) {
             await otp.delete()
