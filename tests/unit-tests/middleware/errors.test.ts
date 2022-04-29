@@ -206,6 +206,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNABLE_TO_SEND_EMAIL, 500),
         )
     })
+
+    it('with invalid passcode error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_PASSCODE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_PASSCODE, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

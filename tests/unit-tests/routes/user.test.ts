@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 import request from 'supertest'
 import app from '../../../src/app'
-import { ApiError, IUser } from '../../../src/types'
+import { ApiError, IUser, OTPReason } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getUser, anonId, getTeam } from '../../fixtures/utils'
@@ -789,5 +789,47 @@ describe('test /POST request password recovery', () => {
         expect(response.body).toEqual({})
         const [otp] = await OneTimePasscode.find({})
         expect(otp).toBeUndefined()
+    })
+})
+
+describe('test /POST reset password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        const response = await request(app)
+            .post('/api/v1/user/resetPassword')
+            .send({ passcode: otp.passcode, newPassword: 'Test987!' })
+            .expect(200)
+
+        const { token, user: userResponse } = response.body
+        
+        expect(token.length).toBeGreaterThan(10)
+        expect(userResponse.username).toBe(user.username)
+
+        const updatedUser = await User.findById(userResponse)
+        expect(updatedUser?.password).not.toBe(user.password)
+
+        const newOtp = await OneTimePasscode.findById(otp._id)
+        expect(newOtp).toBeNull()
+    })
+
+    it('with invalid passcode', async () => {
+        const user = await User.create(getUser())
+        await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+            passcode: '123456',
+        })
+
+        const response = await request(app)
+            .post('/api/v1/user/resetPassword')
+            .send({ passcode: '654321', newPassword: 'Test987!' })
+            .expect(400)
+        
+        expect(response.body.message).toBe(Constants.INVALID_PASSCODE)
     })
 })

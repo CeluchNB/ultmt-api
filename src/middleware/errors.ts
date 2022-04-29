@@ -69,6 +69,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.NAME_TOO_LONG, 400)
     } else if (error.includes(Constants.UNABLE_TO_SEND_EMAIL)) {
         return createExpressErrorObject(Constants.UNABLE_TO_SEND_EMAIL, 500)
+    } else if (error.includes(Constants.INVALID_PASSCODE)) {
+        return createExpressErrorObject(Constants.INVALID_PASSCODE, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

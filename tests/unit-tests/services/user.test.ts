@@ -635,3 +635,71 @@ describe('test request password recovery', () => {
         expect(otp).toBeUndefined()
     })
 })
+
+describe('test reset password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.tokens = ['token1', 'token2', 'token3']
+        await user.save()
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        const { token, user: userResult } = await services.resetPassword(otp.passcode, 'Test987#')
+
+        expect(token).toBeDefined()
+        expect(token.length).toBeGreaterThan(10)
+        expect(userResult.username).toBe(user.username)
+
+        const newUser = await User.findById(user._id)
+        expect(newUser?.password).not.toBe(user.password)
+        expect(newUser?.tokens?.length).toBe(1)
+
+        const newOtp = await OneTimePasscode.findById(otp._id)
+        expect(newOtp).toBeNull()
+    })
+
+    it('with unfound otp', async () => {
+        await User.create(getUser())
+
+        expect(services.resetPassword('123456', 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with expired otp', async () => {
+        const user = await User.create(getUser())
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+            expiresAt: new Date(),
+        })
+
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        const otp = await OneTimePasscode.create({
+            creator: anonId,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with invalid password', async () => {
+        const user = await User.create(getUser())
+
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        expect(services.resetPassword(otp.passcode, 'test#')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+        const newUser = await User.findById(otp.creator)
+        expect(newUser?.password).toBe(user.password)
+
+        const newOtp = await OneTimePasscode.findById(otp._id)
+        expect(newOtp).not.toBeNull()
+    })
+})

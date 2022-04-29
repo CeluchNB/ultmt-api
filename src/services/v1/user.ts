@@ -326,13 +326,30 @@ export default class UserServices {
     }
 
     /**
-     * Reset password
+     * Method to redeem passcode and set new password
+     * @param passcode passcode to redeem for new password
+     * @param newPassword new password to set
+     * @returns token and user details
      */
-    // resetPassword = async (passcode: string, newPassword: string): Promise<IUser> => {
-    //     // validate OTP
+    resetPassword = async (passcode: string, newPassword: string): Promise<{ token: string; user: IUser }> => {
+        // validate OTP
+        const otp = await OneTimePasscode.findOne({ passcode })
+        if (!otp || otp.isExpired()) {
+            throw new ApiError(Constants.INVALID_PASSCODE, 400)
+        }
 
-    //     // set passwrod
+        const user = await User.findById(otp.creator)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.password = newPassword
+        user.tokens = []
+        await user.save()
 
-    //     // return user
-    // }
+        const token = await user.generateAuthToken()
+
+        // delete otp
+        await otp.delete()
+        return { token, user }
+    }
 }

@@ -2,29 +2,32 @@ import { Schema, SchemaTypes, model } from 'mongoose'
 import { IOneTimePasscode, OTPReason } from '../types'
 import randomstring from 'randomstring'
 
-const schema = new Schema<IOneTimePasscode>({
-    passcode:  {
-        type: String,
-        unique: true,
-        minLength: 6,
-        maxLength: 6,
+const schema = new Schema<IOneTimePasscode>(
+    {
+        passcode: {
+            type: String,
+            unique: true,
+            minLength: 6,
+            maxLength: 6,
+        },
+        reason: {
+            type: String,
+            required: true,
+            enum: Object.values(OTPReason),
+        },
+        creator: {
+            type: SchemaTypes.ObjectId,
+            required: true,
+            ref: 'User',
+        },
+        expiresAt: {
+            type: SchemaTypes.Date,
+        },
     },
-    reason: {
-        type: String,
-        required: true,
-        enum: Object.values(OTPReason),
-    },
-    creator: {
-        type: SchemaTypes.ObjectId,
-        required: true,
-        ref: 'User',
-    },
-    expiresAt: {
-        type: SchemaTypes.Date,
-    }
-}, { timestamps: true })
+    { timestamps: true },
+)
 
-schema.pre('save', async function(next) {
+schema.pre('save', async function (next) {
     if (!this.passcode) {
         this.passcode = randomstring.generate({ length: 6, charset: 'numeric' })
 
@@ -36,7 +39,7 @@ schema.pre('save', async function(next) {
             } else {
                 break
             }
-         }
+        }
     }
 
     if (!this.expiresAt) {
@@ -48,7 +51,7 @@ schema.pre('save', async function(next) {
     next()
 })
 
-schema.methods.isExpired = function() {
+schema.methods.isExpired = function () {
     const now = new Date()
     return this.expiresAt < now
 }

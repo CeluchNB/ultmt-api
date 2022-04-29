@@ -231,4 +231,19 @@ userRouter.post(
     },
 )
 
+userRouter.post(
+    '/user/resetPassword',
+    body('passcode').escape().isString(),
+    body('newPassword').isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team, OneTimePasscode)
+            const { token, user } = await userService.resetPassword(req.body.passcode, req.body.newPassword)
+            return res.json({ token, user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)
