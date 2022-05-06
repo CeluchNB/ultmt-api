@@ -1,10 +1,12 @@
 import { ITeamModel } from '../../models/team'
-import { IUserModel } from '../../models/user'
-import { ApiError, CreateUser, EmbeddedUser, IUser } from '../../types'
+import User, { IUserModel } from '../../models/user'
+import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
+import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
-import { getEmbeddedUser } from '../../utils/utils'
+import { getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
+import sgMail from '@sendgrid/mail'
 
 interface LevenshteinUser {
     user: IUser
@@ -14,10 +16,12 @@ interface LevenshteinUser {
 export default class UserServices {
     userModel: IUserModel
     teamModel: ITeamModel
+    otpModel: IOneTimePasscodeModel
 
-    constructor(userModel: IUserModel, teamModel: ITeamModel) {
+    constructor(userModel: IUserModel, teamModel: ITeamModel, otpModel: IOneTimePasscodeModel = OneTimePasscode) {
         this.userModel = userModel
         this.teamModel = teamModel
+        this.otpModel = otpModel
     }
 
     /**
@@ -152,6 +156,11 @@ export default class UserServices {
         return user
     }
 
+    /**
+     * Method to search for users by text
+     * @param term term to search users with
+     * @returns array of embedded users
+     */
     searchUsers = async (term: string): Promise<EmbeddedUser[]> => {
         await new UltmtValidator().enoughSearchCharacters(term).test()
 
@@ -224,5 +233,123 @@ export default class UserServices {
         await manager.save()
 
         return manager
+    }
+
+    /**
+     * Method to update user's password
+     * @param userId id of user
+     * @param newPassword new password of user
+     * @returns updated user
+     */
+    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; token: string }> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.tokens = []
+        user.password = newPassword
+        await user.save()
+        const token = await user.generateAuthToken()
+
+        return { user, token }
+    }
+
+    /**
+     * Method to change the email of user
+     * @param userId id of user
+     * @param newEmail new email of user
+     * @returns updated user
+     */
+    changeEmail = async (userId: string, newEmail: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.email = newEmail
+        await user.save()
+
+        return user
+    }
+
+    /**
+     * Method to change a user's name
+     * @param userId id of user
+     * @param newFirstName optional new first name for user
+     * @param newLastName optional new last name for user
+     * @return updated user
+     */
+    changeName = async (userId: string, newFirstName?: string, newLastName?: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        if (newFirstName) {
+            user.firstName = newFirstName
+        }
+
+        if (newLastName) {
+            user.lastName = newLastName
+        }
+        await user.save()
+
+        return user
+    }
+
+    /**
+     * Method for a user to generate an OTP for password recovery
+     * @param userEmail email of user to request password reset
+     * @returns nothing
+     */
+    requestPasswordRecovery = async (userEmail: string): Promise<void> => {
+        const user = await User.findOne({ email: userEmail })
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const otp = await this.otpModel.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        try {
+            await sgMail.send({
+                to: userEmail,
+                from: 'passwordrecovery@theultmtapp.com',
+                subject: 'Create a new password!',
+                html: getPasscodeHtml(user.firstName, otp.passcode),
+            })
+        } catch (error) {
+            await otp.delete()
+            throw new ApiError(Constants.UNABLE_TO_SEND_EMAIL, 500)
+        }
+    }
+
+    /**
+     * Method to redeem passcode and set new password
+     * @param passcode passcode to redeem for new password
+     * @param newPassword new password to set
+     * @returns token and user details
+     */
+    resetPassword = async (passcode: string, newPassword: string): Promise<{ token: string; user: IUser }> => {
+        // validate OTP
+        const otp = await OneTimePasscode.findOne({ passcode })
+        if (!otp || otp.isExpired()) {
+            throw new ApiError(Constants.INVALID_PASSCODE, 400)
+        }
+
+        const user = await User.findById(otp.creator)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        user.password = newPassword
+        user.tokens = []
+        await user.save()
+
+        const token = await user.generateAuthToken()
+
+        // delete otp
+        await otp.delete()
+        return { token, user }
     }
 }

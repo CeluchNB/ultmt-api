@@ -1,11 +1,14 @@
 import UserServices from '../../../src/services/v1/user'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
+import OneTimePasscode from '../../../src/models/one-time-passcode'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
 import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import * as Constants from '../../../src/utils/constants'
-import { ApiError } from '../../../src/types'
+import { ApiError, OTPReason } from '../../../src/types'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import bcrypt from 'bcryptjs'
+import sgMail from '@sendgrid/mail'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -465,5 +468,238 @@ describe('test manager leave functionality', () => {
         await expect(services.leaveManagerRole(team._id, manager._id)).rejects.toThrowError(
             Constants.USER_IS_ONLY_MANAGER,
         )
+    })
+})
+
+describe('test change user password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.tokens = ['token1', 'token2']
+        await user.save()
+        const oldPassword = user.password
+
+        const { user: newUser, token } = await services.changePassword(user._id.toString(), 'Test987!')
+        const newPassword = newUser.password as string
+        expect(oldPassword).not.toBe(newPassword)
+        expect(bcrypt.compareSync('Test987!', newPassword)).toBe(true)
+
+        const newUserRecord = await User.findById(user._id.toString())
+        expect(newUserRecord?.password).toBe(newPassword)
+        expect(newUserRecord?.tokens?.length).toBe(1)
+        expect(newUserRecord?.tokens?.[0]).toBe(token)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+
+        expect(services.changePassword(anonId, 'Test987!')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with invalid password', async () => {
+        const user = await User.create(getUser())
+        const oldPassword = user.password
+
+        expect(services.changePassword(user._id.toString(), 'test')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+
+        const userRecord = await User.findById(user._id.toString())
+        expect(userRecord?.password).toBe(oldPassword)
+    })
+})
+
+describe('test change user email', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+
+        const newUser = await services.changeEmail(user._id.toString(), 'newemail@hotmail.com')
+        expect(newUser._id.toString()).toBe(user._id.toString())
+        expect(newUser.firstName).toBe(user.firstName)
+        expect(newUser.email).toBe('newemail@hotmail.com')
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.email).toBe('newemail@hotmail.com')
+    })
+
+    it('with invalid email', async () => {
+        const user = await User.create(getUser())
+
+        expect(services.changeEmail(user._id.toString(), 'newemail@hotmailcom')).rejects.toThrowError(
+            Constants.INVALID_EMAIL,
+        )
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.email).toBe(user.email)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.changeEmail(anonId, 'newemail@hotmail.com')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+})
+
+describe('test change user name', () => {
+    it('with valid first name and last name data', async () => {
+        const user = await User.create(getUser())
+
+        const newUser = await services.changeName(user._id.toString(), 'New First', 'New Last')
+
+        expect(newUser.firstName).toBe('New First')
+        expect(newUser.lastName).toBe('New Last')
+        expect(newUser.username).toBe(user.username)
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.firstName).toBe('New First')
+        expect(newUserRecord?.lastName).toBe('New Last')
+    })
+
+    it('with neither first name nor last name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        const newUser = await services.changeName(user._id.toString())
+
+        expect(newUser.firstName).toBe(userData.firstName)
+        expect(newUser.lastName).toBe(userData.lastName)
+
+        const newUserRecord = await User.findById(user._id)
+        expect(newUserRecord?.firstName).toBe(userData.firstName)
+        expect(newUserRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with invalid (too long) first name and valid last name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        expect(
+            services.changeName(user._id.toString(), 'thisiswaytoolongforonepersonsname', 'New Last'),
+        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(userData.firstName)
+        expect(userRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with invalid last name and valid first name', async () => {
+        const userData = getUser()
+        const user = await User.create(userData)
+        expect(
+            services.changeName(user._id.toString(), 'New First', 'thisiswaytoolongforonepersonsname'),
+        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.firstName).toBe(userData.firstName)
+        expect(userRecord?.lastName).toBe(userData.lastName)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.changeName(anonId, 'New First', 'New Last')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+})
+
+describe('test request password recovery', () => {
+    it('with valid data', async () => {
+        const spy = jest.spyOn(sgMail, 'send').mockReturnValueOnce(
+            Promise.resolve([
+                {
+                    statusCode: 200,
+                    body: {},
+                    headers: {},
+                },
+                {},
+            ]),
+        )
+        const user = await User.create(getUser())
+
+        await services.requestPasswordRecovery(user.email)
+
+        const [otp] = await OneTimePasscode.find({})
+
+        expect(otp).toBeDefined()
+        expect(otp?.passcode.length).toBe(6)
+        expect(otp?.reason).toBe(OTPReason.PasswordRecovery)
+        expect(spy).toHaveBeenCalledTimes(1)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        expect(services.requestPasswordRecovery('unknown@email.com')).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_USER,
+        )
+    })
+
+    it('with send error', async () => {
+        const spy = jest.spyOn(sgMail, 'send').mockImplementationOnce(() => {
+            throw new ApiError('', 400)
+        })
+        const user = await User.create(getUser())
+        expect(services.requestPasswordRecovery(user.email)).rejects.toThrowError(Constants.UNABLE_TO_SEND_EMAIL)
+        expect(spy).toHaveBeenCalled()
+        const [otp] = await OneTimePasscode.find({})
+        expect(otp).toBeUndefined()
+    })
+})
+
+describe('test reset password', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.tokens = ['token1', 'token2', 'token3']
+        await user.save()
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        const { token, user: userResult } = await services.resetPassword(otp.passcode, 'Test987#')
+
+        expect(token).toBeDefined()
+        expect(token.length).toBeGreaterThan(10)
+        expect(userResult.username).toBe(user.username)
+
+        const newUser = await User.findById(user._id)
+        expect(newUser?.password).not.toBe(user.password)
+        expect(newUser?.tokens?.length).toBe(1)
+
+        const newOtp = await OneTimePasscode.findById(otp._id)
+        expect(newOtp).toBeNull()
+    })
+
+    it('with unfound otp', async () => {
+        await User.create(getUser())
+
+        expect(services.resetPassword('123456', 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with expired otp', async () => {
+        const user = await User.create(getUser())
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+            expiresAt: new Date(),
+        })
+
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with unfound user', async () => {
+        await User.create(getUser())
+        const otp = await OneTimePasscode.create({
+            creator: anonId,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with invalid password', async () => {
+        const user = await User.create(getUser())
+
+        const otp = await OneTimePasscode.create({
+            creator: user._id,
+            reason: OTPReason.PasswordRecovery,
+        })
+
+        expect(services.resetPassword(otp.passcode, 'test#')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+        const newUser = await User.findById(otp.creator)
+        expect(newUser?.password).toBe(user.password)
+
+        const newOtp = await OneTimePasscode.findById(otp._id)
+        expect(newOtp).not.toBeNull()
     })
 })

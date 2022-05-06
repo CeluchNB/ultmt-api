@@ -8,8 +8,8 @@ import { ApiError } from '../types'
 import * as Constants from '../utils/constants'
 
 const schema = new Schema<IUser>({
-    firstName: { type: String, required: true, trim: true, maxLength: 20 },
-    lastName: { type: String, required: true, trim: true, maxLength: 30 },
+    firstName: { type: String, required: true, trim: true, maxLength: [20, Constants.NAME_TOO_LONG] },
+    lastName: { type: String, required: true, trim: true, maxLength: [30, Constants.NAME_TOO_LONG] },
     email: {
         type: String,
         required: true,

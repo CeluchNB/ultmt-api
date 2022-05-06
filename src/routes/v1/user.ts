@@ -1,11 +1,12 @@
 import { Request, Response, Router } from 'express'
-import { CreateUser, IUser } from '../../types/user'
+import { ApiError, CreateUser, IUser } from '../../types'
 import UserServices from '../../services/v1/user'
 import User from '../../models/user'
 import Team from '../../models/team'
 import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import { body, query, param } from 'express-validator'
+import OneTimePasscode from '../../models/one-time-passcode'
 
 export const userRouter = Router()
 
@@ -88,7 +89,7 @@ userRouter.post(
 )
 
 userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
-    return res.send(req.user)
+    return res.json(req.user)
 })
 
 userRouter.get('/user/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
@@ -153,9 +154,92 @@ userRouter.put(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userServices = new UserServices(User, Team)
-            const user = await userServices.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
+            const userService = new UserServices(User, Team)
+            const user = await userService.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
             return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.put(
+    '/user/changePassword',
+    body('newPassword').escape().isString(),
+    passport.authenticate('local', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const { user, token } = await userService.changePassword((req.user as IUser)._id, req.body.newPassword)
+            return res.json({ user, token })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.put(
+    '/user/changeEmail',
+    body('newEmail').escape().isString(),
+    passport.authenticate('local', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.changeEmail((req.user as IUser)._id, req.body.newEmail)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.put(
+    '/user/changeName',
+    body('newFirstName').escape(),
+    body('newLastName').escape(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.changeName(
+                (req.user as IUser)._id.toString(),
+                req.body.newFirstName,
+                req.body.newLastName,
+            )
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.post(
+    '/user/requestPasswordRecovery',
+    body('email').escape().isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team, OneTimePasscode)
+            await userService.requestPasswordRecovery(req.body.email)
+            return res.json({})
+        } catch (error) {
+            if ((error as ApiError).code === 500) {
+                next(error)
+            } else {
+                return res.json({})
+            }
+        }
+    },
+)
+
+userRouter.post(
+    '/user/resetPassword',
+    body('passcode').escape().isString(),
+    body('newPassword').isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team, OneTimePasscode)
+            const { token, user } = await userService.resetPassword(req.body.passcode, req.body.newPassword)
+            return res.json({ token, user })
         } catch (error) {
             next(error)
         }

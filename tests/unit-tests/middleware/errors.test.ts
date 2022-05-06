@@ -194,6 +194,24 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.INVALID_SEASON_DATE, 400),
         )
     })
+
+    it('with name too long error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.NAME_TOO_LONG} extra details`)).toEqual(
+            createExpressErrorObject(Constants.NAME_TOO_LONG, 400),
+        )
+    })
+
+    it('with unable to send email error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_SEND_EMAIL} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_SEND_EMAIL, 500),
+        )
+    })
+
+    it('with invalid passcode error', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_PASSCODE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_PASSCODE, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

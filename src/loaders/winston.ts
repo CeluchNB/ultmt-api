@@ -11,13 +11,8 @@ const dailyRotateTransport = new winston.transports.DailyRotateFile({
 })
 
 const logger = expressWinston.logger({
-    transports: [
-        dailyRotateTransport,
-    ],
-    format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.json(),
-    ),
+    transports: [dailyRotateTransport],
+    format: winston.format.combine(winston.format.colorize(), winston.format.json()),
     meta: true,
     expressFormat: true,
     colorize: true,
