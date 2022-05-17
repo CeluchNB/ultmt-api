@@ -319,7 +319,21 @@ export default class RosterRequestServices {
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId)
 
         const requests = await this.rosterRequestModel.find({ _id: { $in: team.requests } })
+        return requests
+    }
 
+    /**
+     * Method to get all requests belonging to a user
+     * @param userId id of user to get requests for
+     * @returns list of requests
+     */
+    getRequestsByUser = async (userId: string): Promise<IRosterRequest[]> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const requests = await this.rosterRequestModel.find({ _id: { $in: user.requests } })
         return requests
     }
 }

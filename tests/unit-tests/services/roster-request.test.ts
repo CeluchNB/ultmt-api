@@ -984,7 +984,7 @@ describe('test user delete', () => {
 })
 
 describe('test get requests by team', () => {
-    it('with valid team with three requests', async () => {
+    it('with valid team with two requests', async () => {
         const team = await Team.create(getTeam())
         const [manager, user1, user2] = await User.find({})
         const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
@@ -1029,6 +1029,54 @@ describe('test get requests by team', () => {
 
         expect(services.getRequestsByTeam(anonId, manager._id)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+})
+
+describe('test get requests by user', () => {
+    it('with two requests', async () => {
+        const [user] = await User.find({})
+        const teamDetails1 = { ...getTeam(), teamname: 'team1' }
+        const team1 = await Team.create(teamDetails1)
+        const teamDetails2 = { ...getTeam(), teamname: 'team2' }
+        const team2 = await Team.create(teamDetails2)
+        const request1 = await RosterRequest.create(getRosterRequest(team1._id, user._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team2._id, user._id, Initiator.Player))
+
+        user.requests = [request1._id, request2._id]
+        await user.save()
+        team1.requests.push(request1._id)
+        await team1.save()
+        team2.requests.push(request2._id)
+        await team2.save()
+
+        const result = await services.getRequestsByUser(user._id)
+        expect(result[0]._id.toString()).toBe(request1._id.toString())
+        expect(result[0].requestSource).toBe(request1.requestSource)
+        expect(result[0].team.toString()).toBe(request1.team.toString())
+        expect(result[1]._id.toString()).toBe(request2._id.toString())
+        expect(result[1].requestSource).toBe(request2.requestSource)
+        expect(result[1].team.toString()).toBe(request2.team.toString())
+    })
+
+    it('with unfound user', async () => {
+        const [user] = await User.find({})
+        const teamDetails1 = { ...getTeam(), teamname: 'team1' }
+        const team1 = await Team.create(teamDetails1)
+        const teamDetails2 = { ...getTeam(), teamname: 'team2' }
+        const team2 = await Team.create(teamDetails2)
+        const request1 = await RosterRequest.create(getRosterRequest(team1._id, user._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team2._id, user._id, Initiator.Player))
+
+        user.requests = [request1._id, request2._id]
+        await user.save()
+        team1.requests.push(request1._id)
+        await team1.save()
+        team2.requests.push(request2._id)
+        await team2.save()
+
+        expect(services.getRequestsByUser(anonId)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
 })

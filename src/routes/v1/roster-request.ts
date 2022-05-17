@@ -11,6 +11,20 @@ import { param, query } from 'express-validator'
 export const rosterRequestRouter = Router()
 
 rosterRequestRouter.get(
+    '/request/userRequests',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const requests = await services.getRequestsByUser((req.user as IUser)._id.toString())
+            return res.json({ requests })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+rosterRequestRouter.get(
     '/request/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
