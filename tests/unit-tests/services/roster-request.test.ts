@@ -982,3 +982,53 @@ describe('test user delete', () => {
         )
     })
 })
+
+describe('test get requests by team', () => {
+    it('with valid team with three requests', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user1, user2] = await User.find({})
+        const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team._id, user2._id, Initiator.Player))
+
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(request1._id)
+        team.requests.push(request2._id)
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user1.requests.push(request1._id)
+        user2.requests.push(request2._id)
+        await user1.save()
+        await user2.save()
+
+        const result = await services.getRequestsByTeam(team._id, manager._id)
+        expect(result[0]._id.toString()).toBe(request1._id.toString())
+        expect(result[0].requestSource).toBe(request1.requestSource)
+        expect(result[0].user.toString()).toBe(request1.user.toString())
+        expect(result[1]._id.toString()).toBe(request2._id.toString())
+        expect(result[1].requestSource).toBe(request2.requestSource)
+        expect(result[1].user.toString()).toBe(request2.user.toString())
+    })
+
+    it('with unfound team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user1, user2] = await User.find({})
+        const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team._id, user2._id, Initiator.Player))
+
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(request1._id)
+        team.requests.push(request2._id)
+        await team.save()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user1.requests.push(request1._id)
+        user2.requests.push(request2._id)
+        await user1.save()
+        await user2.save()
+
+        expect(services.getRequestsByTeam(anonId, manager._id)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+        )
+    })
+})

@@ -162,4 +162,19 @@ rosterRequestRouter.post(
     },
 )
 
+rosterRequestRouter.get(
+    '/request/team/:id',
+    param('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new RosterRequestServices(Team, User, RosterRequest)
+            const requests = await services.getRequestsByTeam(req.params.id, (req.user as IUser)._id.toString())
+            return res.json({ requests })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 rosterRequestRouter.use(errorMiddleware)
