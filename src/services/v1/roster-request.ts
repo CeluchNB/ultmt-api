@@ -304,4 +304,22 @@ export default class RosterRequestServices {
 
         return request
     }
+
+    /**
+     * Method to get all requests related to a team
+     * @param teamId id of team to get requests for
+     * @returns list of requests
+     */
+    getRequestsByTeam = async (teamId: string, managerId: string): Promise<IRosterRequest[]> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId)
+
+        const requests = await this.rosterRequestModel.find({ _id: { $in: team.requests } })
+
+        return requests
+    }
 }

@@ -717,3 +717,87 @@ describe('test user delete route', () => {
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
     })
 })
+
+describe('test /GET requests by team id', () => {
+    it('with multiple requests', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user1, user2] = await User.find({})
+        const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team._id, user2._id, Initiator.Player))
+
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(request1._id)
+        team.requests.push(request2._id)
+        await team.save()
+        const token = await manager.generateAuthToken()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user1.requests.push(request1._id)
+        user2.requests.push(request2._id)
+        await user1.save()
+        await user2.save()
+
+        const response = await request(app)
+            .get(`/api/v1/request/team/${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const { requests } = response.body
+        expect(requests.length).toBe(2)
+        expect(requests[0]._id.toString()).toBe(request1._id.toString())
+        expect(requests[1]._id.toString()).toBe(request2._id.toString())
+    })
+
+    it('with invalid token', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user1, user2] = await User.find({})
+        const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team._id, user2._id, Initiator.Player))
+
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(request1._id)
+        team.requests.push(request2._id)
+        await team.save()
+        await manager.generateAuthToken()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user1.requests.push(request1._id)
+        user2.requests.push(request2._id)
+        await user1.save()
+        await user2.save()
+
+        await request(app)
+            .get(`/api/v1/request/team/${team._id}`)
+            .set('Authorization', 'Bearer 1234.ads.g54324.adsgfa')
+            .send()
+            .expect(401)
+    })
+
+    it('with unfound team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, user1, user2] = await User.find({})
+        const request1 = await RosterRequest.create(getRosterRequest(team._id, user1._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team._id, user2._id, Initiator.Player))
+
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(request1._id)
+        team.requests.push(request2._id)
+        await team.save()
+        const token = await manager.generateAuthToken()
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+        user1.requests.push(request1._id)
+        user2.requests.push(request2._id)
+        await user1.save()
+        await user2.save()
+
+        const response = await request(app)
+            .get(`/api/v1/request/team/${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
