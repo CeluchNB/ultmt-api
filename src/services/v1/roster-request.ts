@@ -154,6 +154,7 @@ export default class RosterRequestServices {
             .userIsManager(managerId, team._id)
             .requestIsUserInitiated(requestId)
             .requestIsPending(request._id)
+            .userNotOnTeam(user._id, team._id)
             .test()
 
         if (approve) {
@@ -196,16 +197,17 @@ export default class RosterRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
-            .requestIsTeamInitiated(requestId)
-            .requestIsPending(request._id)
-            .userOnRequest(user._id, request._id)
-            .test()
-
         const team = await this.teamModel.findById(request?.team)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
+
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .requestIsTeamInitiated(requestId)
+            .requestIsPending(request._id)
+            .userOnRequest(user._id, request._id)
+            .userNotOnTeam(user._id, team._id)
+            .test()
 
         if (approve) {
             // add player to team and remove request from team's list
