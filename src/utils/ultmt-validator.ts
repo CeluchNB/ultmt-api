@@ -223,7 +223,6 @@ export default class UltmtValidator {
                 const request = await this.rosterRequestModel.findOne({
                     user: new Types.ObjectId(userId),
                     team: new Types.ObjectId(teamId),
-                    requestSource: source,
                     status: Status.Pending,
                 })
 

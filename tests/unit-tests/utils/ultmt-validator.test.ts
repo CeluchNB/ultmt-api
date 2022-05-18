@@ -196,6 +196,16 @@ describe('test ultmt validator', () => {
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400))
     })
 
+    it('request already exists from team with player trying requesting', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
+
+        const validator = new UltmtValidator(User, Team, RosterRequest)
+        validator.noPendingRequest(user._id, team._id, Initiator.Player)
+        await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400))
+    })
+
     it('request is pending success case', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())

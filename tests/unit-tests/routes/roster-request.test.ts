@@ -5,7 +5,7 @@ import { getTeam, anonId, getRosterRequest } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import RosterRequest from '../../../src/models/roster-request'
-import { Initiator, IRosterRequest, Status } from '../../../src/types'
+import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
@@ -799,5 +799,90 @@ describe('test /GET requests by team id', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
+
+describe('test /GET requests by user', () => {
+    it('with two requests', async () => {
+        const [user] = await User.find({})
+        const teamDetails1 = { ...getTeam(), teamname: 'team1' }
+        const team1 = await Team.create(teamDetails1)
+        const teamDetails2 = { ...getTeam(), teamname: 'team2' }
+        const team2 = await Team.create(teamDetails2)
+        const request1 = await RosterRequest.create(getRosterRequest(team1._id, user._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team2._id, user._id, Initiator.Player))
+
+        const token = await user.generateAuthToken()
+        user.requests = [request1._id, request2._id]
+        await user.save()
+        team1.requests.push(request1._id)
+        await team1.save()
+        team2.requests.push(request2._id)
+        await team2.save()
+
+        const result = await request(app)
+            .get('/api/v1/request/userRequests')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const { requests } = result.body
+        expect(requests.length).toBe(2)
+        expect(requests[0]._id.toString()).toBe(request1._id.toString())
+        expect(requests[1]._id.toString()).toBe(request2._id.toString())
+    })
+
+    it('with invalid token', async () => {
+        const [user] = await User.find({})
+        const teamDetails1 = { ...getTeam(), teamname: 'team1' }
+        const team1 = await Team.create(teamDetails1)
+        const teamDetails2 = { ...getTeam(), teamname: 'team2' }
+        const team2 = await Team.create(teamDetails2)
+        const request1 = await RosterRequest.create(getRosterRequest(team1._id, user._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team2._id, user._id, Initiator.Player))
+
+        await user.generateAuthToken()
+        user.requests = [request1._id, request2._id]
+        await user.save()
+        team1.requests.push(request1._id)
+        await team1.save()
+        team2.requests.push(request2._id)
+        await team2.save()
+
+        await request(app)
+            .get('/api/v1/request/user')
+            .set('Authorization', `Bearer asdfr1324.asdf3455g.thgs5234`)
+            .send()
+            .expect(401)
+    })
+
+    it('with error', async () => {
+        jest.spyOn(RosterRequest, 'find').mockImplementationOnce(() => {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        })
+
+        const [user] = await User.find({})
+        const teamDetails1 = { ...getTeam(), teamname: 'team1' }
+        const team1 = await Team.create(teamDetails1)
+        const teamDetails2 = { ...getTeam(), teamname: 'team2' }
+        const team2 = await Team.create(teamDetails2)
+        const request1 = await RosterRequest.create(getRosterRequest(team1._id, user._id, Initiator.Team))
+        const request2 = await RosterRequest.create(getRosterRequest(team2._id, user._id, Initiator.Player))
+
+        const token = await user.generateAuthToken()
+        user.requests = [request1._id, request2._id]
+        await user.save()
+        team1.requests.push(request1._id)
+        await team1.save()
+        team2.requests.push(request2._id)
+        await team2.save()
+
+        const result = await request(app)
+            .get('/api/v1/request/userRequests')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(result.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
     })
 })

@@ -154,6 +154,7 @@ export default class RosterRequestServices {
             .userIsManager(managerId, team._id)
             .requestIsUserInitiated(requestId)
             .requestIsPending(request._id)
+            .userNotOnTeam(user._id, team._id)
             .test()
 
         if (approve) {
@@ -196,16 +197,17 @@ export default class RosterRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
-            .requestIsTeamInitiated(requestId)
-            .requestIsPending(request._id)
-            .userOnRequest(user._id, request._id)
-            .test()
-
         const team = await this.teamModel.findById(request?.team)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
+
+        await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
+            .requestIsTeamInitiated(requestId)
+            .requestIsPending(request._id)
+            .userOnRequest(user._id, request._id)
+            .userNotOnTeam(user._id, team._id)
+            .test()
 
         if (approve) {
             // add player to team and remove request from team's list
@@ -310,7 +312,7 @@ export default class RosterRequestServices {
      * @param teamId id of team to get requests for
      * @returns list of requests
      */
-    getRequestsByTeam = async (teamId: string, managerId: string): Promise<IRosterRequest[]> => {
+    getRequestsByTeam = async (teamId: string, managerId: string): Promise<IDetailedRosterRequest[]> => {
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
@@ -318,7 +320,29 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId)
 
-        const requests = await this.rosterRequestModel.find({ _id: { $in: team.requests } })
+        const requests = await this.rosterRequestModel
+            .find({ _id: { $in: team.requests } })
+            .populate('teamDetails', ['_id', 'place', 'name', 'teamname', 'seasonStart', 'seasonEnd'])
+            .populate('userDetails', ['_id', 'firstName', 'lastName', 'username'])
+
+        return requests
+    }
+
+    /**
+     * Method to get all requests belonging to a user
+     * @param userId id of user to get requests for
+     * @returns list of requests
+     */
+    getRequestsByUser = async (userId: string): Promise<IDetailedRosterRequest[]> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const requests = await this.rosterRequestModel
+            .find({ _id: { $in: user.requests } })
+            .populate('teamDetails', ['_id', 'place', 'name', 'teamname', 'seasonStart', 'seasonEnd'])
+            .populate('userDetails', ['_id', 'firstName', 'lastName', 'username'])
 
         return requests
     }
