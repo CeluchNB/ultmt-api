@@ -246,4 +246,19 @@ userRouter.post(
     },
 )
 
+userRouter.put(
+    '/user/setPrivate',
+    query('private').escape().isBoolean(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.setPrivateAccount((req.user as IUser)._id, req.query.private === 'true')
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)
