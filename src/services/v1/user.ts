@@ -352,4 +352,22 @@ export default class UserServices {
         await otp.delete()
         return { token, user }
     }
+
+    /**
+     * Method to change user's private status
+     * @param userId id of user to set private account value
+     * @param privateAccount user's private status
+     * @returns updated user
+     */
+    setPrivateAccount = async (userId: string, privateAccount: boolean): Promise<IUser> => {
+        const user = await User.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        user.private = privateAccount
+        await user.save()
+
+        return user
+    }
 }

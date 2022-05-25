@@ -703,3 +703,29 @@ describe('test reset password', () => {
         expect(newOtp).not.toBeNull()
     })
 })
+
+describe('test set private', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.private = false
+        await user.save()
+
+        const updatedUser = await services.setPrivateAccount(user._id, true)
+
+        expect(updatedUser.username).toBe(user.username)
+        expect(updatedUser.private).toBe(true)
+
+        const userRecord = await User.findById(user._id)
+        expect(userRecord?.private).toBe(true)
+    })
+
+    it('with unfound user', async () => {
+        const user = await User.create(getUser())
+        user.private = false
+        await user.save()
+
+        expect(services.setPrivateAccount(anonId, true)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+})

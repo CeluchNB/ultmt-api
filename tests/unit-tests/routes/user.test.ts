@@ -833,3 +833,55 @@ describe('test /POST reset password', () => {
         expect(response.body.message).toBe(Constants.INVALID_PASSCODE)
     })
 })
+
+describe('test /PUT set private', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        user.private = false
+        await user.save()
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .put('/api/v1/user/setPrivate?private=true')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+        
+        const { user: userResponse } = response.body
+
+        expect(userResponse.username).toBe(user.username)
+        expect(userResponse.private).toBe(true)
+    })
+
+    it('with error thrown', async () => {
+        const user = await User.create(getUser())
+        user.private = false
+        await user.save()
+        const token = await user.generateAuthToken()
+
+        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        })
+
+        const response = await request(app)
+            .put('/api/v1/user/setPrivate?private=true')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with invalid token', async () => {
+        const user = await User.create(getUser())
+        user.private = false
+        await user.save()
+        await user.generateAuthToken()
+
+        await request(app)
+            .put('/api/v1/user/setPrivate?private=true')
+            .set('Authorization', 'Bearer 1234.adfgf.3241')
+            .send()
+            .expect(401)
+    })
+})
