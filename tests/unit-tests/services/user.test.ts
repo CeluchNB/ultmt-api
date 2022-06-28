@@ -729,3 +729,86 @@ describe('test set private', () => {
         )
     })
 })
+
+describe('test join team by bulk code', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid data', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        const userResult = await services.joinByCode(user._id, otp.passcode)
+        expect(userResult._id.toString()).toBe(user._id.toString())
+        expect(userResult.playerTeams.length).toBe(1)
+        expect(userResult.playerTeams[0]._id.toString()).toBe(teamRecord._id.toString())
+
+        const updatedTeam = await Team.findById(teamRecord._id)
+        expect(updatedTeam?.players.length).toBe(1)
+        expect(updatedTeam?.players[0]._id.toString()).toBe(user._id.toString())
+    })
+
+    it('with non-existent user', async () => {
+        const team = getTeam()
+        const [, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        expect(services.joinByCode(anonId, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with non-existent code', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+
+        await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        expect(services.joinByCode(user._id, 'abcdef')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with expired code', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+            expiresAt: new Date('01-01-2022'),
+        })
+
+        expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.INVALID_PASSCODE)
+    })
+
+    it('with non-existent team', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        await Team.create(team)
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: anonId,
+            reason: OTPReason.TeamJoin,
+        })
+        expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})

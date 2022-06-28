@@ -4,7 +4,7 @@ import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-pa
 import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
-import { getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
+import { getEmbeddedTeam, getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import sgMail from '@sendgrid/mail'
 
@@ -366,6 +366,39 @@ export default class UserServices {
         }
 
         user.private = privateAccount
+        await user.save()
+
+        return user
+    }
+
+    /**
+     *
+     * @param userId id of user
+     * @param passcode passcode for team
+     * @returns updated user
+     */
+    joinByCode = async (userId: string, passcode: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const otp = await this.otpModel.findOne({ passcode })
+        if (!otp || otp.isExpired()) {
+            throw new ApiError(Constants.INVALID_PASSCODE, 400)
+        }
+
+        const team = await this.teamModel.findById(otp.team)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userNotOnTeam(user._id, team._id).test()
+
+        team.players.push(getEmbeddedUser(user))
+        await team.save()
+
+        user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
         return user
