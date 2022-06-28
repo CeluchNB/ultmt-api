@@ -5,6 +5,7 @@ import Team from '../../models/team'
 import User from '../../models/user'
 import RosterRequest from '../../models/roster-request'
 import ArchiveTeam from '../../models/archive-team'
+import OneTimePasscode from '../../models/one-time-passcode'
 import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam, IUser } from '../../types'
 import { query, body, param } from 'express-validator'
@@ -146,6 +147,21 @@ teamRouter.post(
                 req.params.id,
             )
             return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+teamRouter.post(
+    '/team/getBulkCode',
+    query('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam, OneTimePasscode)
+            const code = await teamServices.createBulkJoinCode((req.user as IUser)._id, req.query.id as string)
+            return res.json({ code })
         } catch (error) {
             next(error)
         }

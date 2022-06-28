@@ -2,12 +2,13 @@ import { ITeamModel } from '../../models/team'
 import { IUserModel } from '../../models/user'
 import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
-import { ApiError, CreateTeam, ITeam } from '../../types'
+import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
+import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
 
 interface LevenshteinTeam {
     team: ITeam
@@ -19,17 +20,20 @@ export default class TeamServices {
     userModel: IUserModel
     requestModel: IRosterRequestModel
     archiveTeamModel: IArchiveTeamModel
+    otpModel: IOneTimePasscodeModel
 
     constructor(
         teamModel: ITeamModel,
         userModel: IUserModel,
         requestModel: IRosterRequestModel,
         archiveTeamModel: IArchiveTeamModel,
+        otpModel: IOneTimePasscodeModel = OneTimePasscode,
     ) {
         this.teamModel = teamModel
         this.userModel = userModel
         this.requestModel = requestModel
         this.archiveTeamModel = archiveTeamModel
+        this.otpModel = otpModel
     }
 
     /**
@@ -364,5 +368,33 @@ export default class TeamServices {
         }
 
         return team
+    }
+
+    /**
+     * Method to create an OTP to allow users to join a team in bulk.
+     * @param managerId manager of team
+     * @param teamId team to attach OTP to
+     * @returns OTP
+     */
+    createBulkJoinCode = async (managerId: string, teamId: string): Promise<string> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        await new UltmtValidator().userIsManager(managerId, teamId).test
+
+        const otp = await this.otpModel.create({
+            creator: manager._id,
+            team: team._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        return otp.passcode
     }
 }

@@ -537,7 +537,7 @@ describe('test /POST add manager', () => {
     })
 })
 
-describe('test get archived team route', () => {
+describe('test /GET archived team route', () => {
     it('with valid team', async () => {
         const team = getTeam()
         await ArchiveTeam.create(team)
@@ -564,5 +564,67 @@ describe('test get archived team route', () => {
             .expect(404)
         
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
+
+describe('test /POST create bulk join code', () => {
+    it('with valid data', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        const token = await managerRecord.generateAuthToken()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        const response = await request(app)
+            .post(`/api/v1/team/getBulkCode?id=${teamRecord._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+        
+        const { code } = response.body
+        expect(code.length).toBe(6)
+        expect(Number(code)).not.toBeNaN()
+    })
+
+    it('with non existent team', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        const token = await managerRecord.generateAuthToken()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        const response = await request(app)
+            .post(`/api/v1/team/getBulkCode?id=${anonId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+        
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+
+    it('with unauthorized user', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        await managerRecord.generateAuthToken()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        await request(app)
+            .post(`/api/v1/team/getBulkCode?id=${teamRecord._id}`)
+            .set('Authorization', 'Bearer 1234.adsf4t4sase.qer45sf')
+            .send()
+            .expect(401)
     })
 })
