@@ -20,6 +20,11 @@ const schema = new Schema<IOneTimePasscode>(
             required: true,
             ref: 'User',
         },
+        team: {
+            type: SchemaTypes.ObjectId,
+            required: false,
+            ref: 'Team',
+        },
         expiresAt: {
             type: SchemaTypes.Date,
         },

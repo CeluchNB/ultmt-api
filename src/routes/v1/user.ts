@@ -261,4 +261,19 @@ userRouter.put(
     },
 )
 
+userRouter.post(
+    '/user/joinTeamByCode',
+    query('code').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team, OneTimePasscode)
+            const user = await userService.joinByCode((req.user as IUser)._id, req.query.code as string)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)

@@ -1,6 +1,7 @@
 import TeamServices from '../../../src/services/v1/team'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
+import OneTimePasscode from '../../../src/models/one-time-passcode'
 import RosterRequest from '../../../src/models/roster-request'
 import ArchiveTeam from '../../../src/models/archive-team'
 import { ApiError, CreateTeam, ITeam, Status, Initiator } from '../../../src/types'
@@ -702,5 +703,53 @@ describe('test get archived team', () => {
         await ArchiveTeam.create(team)
 
         expect(services.getArchivedTeam(anonId)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
+
+describe('test create otp for bulk join', () => {
+    it('with valid data', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        const result = await services.createBulkJoinCode(managerRecord._id, teamRecord._id)
+        expect(result.length).toBe(6)
+        expect(Number(result)).not.toBeNaN()
+
+        const otp = await OneTimePasscode.findOne({ passcode: result })
+        expect(otp?.team.toString()).toEqual(teamRecord._id.toString())
+    })
+
+    it('with non-existent team', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        expect(services.createBulkJoinCode(managerRecord._id, anonId)).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('with non-existent manager', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        managerRecord.managerTeams.push(teamRecord._id)
+        await managerRecord.save()
+
+        expect(services.createBulkJoinCode(anonId, teamRecord._id)).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
     })
 })

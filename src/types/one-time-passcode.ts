@@ -12,5 +12,6 @@ export interface IOneTimePasscode {
     expiresAt: Date
     creator: Types.ObjectId
     reason: string
+    team: Types.ObjectId
     isExpired: () => boolean
 }
