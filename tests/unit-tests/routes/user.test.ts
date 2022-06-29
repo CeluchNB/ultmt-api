@@ -885,3 +885,73 @@ describe('test /PUT set private', () => {
             .expect(401)
     })
 })
+
+describe('test /POST join team by code', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with valid data', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+        const token = await user.generateAuthToken()
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        const result = await request(app)
+            .post(`/api/v1/user/joinTeamByCode?code=${otp.passcode}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+        
+        const { user: userResponse } = result.body
+        expect(userResponse.playerTeams.length).toBe(1)
+        expect(userResponse.playerTeams[0]._id.toString()).toBe(team._id.toString())
+    })
+
+    it('with invalid code', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+        const token = await user.generateAuthToken()
+
+        await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        const result = await request(app)
+            .post('/api/v1/user/joinTeamByCode?code=abcdef')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(400)
+        
+        expect(result.body.message).toBe(Constants.INVALID_PASSCODE)
+    })
+
+    it('with unauthenticated user', async () => {
+        const team = getTeam()
+        const [user, manager] = await User.find({})
+        const teamRecord = await Team.create(team)
+        await user.generateAuthToken()
+
+        const otp = await OneTimePasscode.create({
+            creator: manager._id,
+            team: teamRecord._id,
+            reason: OTPReason.TeamJoin,
+        })
+
+        await request(app)
+            .post(`/api/v1/user/joinTeamByCode?code=${otp.passcode}`)
+            .set('Authorization', 'Bearer da4asd44.asdgy543asf.asft53g')
+            .send()
+            .expect(401)
+
+    })
+})
