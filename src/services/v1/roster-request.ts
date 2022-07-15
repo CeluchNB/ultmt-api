@@ -245,9 +245,6 @@ export default class RosterRequestServices {
         }
 
         const user = await this.userModel.findById(request.user)
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
 
         const team = await this.teamModel.findById(request.team)
         if (!team) {
@@ -261,11 +258,13 @@ export default class RosterRequestServices {
             .test()
 
         team.requests = team.requests.filter((id) => !id.equals(request._id))
-        user.requests = user.requests.filter((id) => !id.equals(request._id))
+        if (user) {
+            user.requests = user.requests.filter((id) => !id.equals(request._id))
+            await user.save()
+        }
 
         await request.delete()
         await team.save()
-        await user.save()
 
         return request
     }
@@ -283,9 +282,6 @@ export default class RosterRequestServices {
         }
 
         const team = await this.teamModel.findById(request.team)
-        if (!team) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
-        }
 
         const user = await this.userModel.findById(userId)
         if (!user) {
@@ -297,11 +293,13 @@ export default class RosterRequestServices {
             .userContainsRequest(userId, requestId)
             .test()
 
-        team.requests = team.requests.filter((id) => !id.equals(request._id))
+        if (team) {
+            team.requests = team.requests.filter((id) => !id.equals(request._id))
+            await team.save()
+        }
         user.requests = user.requests.filter((id) => !id.equals(request._id))
 
         await request.delete()
-        await team.save()
         await user.save()
 
         return request

@@ -845,24 +845,24 @@ describe('test team delete', () => {
         )
     })
 
-    it('with non-existent user', async () => {
-        const team = await Team.create(getTeam())
-        const [manager, user] = await User.find({})
-        const request = await RosterRequest.create(
-            getRosterRequest(team._id, new Types.ObjectId(anonId), Initiator.Team),
-        )
-        team.managers.push(getEmbeddedUser(manager))
-        team.requests.push(request._id)
-        await team.save()
-        manager.managerTeams.push(getEmbeddedTeam(team))
-        await manager.save()
-        user.requests.push(request._id)
-        await user.save()
+    // it('with non-existent user', async () => {
+    //     const team = await Team.create(getTeam())
+    //     const [manager, user] = await User.find({})
+    //     const request = await RosterRequest.create(
+    //         getRosterRequest(team._id, new Types.ObjectId(anonId), Initiator.Team),
+    //     )
+    //     team.managers.push(getEmbeddedUser(manager))
+    //     team.requests.push(request._id)
+    //     await team.save()
+    //     manager.managerTeams.push(getEmbeddedTeam(team))
+    //     await manager.save()
+    //     user.requests.push(request._id)
+    //     await user.save()
 
-        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
+    //     await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+    //         new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+    //     )
+    // })
 
     it('with non-existent team', async () => {
         const team = await Team.create(getTeam())
@@ -963,24 +963,24 @@ describe('test user delete', () => {
         )
     })
 
-    it('with non-existent team', async () => {
-        const team = await Team.create(getTeam())
-        const [manager, user] = await User.find({})
-        const request = await RosterRequest.create(
-            getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
-        )
-        team.managers.push(getEmbeddedUser(manager))
-        team.requests.push(request._id)
-        await team.save()
-        manager.managerTeams.push(getEmbeddedTeam(team))
-        await manager.save()
-        user.requests.push(request._id)
-        await user.save()
+    // it('with non-existent team', async () => {
+    //     const team = await Team.create(getTeam())
+    //     const [manager, user] = await User.find({})
+    //     const request = await RosterRequest.create(
+    //         getRosterRequest(new Types.ObjectId(anonId), user._id, Initiator.Team),
+    //     )
+    //     team.managers.push(getEmbeddedUser(manager))
+    //     team.requests.push(request._id)
+    //     await team.save()
+    //     manager.managerTeams.push(getEmbeddedTeam(team))
+    //     await manager.save()
+    //     user.requests.push(request._id)
+    //     await user.save()
 
-        await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
-        )
-    })
+    //     await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
+    //         new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
+    //     )
+    // })
 })
 
 describe('test get requests by team', () => {
