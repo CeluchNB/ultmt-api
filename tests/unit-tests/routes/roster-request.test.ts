@@ -9,6 +9,12 @@ import { ApiError, Initiator, IRosterRequest, Status } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 
+jest.mock('node-cron', () => {
+    return {
+        schedule: jest.fn(),
+    }
+})
+
 beforeAll(async () => {
     await setUpDatabase()
 })

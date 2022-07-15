@@ -13,6 +13,12 @@ import Team from '../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import sgMail from '@sendgrid/mail'
 
+jest.mock('node-cron', () => {
+    return {
+        schedule: jest.fn(),
+    }
+})
+
 beforeAll(async () => {
     await setUpDatabase()
 })
