@@ -365,8 +365,6 @@ describe('test ultmt validator', () => {
 
     it('user accepting requests success case', async () => {
         const user = await User.create(getUser())
-        user.openToRequests = true
-        await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
         validator.userAcceptingRequests(user._id)
@@ -376,6 +374,9 @@ describe('test ultmt validator', () => {
 
     it('user accepting requests failure case', async () => {
         const user = await User.create(getUser())
+        user.openToRequests = false
+        await user.save()
+
         const validator = new UltmtValidator(User, Team, RosterRequest)
         validator.userAcceptingRequests(user._id)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400))

@@ -653,6 +653,8 @@ describe('test add manager functionality', () => {
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
+        newManager.openToRequests = false
+        await newManager.save()
 
         await expect(services.addManager(manager._id, newManager._id, team._id)).rejects.toThrowError(
             Constants.NOT_ACCEPTING_REQUESTS,

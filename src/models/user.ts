@@ -102,7 +102,7 @@ const schema = new Schema<IUser>({
     openToRequests: {
         type: Boolean,
         required: true,
-        default: false,
+        default: true,
     },
 })
 
