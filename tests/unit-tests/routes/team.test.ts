@@ -11,6 +11,12 @@ import ArchiveTeam from '../../../src/models/archive-team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import MockDate from 'mockdate'
 
+jest.mock('node-cron', () => {
+    return {
+        schedule: jest.fn(),
+    }
+})
+
 beforeAll(async () => {
     MockDate.set(new Date('2022'))
     await setUpDatabase()
