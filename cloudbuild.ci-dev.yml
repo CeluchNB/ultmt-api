@@ -1,7 +1,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/dev-ultmt-app/ultmt-api', '.']
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/dev-ultmt-app/cloud-run-source-deploy/ultmt-api', '.']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/dev-ultmt-app/ultmt-api']
+  args: ['push', 'us-central1-docker.pkg.dev/dev-ultmt-app/cloud-run-source-deploy/ultmt-api']
 options:
   logging: CLOUD_LOGGING_ONLY
