@@ -73,5 +73,5 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
           service: 'ultmt-api'
-          image: 'us-central1-docker.pkg.dev/dev-ultmt-app/cloud-run-source-deploy'
+          image: 'us-central1-docker.pkg.dev/dev-ultmt-app/cloud-run-source-deploy/ultmt-api'
 
