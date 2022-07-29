@@ -106,7 +106,7 @@ describe('test request from team', () => {
         user.openToRequests = true
         await user.save()
 
-        const request = await services.requestFromTeam(manager._id, team._id, user._id)
+        const request = await services.requestFromTeam(manager._id, team._id.toString(), user._id)
         expect(request.team.toString()).toBe(team._id.toString())
         expect(request.user.toString()).toBe(user._id.toString())
         expect(request.requestSource).toBe(Initiator.Team)
@@ -135,7 +135,7 @@ describe('test request from team', () => {
         user.openToRequests = true
         await user.save()
 
-        await expect(services.requestFromTeam(anonId, team._id, user._id)).rejects.toThrowError(
+        await expect(services.requestFromTeam(anonId, team._id.toString(), user._id)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -163,7 +163,7 @@ describe('test request from team', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.requestFromTeam(manager._id, team._id, anonId)).rejects.toThrowError(
+        await expect(services.requestFromTeam(manager._id, team._id.toString(), anonId)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -188,7 +188,7 @@ describe('test request from team', () => {
 
         await RosterRequest.create(request)
 
-        await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
+        await expect(services.requestFromTeam(manager._id, team._id.toString(), user._id)).rejects.toThrowError(
             new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400),
         )
     })
@@ -203,7 +203,7 @@ describe('test request from team', () => {
         user1.openToRequests = true
         await user1.save()
 
-        await expect(services.requestFromTeam(user2._id, team._id, user1._id)).rejects.toThrowError(
+        await expect(services.requestFromTeam(user2._id, team._id.toString(), user1._id)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
         )
     })
@@ -219,7 +219,7 @@ describe('test request from team', () => {
         user.openToRequests = true
         await user.save()
 
-        await expect(services.requestFromTeam(manager._id, team._id, user._id)).rejects.toThrowError(
+        await expect(services.requestFromTeam(manager._id, team._id.toString(), user._id)).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
         )
     })
@@ -232,7 +232,7 @@ describe('test request from player', () => {
         team.rosterOpen = true
         await team.save()
 
-        const request = await services.requestFromPlayer(user._id, team._id)
+        const request = await services.requestFromPlayer(user._id, team._id.toString())
         expect(request.team.toString()).toBe(team._id.toString())
         expect(request.user.toString()).toBe(user._id.toString())
         expect(request.requestSource).toBe(Initiator.Player)
@@ -256,7 +256,7 @@ describe('test request from player', () => {
     it('with non-existent user', async () => {
         const team = await Team.create(getTeam())
 
-        await expect(services.requestFromPlayer(anonId, team._id)).rejects.toThrowError(
+        await expect(services.requestFromPlayer(anonId, team._id.toString())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -285,7 +285,7 @@ describe('test request from player', () => {
 
         await RosterRequest.create(request)
 
-        await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
+        await expect(services.requestFromPlayer(user._id, team._id.toString())).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400),
         )
     })
@@ -299,7 +299,7 @@ describe('test request from player', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        await expect(services.requestFromPlayer(user._id, team._id)).rejects.toThrowError(
+        await expect(services.requestFromPlayer(user._id, team._id.toString())).rejects.toThrowError(
             new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400),
         )
     })
@@ -328,7 +328,7 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        const result = await services.teamRespondToRequest(manager._id, requestRecord._id, true)
+        const result = await services.teamRespondToRequest(manager._id, requestRecord._id.toString(), true)
         expect(result._id.toString()).toBe(requestRecord._id.toString())
         expect(result.team.toString()).toBe(team._id.toString())
         expect(result.user.toString()).toBe(user._id.toString())
@@ -372,7 +372,7 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        const result = await services.teamRespondToRequest(manager._id, requestRecord._id, false)
+        const result = await services.teamRespondToRequest(manager._id, requestRecord._id.toString(), false)
         expect(result._id.toString()).toBe(requestRecord._id.toString())
         expect(result.team.toString()).toBe(team._id.toString())
         expect(result.user.toString()).toBe(user._id.toString())
@@ -406,9 +406,9 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
-        )
+        await expect(
+            services.teamRespondToRequest(manager._id, requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
     })
 
     it('with non-existent manager', async () => {
@@ -431,7 +431,7 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(anonId, requestRecord._id, true)).rejects.toThrowError(
+        await expect(services.teamRespondToRequest(anonId, requestRecord._id.toString(), true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -483,9 +483,9 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
-        )
+        await expect(
+            services.teamRespondToRequest(manager._id, requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404))
     })
 
     it('with non-existent user', async () => {
@@ -510,9 +510,9 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
+        await expect(
+            services.teamRespondToRequest(manager._id, requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 
     it('with response to own request', async () => {
@@ -537,9 +537,9 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
-        )
+        await expect(
+            services.teamRespondToRequest(manager._id.toString(), requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
 
     it('with response to close requested', async () => {
@@ -564,9 +564,9 @@ describe('test team respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.teamRespondToRequest(manager._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400),
-        )
+        await expect(
+            services.teamRespondToRequest(manager._id.toString(), requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400))
     })
 })
 
@@ -589,7 +589,7 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        const result = await services.userRespondToRequest(user._id, requestRecord._id, true)
+        const result = await services.userRespondToRequest(user._id.toString(), requestRecord._id.toString(), true)
         expect(result._id.toString()).toBe(requestRecord._id.toString())
         expect(result.user.toString()).toBe(request.user.toString())
         expect(result.team.toString()).toBe(request.team.toString())
@@ -626,7 +626,7 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        const result = await services.userRespondToRequest(user._id, requestRecord._id, false)
+        const result = await services.userRespondToRequest(user._id.toString(), requestRecord._id.toString(), false)
         expect(result._id.toString()).toBe(requestRecord._id.toString())
         expect(result.user.toString()).toBe(request.user.toString())
         expect(result.team.toString()).toBe(request.team.toString())
@@ -661,7 +661,7 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.userRespondToRequest(anonId, requestRecord._id, true)).rejects.toThrowError(
+        await expect(services.userRespondToRequest(anonId, requestRecord._id.toString(), true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -684,9 +684,9 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
-        )
+        await expect(
+            services.userRespondToRequest(user._id.toString(), requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404))
     })
 
     it('with non-existent request', async () => {
@@ -730,9 +730,9 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
-        )
+        await expect(
+            services.userRespondToRequest(user._id.toString(), requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
 
     it('responding to closed request', async () => {
@@ -753,9 +753,9 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.userRespondToRequest(user._id, requestRecord._id, true)).rejects.toThrowError(
-            new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400),
-        )
+        await expect(
+            services.userRespondToRequest(user._id.toString(), requestRecord._id.toString(), true),
+        ).rejects.toThrowError(new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400))
     })
 
     it('with user not matching request user', async () => {
@@ -776,7 +776,7 @@ describe('test user respond to request', () => {
         team.requests.push(requestRecord._id)
         await team.save()
 
-        await expect(services.userRespondToRequest(user2._id, requestRecord._id, true)).rejects.toThrowError(
+        await expect(services.userRespondToRequest(user2._id, requestRecord._id.toString(), true)).rejects.toThrowError(
             new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400),
         )
     })
@@ -795,7 +795,7 @@ describe('test team delete', () => {
         user.requests.push(request._id)
         await user.save()
 
-        const response = await services.teamDelete(manager._id, request._id)
+        const response = await services.teamDelete(manager._id.toString(), request._id.toString())
         expect(response._id.toString()).toBe(request._id.toString())
         expect(response.team.toString()).toBe(team._id.toString())
         expect(response.user.toString()).toBe(user._id.toString())
@@ -840,7 +840,7 @@ describe('test team delete', () => {
         user.requests.push(request._id)
         await user.save()
 
-        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+        await expect(services.teamDelete(manager._id.toString(), request._id.toString())).rejects.toThrowError(
             new ApiError(Constants.REQUEST_NOT_IN_LIST, 400),
         )
     })
@@ -878,7 +878,7 @@ describe('test team delete', () => {
         user.requests.push(request._id)
         await user.save()
 
-        await expect(services.teamDelete(manager._id, request._id)).rejects.toThrowError(
+        await expect(services.teamDelete(manager._id.toString(), request._id.toString())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
         )
     })
@@ -897,7 +897,7 @@ describe('test user delete', () => {
         user.requests.push(request._id)
         await user.save()
 
-        const response = await services.userDelete(user._id, request._id)
+        const response = await services.userDelete(user._id.toString(), request._id.toString())
         expect(response._id.toString()).toBe(request._id.toString())
         expect(response.team.toString()).toBe(team._id.toString())
         expect(response.user.toString()).toBe(user._id.toString())
@@ -941,7 +941,7 @@ describe('test user delete', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.userDelete(user._id, request._id)).rejects.toThrowError(
+        await expect(services.userDelete(user._id.toString(), request._id.toString())).rejects.toThrowError(
             new ApiError(Constants.REQUEST_NOT_IN_LIST, 400),
         )
     })
@@ -958,7 +958,7 @@ describe('test user delete', () => {
         user.requests.push(request._id)
         await user.save()
 
-        await expect(services.userDelete(anonId, request._id)).rejects.toThrowError(
+        await expect(services.userDelete(anonId, request._id.toString())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -1001,7 +1001,7 @@ describe('test get requests by team', () => {
         await user1.save()
         await user2.save()
 
-        const result = await services.getRequestsByTeam(team._id, manager._id)
+        const result = await services.getRequestsByTeam(team._id.toString(), manager._id.toString())
         expect(result[0]._id.toString()).toBe(request1._id.toString())
         expect(result[0].requestSource).toBe(request1.requestSource)
         expect(result[0].user.toString()).toBe(request1.user.toString())

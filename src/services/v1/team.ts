@@ -220,8 +220,10 @@ export default class TeamServices {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
-                if (!managerRecord.archiveTeams.includes(oldId)) {
-                    managerRecord.archiveTeams.push(oldId)
+                const embeddedTeam = getEmbeddedTeam(team)
+                embeddedTeam._id = oldId
+                if (!managerRecord.archiveTeams.includes(embeddedTeam)) {
+                    managerRecord.archiveTeams.push(embeddedTeam)
                 }
                 managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
@@ -233,8 +235,10 @@ export default class TeamServices {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
-                if (!playerRecord.archiveTeams.includes(oldId)) {
-                    playerRecord.archiveTeams.push(oldId)
+                const embeddedTeam = getEmbeddedTeam(team)
+                embeddedTeam._id = oldId
+                if (!playerRecord.archiveTeams.includes(embeddedTeam)) {
+                    playerRecord.archiveTeams.push(embeddedTeam)
                 }
                 if (copyPlayers) {
                     playerRecord.playerTeams.push(getEmbeddedTeam(team))

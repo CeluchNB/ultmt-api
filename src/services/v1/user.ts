@@ -393,7 +393,7 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel).userNotOnTeam(user._id, team._id).test()
+        await new UltmtValidator(this.userModel, this.teamModel).userNotOnTeam(user._id, team._id.toString()).test()
 
         team.players.push(getEmbeddedUser(user))
         await team.save()

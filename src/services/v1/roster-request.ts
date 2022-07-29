@@ -151,10 +151,10 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .userExists(managerId)
-            .userIsManager(managerId, team._id)
+            .userIsManager(managerId, team._id.toString())
             .requestIsUserInitiated(requestId)
-            .requestIsPending(request._id)
-            .userNotOnTeam(user._id, team._id)
+            .requestIsPending(request._id.toString())
+            .userNotOnTeam(user._id, team._id.toString())
             .test()
 
         if (approve) {
@@ -204,9 +204,9 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .requestIsTeamInitiated(requestId)
-            .requestIsPending(request._id)
-            .userOnRequest(user._id, request._id)
-            .userNotOnTeam(user._id, team._id)
+            .requestIsPending(request._id.toString())
+            .userOnRequest(user._id, request._id.toString())
+            .userNotOnTeam(user._id, team._id.toString())
             .test()
 
         if (approve) {
@@ -254,7 +254,7 @@ export default class RosterRequestServices {
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .userIsManager(managerId, request?.team.toString())
             // team must contain request, cannot solely delete from user's queue
-            .teamContainsRequest(team._id, request._id)
+            .teamContainsRequest(team._id.toString(), request._id.toString())
             .test()
 
         team.requests = team.requests.filter((id) => !id.equals(request._id))

@@ -268,7 +268,7 @@ describe('test leave team', () => {
         team.players.push(getEmbeddedUser(user))
         await team.save()
 
-        const result = await services.leaveTeam(user._id, team._id)
+        const result = await services.leaveTeam(user._id.toString(), team._id.toString())
         expect(result._id.toString()).toBe(user._id.toString())
         expect(result.playerTeams.length).toBe(0)
 
@@ -288,7 +288,7 @@ describe('test leave team', () => {
         team.players.push(getEmbeddedUser(user))
         await team.save()
 
-        await expect(services.leaveTeam(anonId, team._id)).rejects.toThrowError(
+        await expect(services.leaveTeam(anonId, team._id.toString())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -311,7 +311,7 @@ describe('test leave team', () => {
         const user = await User.create(getUser())
         const team = await Team.create(getTeam())
 
-        await expect(services.leaveTeam(user._id, team._id)).rejects.toThrowError(
+        await expect(services.leaveTeam(user._id.toString(), team._id.toString())).rejects.toThrowError(
             new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404),
         )
     })
@@ -420,7 +420,7 @@ describe('test manager leave functionality', () => {
         manager2.managerTeams.push(getEmbeddedTeam(team))
         await manager2.save()
 
-        const result = await services.leaveManagerRole(team._id, manager._id)
+        const result = await services.leaveManagerRole(team._id.toString(), manager._id.toString())
         expect(result._id.toString()).toBe(manager._id.toString())
         expect(result.managerTeams.length).toBe(0)
 
@@ -454,7 +454,9 @@ describe('test manager leave functionality', () => {
         manager2.managerTeams.push(getEmbeddedTeam(team))
         await manager2.save()
 
-        await expect(services.leaveManagerRole(team._id, anonId)).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        await expect(services.leaveManagerRole(team._id.toString(), anonId)).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_USER,
+        )
     })
 
     it('with last manager error', async () => {
@@ -465,7 +467,7 @@ describe('test manager leave functionality', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.leaveManagerRole(team._id, manager._id)).rejects.toThrowError(
+        await expect(services.leaveManagerRole(team._id.toString(), manager._id.toString())).rejects.toThrowError(
             Constants.USER_IS_ONLY_MANAGER,
         )
     })

@@ -54,7 +54,7 @@ describe('test ultmt validator', () => {
         const team = await Team.create(getTeam())
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.teamExists(team._id)
+        validator.teamExists(team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -73,7 +73,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestExists(request._id)
+        validator.requestExists(request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -97,7 +97,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userIsManager(user._id, team._id)
+        validator.userIsManager(user._id, team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -109,7 +109,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userIsManager(user._id, team._id)
+        validator.userIsManager(user._id, team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
     })
 
@@ -120,7 +120,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userIsManager(user._id, team._id)
+        validator.userIsManager(user._id, team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_MANAGER, 401))
     })
 
@@ -130,7 +130,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsTeamInitiated(request._id)
+        validator.requestIsTeamInitiated(request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -141,7 +141,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsTeamInitiated(request._id)
+        validator.requestIsTeamInitiated(request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
 
@@ -151,7 +151,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsUserInitiated(request._id)
+        validator.requestIsUserInitiated(request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -162,7 +162,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsUserInitiated(request._id)
+        validator.requestIsUserInitiated(request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
 
@@ -171,7 +171,7 @@ describe('test ultmt validator', () => {
         const user = await User.create(getUser())
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.noPendingRequest(user._id, team._id, Initiator.Player)
+        validator.noPendingRequest(user._id.toString(), team._id.toString(), Initiator.Player)
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -182,7 +182,7 @@ describe('test ultmt validator', () => {
         await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.noPendingRequest(user._id, team._id, Initiator.Team)
+        validator.noPendingRequest(user._id.toString(), team._id.toString(), Initiator.Team)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.TEAM_ALREADY_REQUESTED, 400))
     })
 
@@ -192,7 +192,7 @@ describe('test ultmt validator', () => {
         await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.noPendingRequest(user._id, team._id, Initiator.Player)
+        validator.noPendingRequest(user._id.toString(), team._id.toString(), Initiator.Player)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400))
     })
 
@@ -202,7 +202,7 @@ describe('test ultmt validator', () => {
         await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.noPendingRequest(user._id, team._id, Initiator.Player)
+        validator.noPendingRequest(user._id.toString(), team._id.toString(), Initiator.Player)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_REQUESTED, 400))
     })
 
@@ -212,7 +212,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Player))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsPending(request._id)
+        validator.requestIsPending(request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -225,7 +225,7 @@ describe('test ultmt validator', () => {
         await request.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.requestIsPending(request._id)
+        validator.requestIsPending(request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.REQUEST_ALREADY_RESOLVED, 400))
     })
 
@@ -234,7 +234,7 @@ describe('test ultmt validator', () => {
         const team = await Team.create(getTeam())
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userNotOnTeam(user._id, team._id)
+        validator.userNotOnTeam(user._id, team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -246,7 +246,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userNotOnTeam(user._id, team._id)
+        validator.userNotOnTeam(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400))
     })
 
@@ -257,7 +257,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userNotOnTeam(user._id, team._id)
+        validator.userNotOnTeam(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400))
     })
 
@@ -267,7 +267,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userOnRequest(user._id, request._id)
+        validator.userOnRequest(user._id.toString(), request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -280,7 +280,7 @@ describe('test ultmt validator', () => {
         )
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userOnRequest(user._id, request._id)
+        validator.userOnRequest(user._id.toString(), request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400))
     })
 
@@ -292,7 +292,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.teamContainsRequest(team._id, request._id)
+        validator.teamContainsRequest(team._id.toString(), request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -303,7 +303,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.teamContainsRequest(team._id, request._id)
+        validator.teamContainsRequest(team._id.toString(), request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.REQUEST_NOT_IN_LIST, 400))
     })
 
@@ -315,7 +315,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userContainsRequest(user._id, request._id)
+        validator.userContainsRequest(user._id.toString(), request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -326,7 +326,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userContainsRequest(team._id, request._id)
+        validator.userContainsRequest(team._id.toString(), request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.REQUEST_NOT_IN_LIST, 400))
     })
 
@@ -339,7 +339,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userOnTeam(user._id, team._id)
+        validator.userOnTeam(user._id.toString(), team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -348,7 +348,7 @@ describe('test ultmt validator', () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userOnTeam(user._id, team._id)
+        validator.userOnTeam(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
     })
 
@@ -359,7 +359,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.userOnTeam(user._id, team._id)
+        validator.userOnTeam(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404))
     })
 
@@ -388,7 +388,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.teamAcceptingRequests(team._id)
+        validator.teamAcceptingRequests(team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -397,7 +397,7 @@ describe('test ultmt validator', () => {
         const team = await Team.create(getTeam())
 
         const validator = new UltmtValidator(User, Team, RosterRequest)
-        validator.teamAcceptingRequests(team._id)
+        validator.teamAcceptingRequests(team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.NOT_ACCEPTING_REQUESTS, 400))
     })
 
@@ -422,7 +422,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator()
-        validator.userAuthorizedForRequest(user._id, request._id)
+        validator.userAuthorizedForRequest(user._id.toString(), request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -441,7 +441,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator()
-        validator.userAuthorizedForRequest(manager._id, request._id)
+        validator.userAuthorizedForRequest(manager._id.toString(), request._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -452,7 +452,7 @@ describe('test ultmt validator', () => {
         const request = await RosterRequest.create(getRosterRequest(team._id, user._id, Initiator.Team))
 
         const validator = new UltmtValidator()
-        validator.userAuthorizedForRequest(anonId, request._id)
+        validator.userAuthorizedForRequest(anonId, request._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNAUTHORIZED_TO_VIEW_REQUEST, 404))
     })
 
@@ -461,7 +461,7 @@ describe('test ultmt validator', () => {
         const user = await User.create(getUser())
 
         const validator = new UltmtValidator()
-        validator.userIsNotManager(user._id, team._id)
+        validator.userIsNotManager(user._id.toString(), team._id.toString())
         const result = await validator.test()
         expect(result).toBe(true)
     })
@@ -473,7 +473,7 @@ describe('test ultmt validator', () => {
         await team.save()
 
         const validator = new UltmtValidator()
-        validator.userIsNotManager(user._id, team._id)
+        validator.userIsNotManager(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400))
     })
 
@@ -484,7 +484,7 @@ describe('test ultmt validator', () => {
         await user.save()
 
         const validator = new UltmtValidator()
-        validator.userIsNotManager(user._id, team._id)
+        validator.userIsNotManager(user._id.toString(), team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.USER_ALREADY_MANAGES_TEAM, 400))
     })
 
@@ -492,14 +492,14 @@ describe('test ultmt validator', () => {
         const user = await User.create(getUser())
 
         const validator = new UltmtValidator()
-        validator.userIsNotManager(user._id, anonId)
+        validator.userIsNotManager(user._id.toString(), anonId)
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_TEAM, 400))
     })
 
     it('test user is not manager with missing user', async () => {
         const team = await Team.create(getTeam())
         const validator = new UltmtValidator()
-        validator.userIsNotManager(anonId, team._id)
+        validator.userIsNotManager(anonId, team._id.toString())
         await expect(validator.test()).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 400))
     })
 

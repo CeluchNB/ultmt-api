@@ -82,7 +82,7 @@ describe('test getTeam', () => {
         teamRecord.requests.push(userRecord._id)
         await teamRecord.save()
 
-        const teamResponse = await services.getTeam(teamRecord._id, false)
+        const teamResponse = await services.getTeam(teamRecord._id.toString(), false)
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.requests.length).toBe(1)
@@ -98,7 +98,7 @@ describe('test getTeam', () => {
         teamRecord.requests.push(userRecord._id)
         await teamRecord.save()
 
-        const teamResponse = await services.getTeam(teamRecord._id, true)
+        const teamResponse = await services.getTeam(teamRecord._id.toString(), true)
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.requests.length).toBe(0)
@@ -127,7 +127,7 @@ describe('test getManagedTeam', () => {
         userResponse.managerTeams.push(getEmbeddedTeam(teamRecord))
         await userResponse.save()
 
-        const teamResponse = await services.getManagedTeam(teamRecord._id, userResponse._id)
+        const teamResponse = await services.getManagedTeam(teamRecord._id.toString(), userResponse._id)
         expect(teamResponse.place).toBe(team.place)
         expect(teamResponse.name).toBe(team.name)
         expect(teamResponse.managers?.length).toBe(1)
@@ -141,7 +141,7 @@ describe('test getManagedTeam', () => {
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
 
-        await expect(services.getManagedTeam(teamRecord._id, anonId)).rejects.toThrowError(
+        await expect(services.getManagedTeam(teamRecord._id.toString(), anonId)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 401),
         )
     })
@@ -164,7 +164,7 @@ describe('test remove player', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        const result = await services.removePlayer(manager._id, team._id, user._id)
+        const result = await services.removePlayer(manager._id, team._id.toString(), user._id)
         expect(result._id.toString()).toBe(team._id.toString())
         expect(result.name).toBe(team.name)
         expect(result.players.length).toBe(0)
@@ -188,7 +188,7 @@ describe('test remove player', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.removePlayer(manager._id, team._id, anonId)).rejects.toThrowError(
+        await expect(services.removePlayer(manager._id, team._id.toString(), anonId)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -222,7 +222,7 @@ describe('test remove player', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.removePlayer(anonId, team._id, user._id)).rejects.toThrowError(
+        await expect(services.removePlayer(anonId, team._id.toString(), user._id)).rejects.toThrowError(
             new ApiError(Constants.UNAUTHORIZED_MANAGER, 400),
         )
     })
@@ -244,7 +244,7 @@ describe('test team rollover', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        const newTeam = await services.rollover(manager._id, team._id.toString(), true, new Date(), new Date())
         expect(newTeam._id.toString()).not.toBe(team._id.toString())
         expect(newTeam.place).toBe(team.place)
         expect(newTeam.name).toBe(team.name)
@@ -292,7 +292,7 @@ describe('test team rollover', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        const newTeam = await services.rollover(manager._id, team._id, false, new Date(), new Date())
+        const newTeam = await services.rollover(manager._id, team._id.toString(), false, new Date(), new Date())
         expect(newTeam._id.toString()).not.toBe(team._id.toString())
         expect(newTeam.place).toBe(team.place)
         expect(newTeam.name).toBe(team.name)
@@ -335,7 +335,7 @@ describe('test team rollover', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        await expect(services.rollover(anonId, team._id, true, new Date(), new Date())).rejects.toThrowError(
+        await expect(services.rollover(anonId, team._id.toString(), true, new Date(), new Date())).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -368,7 +368,7 @@ describe('test team rollover', () => {
         await user.save()
 
         await expect(
-            services.rollover(manager._id, team._id, true, new Date('2019'), new Date('2019')),
+            services.rollover(manager._id, team._id.toString(), true, new Date('2019'), new Date('2019')),
         ).rejects.toThrowError(new ApiError(Constants.SEASON_START_ERROR, 400))
     })
 
@@ -398,7 +398,7 @@ describe('test team rollover', () => {
         reqUser2.requests.push(req2._id)
         await reqUser2.save()
 
-        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        const newTeam = await services.rollover(manager._id, team._id.toString(), true, new Date(), new Date())
         expect(newTeam.requests.length).toBe(0)
         const updatedUser1 = await User.findById(reqUser1._id)
         expect(updatedUser1?.requests.length).toBe(0)
@@ -433,7 +433,7 @@ describe('test team rollover', () => {
         reqUser2.requests.push(req2._id)
         await reqUser2.save()
 
-        const newTeam = await services.rollover(manager._id, team._id, true, new Date(), new Date())
+        const newTeam = await services.rollover(manager._id, team._id.toString(), true, new Date(), new Date())
         expect(newTeam.requests.length).toBe(0)
         const updatedUser1 = await User.findById(reqUser1._id)
         expect(updatedUser1?.requests.length).toBe(0)
@@ -454,7 +454,7 @@ describe('test set to open', () => {
         team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
-        const response = await services.setRosterOpen(manager._id, team._id, true)
+        const response = await services.setRosterOpen(manager._id, team._id.toString(), true)
         expect(response._id.toString()).toBe(team._id.toString())
         expect(response.place).toBe(team.place)
         expect(response.rosterOpen).toBe(true)
@@ -473,7 +473,7 @@ describe('test set to open', () => {
         team.rosterOpen = true
         await team.save()
 
-        const response = await services.setRosterOpen(manager._id, team._id, false)
+        const response = await services.setRosterOpen(manager._id, team._id.toString(), false)
         expect(response._id.toString()).toBe(team._id.toString())
         expect(response.place).toBe(team.place)
         expect(response.rosterOpen).toBe(false)
@@ -491,7 +491,7 @@ describe('test set to open', () => {
         team.managers.push(getEmbeddedUser(manager))
         await team.save()
 
-        await expect(services.setRosterOpen(anonId, team._id, true)).rejects.toThrowError(
+        await expect(services.setRosterOpen(anonId, team._id.toString(), true)).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -635,7 +635,7 @@ describe('test add manager functionality', () => {
         newManager.openToRequests = true
         await newManager.save()
 
-        const resultTeam = await services.addManager(manager._id, newManager._id, team._id)
+        const resultTeam = await services.addManager(manager._id, newManager._id, team._id.toString())
 
         expect(resultTeam.managers.length).toBe(2)
         expect(resultTeam.managers[1].username).toBe(newManager.username)
@@ -656,7 +656,7 @@ describe('test add manager functionality', () => {
         newManager.openToRequests = false
         await newManager.save()
 
-        await expect(services.addManager(manager._id, newManager._id, team._id)).rejects.toThrowError(
+        await expect(services.addManager(manager._id, newManager._id, team._id.toString())).rejects.toThrowError(
             Constants.NOT_ACCEPTING_REQUESTS,
         )
     })
@@ -682,7 +682,7 @@ describe('test add manager functionality', () => {
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
 
-        await expect(services.addManager(manager._id, anonId, team._id)).rejects.toThrowError(
+        await expect(services.addManager(manager._id, anonId, team._id.toString())).rejects.toThrowError(
             Constants.UNABLE_TO_FIND_USER,
         )
     })
@@ -716,10 +716,10 @@ describe('test create otp for bulk join', () => {
         const managerRecord = await User.create(manager)
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
-        const result = await services.createBulkJoinCode(managerRecord._id, teamRecord._id)
+        const result = await services.createBulkJoinCode(managerRecord._id, teamRecord._id.toString())
         expect(result.length).toBe(6)
         expect(Number(result)).not.toBeNaN()
 
@@ -734,7 +734,7 @@ describe('test create otp for bulk join', () => {
         const managerRecord = await User.create(manager)
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
         expect(services.createBulkJoinCode(managerRecord._id, anonId)).rejects.toThrowError(
@@ -749,9 +749,11 @@ describe('test create otp for bulk join', () => {
         const managerRecord = await User.create(manager)
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
-        expect(services.createBulkJoinCode(anonId, teamRecord._id)).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.createBulkJoinCode(anonId, teamRecord._id.toString())).rejects.toThrowError(
+            Constants.UNABLE_TO_FIND_USER,
+        )
     })
 })
