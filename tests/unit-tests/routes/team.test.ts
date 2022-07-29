@@ -582,7 +582,7 @@ describe('test /POST create bulk join code', () => {
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
         const token = await managerRecord.generateAuthToken()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
         const response = await request(app)
@@ -604,7 +604,7 @@ describe('test /POST create bulk join code', () => {
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
         const token = await managerRecord.generateAuthToken()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
         const response = await request(app)
@@ -624,7 +624,7 @@ describe('test /POST create bulk join code', () => {
         teamRecord.managers.push(managerRecord._id)
         await teamRecord.save()
         await managerRecord.generateAuthToken()
-        managerRecord.managerTeams.push(teamRecord._id)
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
         await managerRecord.save()
 
         await request(app)

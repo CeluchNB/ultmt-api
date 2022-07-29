@@ -192,9 +192,9 @@ export default class UltmtValidator {
                 }
 
                 found = false
-                if (manager) {
+                if (manager && managingTeam) {
                     for (const i of manager?.managerTeams) {
-                        if (i._id.equals(managingTeam?._id)) {
+                        if (i._id.equals(managingTeam._id)) {
                             found = true
                         }
                     }
@@ -255,9 +255,9 @@ export default class UltmtValidator {
                     }
                 }
 
-                if (user) {
+                if (user && team) {
                     for (const i of user.playerTeams) {
-                        if (i._id.equals(team?._id)) {
+                        if (i._id.equals(team._id)) {
                             throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
                         }
                     }
@@ -324,9 +324,9 @@ export default class UltmtValidator {
                 }
 
                 found = false
-                if (user) {
+                if (user && team) {
                     for (const i of user.playerTeams) {
-                        if (i._id.equals(team?._id)) {
+                        if (i._id.equals(team._id)) {
                             found = true
                         }
                     }
