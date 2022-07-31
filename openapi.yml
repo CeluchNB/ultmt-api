@@ -1,0 +1,649 @@
+# OpenAPI spec for GCP API Gateway
+openapi: 3.0.0
+info:
+  title: ultmt-app-api
+  description: API specification for The Ultmt App
+  version: 1.0.0
+  contact:
+    name: Developer Support
+    email: developer@theultmtapp.com
+servers:
+  - url: https://dev.theultmtapp.com
+    description: The development environment for The Ultmt App
+
+paths:
+  /ultmt:
+    get:
+      summary: Basic API description
+      x-google-backend:
+        address: dev.theultmtapp.com
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/search:
+    get:
+      summary: Search for users by name or username
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Value to search for users by, must be greater than 3 characters long.
+      responses:
+        '200':
+          description: An array of length 0 or greater with users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreateUser'
+        '400':
+          description: An error, often because of too few search characters
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: An error message from a backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user:
+    post:
+      summary: Create a user
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to create a user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        '201':
+          description: User was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithToken'
+        '400':
+          description: User was unsuccessfully created due to some user error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: User was unsuccessfully created due to backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/login:
+    post:
+      summary: Login with local authentication strategy
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+      responses:
+        '200':
+          description: User was successfully logged in
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: User credentials were invalid
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: A token could not be created
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/logout:
+    post:
+      summary: Endpoint to log a user out with a specific token
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A success message with no data
+        '404':
+          description: An error message because the user was not found
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/logoutAll:
+    post:
+      summary: Endpoint to log a user out of all devices
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A success message with no data
+        '404':
+          description: An error message because the user was not found
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/me:
+    get:
+      summary: Endpoint to get a user by his auth token
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A user object found by the auth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: An unauthenticated response
+          content:
+            application/json:
+              schema:
+                type: string
+    delete:
+      summary: Delete the user's account
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A response indicating success
+        '401':
+            description: An unauthenticated response
+            content:
+              application/json:
+                schema:
+                  type: string
+  /api/v1/user/{id}:
+    get:
+      summary: Get a user by his ID
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A user object found by the Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user error message
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/open:
+    put:
+      summary: Change a user's open to requests status
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: open
+          in: query
+          description: Value of user's open to request status
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A success message with updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/leave/team:
+    post:
+      summary: Leave a team by a user
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: team
+          in: query
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A success message with updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user or team error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/managerLeave:
+    put:
+      summary: As a manager, leave a team
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - name: team
+          in: query
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A success message with updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user or team error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/changePassword:
+    put:
+      summary: Change a user's password
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to change a user's password
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: User object with new token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithToken'
+        '400':
+          description: There was an error when updating the password
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthenticated user
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: User not found error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Error on backend side, possibly with generating token
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/changeEmail:
+    put:
+      summary: Change a user's email
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to change a user's email
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                newEmail:
+                  type: string
+      responses:
+        '200':
+          description: Updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: There was an error when updating the email
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthenticated user
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: User not found error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Error on backend side, possibly with generating email validation
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/changeName:
+    put:
+      summary: Change a user's email
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Data needed to change a user's name
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newFirstName:
+                  type: string
+                newLastName:
+                  type: string
+      responses:
+        '200':
+          description: Updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Error changing the name on backend
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/requestPasswordRecovery:
+    post:
+      summary: Request a recovery code
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to request password update
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Success message with no details
+        '404':
+          description: Unable to find user message
+        '500':
+          description: Error on backend/unable to send email
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/resetPassword:
+    post:
+      summary: Reset a user's password with a recovery code
+      x-google-backend:
+        address: dev.theultmtapp.com
+      requestBody:
+        description: Data needed to reset a user's password
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passcode:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: User with new token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWithToken'
+        '400':
+          description: Error message for invalid passcode
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound user message
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error message
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/setPrivate:
+    put:
+      summary: Set a user's account to private mode
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: private
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Unfound user error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/user/joinTeamByCode:
+    post:
+      summary: Set a user's account to private mode
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated user object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Error message for invalid passcode
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound user or team message
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error message
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        playerTeams:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedTeam'
+        managerTeams:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedTeam'
+        archiveTeams:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedTeam'
+        stats:
+          type: string
+          items:
+            type: string
+        private:
+          type: boolean
+        openToRequests:
+          type: boolean
+        requests:
+          type: array
+          items:
+            type: string
+    UserWithToken:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+    LoginUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    EmbeddedTeam:
+      type: object
+      properties:
+        _id:
+          type: string
+        place:
+          type: string
+        name:
+          type: string
+        teamname:
+          type: string
+        seasonStart:
+          type: string
+          format: date
+        seasonEnd:
+          type: string
+          format: date
+  
