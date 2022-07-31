@@ -43,7 +43,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CreateUser'
+                  $ref: '#/components/schemas/EmbeddedUser'
         '400':
           description: An error, often because of too few search characters
           content:
@@ -558,6 +558,383 @@ paths:
             application/json:
               schema:
                 type: string
+  /api/v1/team/search:
+    get:
+      summary: Search for team by location, name, or teamname
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Value to search for teams by, must be greater than 3 characters long.
+      responses:
+        '200':
+          description: An array of length 0 or greater with team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmbeddedTeam'
+        '400':
+          description: An error, often because of too few search characters
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: An error message from a backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team:
+    post:
+      summary: Create a team
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Data to create a team with
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeam'
+      responses:
+        '201':
+          description: Created team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Invalid team data
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unable to find user error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team/{id}:
+    get:
+      summary: Get team by ID
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Team ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '404':
+          description: Team not found error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team/managing/{id}:
+    get:
+      summary: Get team by ID
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Team ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          description: Unauthorized error
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Team not found error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team/remove/player/{id}:
+    post:
+      summary: Remove a player from a team by the player's ID
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: user
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '404':
+          description: Unfound user or team error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team/rollover/{id}:
+    post:
+      summary: Rollover a team to the next season
+      x-google-backend:
+          address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Data to define updated team
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seasonStart:
+                  type: string
+                  format: date
+                seasonEnd:
+                  type: string
+                  format: date
+                copyPlayers:
+                  type: boolean
+      responses:
+        '200':
+          description: New team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Invalid data error
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized response
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound team or user error
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                type: string
+  /api/v1/team/open/{id}:
+    put:
+      summary: Open the team to requests to join
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: open
+          description: Boolean for open to requests
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Updated user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          description: Unauthorized error
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound team
+          content:
+            application/json: 
+              schema:
+                type: string
+        '500':
+          description:  Backend error
+          content:
+            application/json: 
+              schema:
+                type: string
+  /api/v1/team/{id}/addManager:
+    post:
+      summary: Add a manager to a team
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: manager
+          description: New manager Id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          description: Unauthorized error
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound team
+          content:
+            application/json: 
+              schema:
+                type: string
+        '500':
+          description:  Backend error
+          content:
+            application/json: 
+              schema:
+                type: string
+  /api/v1/team/getBulkCode:
+    post:
+      summary: Get bulk code to let users join team
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: id
+          description: Team ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success with code
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized error
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Unfound team
+          content:
+            application/json: 
+              schema:
+                type: string
+        '500':
+          description:  Backend error
+          content:
+            application/json: 
+              schema:
+                type: string
+  /api/v1/archiveTeam/{id}:
+    get:
+      summary: Get team that has been archived
+      x-google-backend:
+        address: dev.theultmtapp.com
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '404':
+          description: Unfound team
+          content:
+            application/json: 
+              schema:
+                type: string
 components:
   securitySchemes:
     BearerAuth:
@@ -565,6 +942,21 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    CreateTeam:
+      type: object
+      properties:
+        place:
+          type: string
+        name:
+          type: string
+        teamname:
+          type: string
+        seasonStart:
+          type: string
+          format: date
+        seasonEnd:
+          type: string
+          format: date
     CreateUser:
       type: object
       properties:
@@ -577,6 +969,17 @@ components:
         username:
           type: string
         password:
+          type: string
+    EmbeddedUser:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
           type: string
     User:
       type: object
@@ -646,4 +1049,43 @@ components:
         seasonEnd:
           type: string
           format: date
+    Team:
+      type: object
+      properties:
+        _id:
+          type: string
+        place:
+          type: string
+        name:
+          type: string
+        teamname:
+          type: string
+        seasonStart:
+          type: string
+          format: date
+        seasonEnd:
+          type: string
+          format: date
+        managers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedUser'
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedUser'
+        seasonNumber:
+          type: integer
+        continuationId:
+          type: string
+        rosterOpen:
+          type: boolean
+        requests:
+          type: array
+          items:
+            type: string
+        games:
+          type: array
+          items:
+            type: string
   
