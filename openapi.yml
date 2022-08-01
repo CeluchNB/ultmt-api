@@ -49,13 +49,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: An error message from a backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user:
     post:
       summary: Create a user
@@ -79,13 +79,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: User was unsuccessfully created due to backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/login:
     post:
       summary: Login with local authentication strategy
@@ -109,13 +109,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: A token could not be created
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/logout:
     post:
       summary: Endpoint to log a user out with a specific token
@@ -131,7 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/logoutAll:
     post:
       summary: Endpoint to log a user out of all devices
@@ -147,7 +147,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/me:
     get:
       summary: Endpoint to get a user by his auth token
@@ -167,7 +167,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
     delete:
       summary: Delete the user's account
       x-google-backend:
@@ -182,7 +182,7 @@ paths:
             content:
               application/json:
                 schema:
-                  type: string
+                  $ref: '#/components/schemas/Error'
   /api/v1/user/{id}:
     get:
       summary: Get a user by his ID
@@ -207,7 +207,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/open:
     put:
       summary: Change a user's open to requests status
@@ -234,7 +234,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/leave/team:
     post:
       summary: Leave a team by a user
@@ -261,7 +261,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/managerLeave:
     put:
       summary: As a manager, leave a team
@@ -286,7 +286,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/changePassword:
     put:
       summary: Change a user's password
@@ -317,25 +317,25 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthenticated user
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error on backend side, possibly with generating token
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/changeEmail:
     put:
       summary: Change a user's email
@@ -366,25 +366,25 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthenticated user
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error on backend side, possibly with generating email validation
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/changeName:
     put:
       summary: Change a user's email
@@ -415,13 +415,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error changing the name on backend
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/requestPasswordRecovery:
     post:
       summary: Request a recovery code
@@ -441,12 +441,16 @@ paths:
           description: Success message with no details
         '404':
           description: Unable to find user message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Error on backend/unable to send email
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/resetPassword:
     post:
       summary: Reset a user's password with a recovery code
@@ -475,19 +479,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound user message
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error message
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/setPrivate:
     put:
       summary: Set a user's account to private mode
@@ -513,13 +517,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/user/joinTeamByCode:
     post:
       summary: Set a user's account to private mode
@@ -545,19 +549,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound user or team message
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error message
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/search:
     get:
       summary: Search for team by location, name, or teamname
@@ -583,13 +587,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: An error message from a backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team:
     post:
       summary: Create a team
@@ -615,19 +619,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unable to find user error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/{id}:
     get:
       summary: Get team by ID
@@ -652,7 +656,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/managing/{id}:
     get:
       summary: Get team by ID
@@ -679,13 +683,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Team not found error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/remove/player/{id}:
     post:
       summary: Remove a player from a team by the player's ID
@@ -717,13 +721,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/rollover/{id}:
     post:
       summary: Rollover a team to the next season
@@ -765,25 +769,25 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized response
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound team or user error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description: Backend error
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/open/{id}:
     put:
       summary: Open the team to requests to join
@@ -815,19 +819,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound team
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description:  Backend error
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/{id}/addManager:
     post:
       summary: Add a manager to a team
@@ -859,19 +863,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound team
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description:  Backend error
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/team/getBulkCode:
     post:
       summary: Get bulk code to let users join team
@@ -897,19 +901,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '404':
           description: Unfound team
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
         '500':
           description:  Backend error
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
   /api/v1/archiveTeam/{id}:
     get:
       summary: Get team that has been archived
@@ -934,7 +938,197 @@ paths:
           content:
             application/json: 
               schema:
-                type: string
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/userRequests:
+    get:
+      summary: Get all of a user's requests by his auth token
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Array of detailed roster requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DetailedRosterRequest'
+        '401':
+          description: Unauthenticated request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unfound user error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/{id}:
+    get:
+      summary: Get a roster request by id
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A detailed roster request object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedRosterRequest'
+        '401':
+          description: User is unauthorized to view request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: The request was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/team/{id}:
+    post:
+      summary: Roster request creation by team
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: user
+          description: ID of user being requested
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to create request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Team or user unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/user:
+    post:
+      summary: Roster request by user
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: team
+          description: ID of team being requested
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to create request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Team unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/team/accept/{id}:
+    post:
+      summary: Team accepting a user's request
+      x-google-backend:
+        address: dev.theultmtapp.com
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to create request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request, Team, or User unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     BearerAuth:
@@ -1088,4 +1282,38 @@ components:
           type: array
           items:
             type: string
-  
+    DetailedRosterRequest:
+      type: object
+      properties:
+        _id:
+          type: string
+        team: 
+          type: string
+        user:
+          type: string
+        requestSource:
+          type: string
+        status:
+          type: string
+        teamDetails:
+          $ref: '#/components/schemas/EmbeddedTeam'
+        userDetails:
+          $ref: '#/components/schemas/EmbeddedUser'
+    RosterRequest:
+      type: object
+      properties:
+        _id:
+          type: string
+        team: 
+          type: string
+        user:
+          type: string
+        requestSource:
+          type: string
+        status:
+          type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
