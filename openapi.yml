@@ -16,7 +16,7 @@ paths:
     get:
       summary: Basic API description
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       responses:
         '200':
           description: A successful response
@@ -28,7 +28,7 @@ paths:
     get:
       summary: Search for users by name or username
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - in: query
           name: q
@@ -60,7 +60,7 @@ paths:
     post:
       summary: Create a user
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to create a user
         content:
@@ -90,7 +90,7 @@ paths:
     post:
       summary: Login with local authentication strategy
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to login
         content:
@@ -120,7 +120,7 @@ paths:
     post:
       summary: Endpoint to log a user out with a specific token
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       responses:
@@ -136,7 +136,7 @@ paths:
     post:
       summary: Endpoint to log a user out of all devices
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       responses:
@@ -152,7 +152,7 @@ paths:
     get:
       summary: Endpoint to get a user by his auth token
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       responses:
@@ -171,7 +171,7 @@ paths:
     delete:
       summary: Delete the user's account
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       responses:
@@ -187,7 +187,7 @@ paths:
     get:
       summary: Get a user by his ID
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - name: id
           in: path
@@ -212,7 +212,7 @@ paths:
     put:
       summary: Change a user's open to requests status
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -239,7 +239,7 @@ paths:
     post:
       summary: Leave a team by a user
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -266,7 +266,7 @@ paths:
     put:
       summary: As a manager, leave a team
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - name: team
           in: query
@@ -291,7 +291,7 @@ paths:
     put:
       summary: Change a user's password
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to change a user's password
         content:
@@ -340,7 +340,7 @@ paths:
     put:
       summary: Change a user's email
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to change a user's email
         content:
@@ -389,7 +389,7 @@ paths:
     put:
       summary: Change a user's email
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       requestBody:
@@ -426,7 +426,7 @@ paths:
     post:
       summary: Request a recovery code
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to request password update
         content:
@@ -455,7 +455,7 @@ paths:
     post:
       summary: Reset a user's password with a recovery code
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       requestBody:
         description: Data needed to reset a user's password
         content:
@@ -496,7 +496,7 @@ paths:
     put:
       summary: Set a user's account to private mode
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -528,7 +528,7 @@ paths:
     post:
       summary: Set a user's account to private mode
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -566,7 +566,7 @@ paths:
     get:
       summary: Search for team by location, name, or teamname
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - in: query
           name: q
@@ -598,7 +598,7 @@ paths:
     post:
       summary: Create a team
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       requestBody:
@@ -636,7 +636,7 @@ paths:
     get:
       summary: Get team by ID
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - in: path
           name: id
@@ -661,7 +661,7 @@ paths:
     get:
       summary: Get team by ID
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -694,7 +694,7 @@ paths:
     post:
       summary: Remove a player from a team by the player's ID
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -732,7 +732,7 @@ paths:
     post:
       summary: Rollover a team to the next season
       x-google-backend:
-          address: dev.theultmtapp.com
+          address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -792,7 +792,7 @@ paths:
     put:
       summary: Open the team to requests to join
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -836,7 +836,7 @@ paths:
     post:
       summary: Add a manager to a team
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -880,7 +880,7 @@ paths:
     post:
       summary: Get bulk code to let users join team
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -918,7 +918,7 @@ paths:
     get:
       summary: Get team that has been archived
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       parameters:
         - in: path
           name: id
@@ -943,7 +943,7 @@ paths:
     get:
       summary: Get all of a user's requests by his auth token
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       responses:
@@ -977,7 +977,7 @@ paths:
     get:
       summary: Get a roster request by id
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -1010,7 +1010,7 @@ paths:
     post:
       summary: Roster request creation by team
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -1051,11 +1051,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    get:
+      summary: Get all requests for a team
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully got requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DetailedRosterRequest'
+        '401':
+          description: User unauthorized to get requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Team unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 
   /api/v1/request/user:
     post:
       summary: Roster request by user
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -1094,7 +1131,7 @@ paths:
     post:
       summary: Team accepting a user's request
       x-google-backend:
-        address: dev.theultmtapp.com
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
       security:
         - BearerAuth: []
       parameters:
@@ -1112,7 +1149,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RosterRequest'
         '401':
-          description: User unauthorized to create request
+          description: User unauthorized to modify request
           content:
             application/json:
               schema:
@@ -1129,6 +1166,227 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/request/team/deny/{id}:
+    post:
+      summary: Team denying a user's request
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to modify request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request, Team, or User unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/user/accept/{id}:
+    post:
+      summary: User accepting a team's request
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to modify request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request, Team, or User unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/user/deny/{id}:
+    post:
+      summary: User denying a team's request
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to modify request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request, Team, or User unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/team/delete/{id}:
+    post:
+      summary: Team deleting a request
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to delete request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/request/user/delete/{id}:
+    post:
+      summary: User deleting a request
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          description: Request ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterRequest'
+        '401':
+          description: User unauthorized to delete request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Request unfound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Backend error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/otp/expired:
+    delete:
+      summary: Delete expired one time passcodes
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+      responses:
+        '200':
+          description: Success message
+        '500':
+          description: Backend error
+  /stall-one:
+    get:
+      summary: Basic description of games microservice API
+      x-google-backend:
+        address: https://stall-one-nal27utw4a-uc.a.run.app
+      responses:
+        '200':
+          description: A success message
+  /stall-one/test:
+    get:
+      summary: Secondary test endpoint for games microservice API
+      x-google-backend:
+        address: https://stall-one-nal27utw4a-uc.a.run.app
+      responses:
+        '200':
+          description: A success message
 components:
   securitySchemes:
     BearerAuth:
