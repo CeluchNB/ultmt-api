@@ -17,7 +17,7 @@ require('./loaders/passport')
 // Version 1 of API
 app.use('/api/v1', v1Router)
 
-app.get('/', async (req, res) => {
+app.get('/ultmt', async (req, res) => {
     res.json({ message: 'The official API of The Ultmt App' })
 })
 
