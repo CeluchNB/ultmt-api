@@ -9,7 +9,7 @@ jest.mock('node-cron', () => {
 
 describe('base path', () => {
     it('should return a message', async () => {
-        const response = await request(app).get('/').send().expect(200)
+        const response = await request(app).get('/ultmt').send().expect(200)
 
         expect(response.body.message).toBeDefined()
     })
