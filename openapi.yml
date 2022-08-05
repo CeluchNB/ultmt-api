@@ -111,8 +111,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       responses:
         '200':
           description: A success message with no data
@@ -127,8 +126,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       responses:
         '200':
           description: A success message with no data
@@ -143,8 +141,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       responses:
         '200':
           description: A user object found by the auth token
@@ -160,8 +157,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       responses:
         '200':
           description: A response indicating success
@@ -198,8 +194,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - name: open
           in: query
@@ -222,8 +217,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - name: team
           in: query
@@ -350,8 +344,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: body
           name: newNameData
@@ -445,8 +438,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: query
           name: private
@@ -472,8 +464,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: query
           name: code
@@ -503,8 +494,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: query
           name: team
@@ -549,8 +539,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: body
           name: createTeam
@@ -603,8 +592,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -631,8 +619,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -661,10 +648,9 @@ paths:
       summary: Rollover a team to the next season
       operationId: rolloverTeam
       x-google-backend:
-          address: https://ultmt-api-nal27utw4a-uc.a.run.app
-          path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -713,8 +699,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -749,8 +734,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -785,8 +769,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: query
           name: id
@@ -838,8 +821,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       responses:
         '200':
           description: Array of detailed roster requests
@@ -866,8 +848,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -894,8 +875,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -930,8 +910,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -963,8 +942,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: query
           name: team
@@ -995,8 +973,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1027,8 +1004,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1059,8 +1035,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1091,8 +1066,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1123,8 +1097,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1155,8 +1128,7 @@ paths:
       x-google-backend:
         address: https://ultmt-api-nal27utw4a-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-      security:
-        - BearerAuth: []
+        disable_auth: true
       parameters:
         - in: path
           name: id
@@ -1213,11 +1185,6 @@ paths:
         '200':
           description: A success message
 securityDefinitions:
-  BearerAuth:
-    name: Authorization
-    in: header
-    type: apiKey
-    description: JWT Authorization header
   APIKey:
     type: apiKey
     in: header
