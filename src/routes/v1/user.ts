@@ -276,4 +276,19 @@ userRouter.post(
     },
 )
 
+userRouter.get(
+    '/user/manager/authenticate',
+    query('team').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            await userService.authenticateManager((req.user as IUser)._id, req.query.team as string)
+            return res.send()
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 userRouter.use(errorMiddleware)

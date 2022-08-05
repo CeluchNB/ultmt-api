@@ -496,6 +496,25 @@ paths:
           description: Backend error message
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/user/manager/authenticate:
+    get:
+      summary: Authenticate a user as manager of a team
+      operationId: authenticateManager
+      x-google-backend:
+        address: https://ultmt-api-nal27utw4a-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: team
+          required: true
+          type: string
+      responses:
+        '200':
+          description: User is manager
+        '401':
+          description: User is unauthenticated
   /api/v1/team/search:
     get:
       summary: Search for team by location, name, or teamname

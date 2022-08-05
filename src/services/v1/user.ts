@@ -403,4 +403,14 @@ export default class UserServices {
 
         return user
     }
+
+    /**
+     * Method to check if user is manager of a team
+     * @param userId id of manager
+     * @param teamId id of team
+     */
+    authenticateManager = async (userId: string, teamId: string): Promise<boolean> => {
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(userId, teamId).test()
+        return true
+    }
 }
