@@ -828,7 +828,24 @@ describe('test authenticate manager', () => {
         await user.save()
 
         const result = await services.authenticateManager(user._id.toString(), team._id.toString())
-        expect(result).toBe(true)
+        expect(result._id.toString()).toBe(user._id.toString())
+        expect(result.username).toBe(user.username)
+    })
+
+    it('should throw error with unfound team', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        expect(services.authenticateManager(anonId, team._id.toString())).rejects.toThrowError(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
     })
 
     it('should throw error with non-manager', async () => {

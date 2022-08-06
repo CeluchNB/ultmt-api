@@ -503,6 +503,8 @@ paths:
       responses:
         '200':
           description: User is manager
+          schema:
+            $ref: '#/definitions/User'
         '401':
           description: User is unauthenticated
   /api/v1/team/search:

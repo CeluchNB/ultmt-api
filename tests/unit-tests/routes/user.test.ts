@@ -976,11 +976,15 @@ describe('GET /user/manager/authenticate', () => {
 
         const token = await user.generateAuthToken()
 
-        await request(app)
+        const response = await request(app)
             .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
+    
+        const { user: userResponse } = response.body
+        expect(userResponse._id.toString()).toBe(user._id.toString())
+        expect(userResponse.username).toBe(user.username)
     })
 
     it('with non-manager', async () => {

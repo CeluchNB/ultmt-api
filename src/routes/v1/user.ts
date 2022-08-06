@@ -283,8 +283,8 @@ userRouter.get(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            await userService.authenticateManager((req.user as IUser)._id, req.query.team as string)
-            return res.send()
+            const user = await userService.authenticateManager((req.user as IUser)._id, req.query.team as string)
+            return res.json({ user })
         } catch (error) {
             next(error)
         }
