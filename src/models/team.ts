@@ -1,6 +1,6 @@
 import * as Constants from '../utils/constants'
 import { ITeam } from '../types'
-import { Document, model, Schema, SchemaTypes, Types } from 'mongoose'
+import { Document, model, Schema, SchemaTypes } from 'mongoose'
 import validator from 'validator'
 
 export const schema = new Schema<ITeam>({
@@ -33,7 +33,7 @@ export const schema = new Schema<ITeam>({
     },
     managers: [
         {
-            _id: Types.ObjectId,
+            _id: SchemaTypes.ObjectId,
             firstName: String,
             lastName: String,
             username: String,
@@ -41,7 +41,7 @@ export const schema = new Schema<ITeam>({
     ],
     players: [
         {
-            _id: Types.ObjectId,
+            _id: SchemaTypes.ObjectId,
             firstName: String,
             lastName: String,
             username: String,
@@ -69,8 +69,8 @@ export const schema = new Schema<ITeam>({
         required: true,
         default: false,
     },
-    requests: [{ type: Types.ObjectId }],
-    games: [{ type: Types.ObjectId }],
+    requests: [{ type: SchemaTypes.ObjectId }],
+    games: [{ type: SchemaTypes.ObjectId }],
 })
 
 schema.index({ place: 'text', name: 'text', teamname: 'text' })

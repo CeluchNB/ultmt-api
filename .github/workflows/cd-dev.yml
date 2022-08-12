@@ -69,7 +69,7 @@ jobs:
         run: |
           gcloud builds submit --config=cloudbuild.ci-dev.yml .
 
-      - name: "Deploy cloud Run"
+      - name: "Deploy Cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
           service: 'ultmt-api'

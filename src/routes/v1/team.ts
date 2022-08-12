@@ -142,7 +142,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = await teamServices.addManager(
-                (req.user as IUser)._id,
+                (req.user as IUser)._id.toString(),
                 req.query.manager as string,
                 req.params.id,
             )
@@ -160,7 +160,10 @@ teamRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam, OneTimePasscode)
-            const code = await teamServices.createBulkJoinCode((req.user as IUser)._id, req.query.id as string)
+            const code = await teamServices.createBulkJoinCode(
+                (req.user as IUser)._id.toString(),
+                req.query.id as string,
+            )
             return res.json({ code })
         } catch (error) {
             next(error)
