@@ -3,6 +3,7 @@ import { Types } from 'mongoose'
 export enum OTPReason {
     PasswordRecovery = 'passwordrecovery',
     TeamJoin = 'teamjoin',
+    GameJoin = 'gamejoin',
 }
 
 export interface IOneTimePasscode {

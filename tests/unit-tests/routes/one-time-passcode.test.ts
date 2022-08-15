@@ -1,3 +1,4 @@
+import * as Constants from '../../../src/utils/constants'
 import request from 'supertest'
 import app from '../../../src/app'
 import User from '../../../src/models/user'
@@ -5,6 +6,7 @@ import OneTimePasscode from '../../../src/models/one-time-passcode'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
 import { OTPReason } from '../../../src/types'
+import randomstring from 'randomstring'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -67,5 +69,53 @@ describe('test /DELETE expired OTPs', () => {
 
         const otps = await OneTimePasscode.find({})
         expect(otps.length).toBe(2)
+    })
+})
+
+describe('test /POST otp', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+        jest.spyOn(randomstring, 'generate').mockImplementationOnce(() => {
+            return '123456'
+        })
+
+        const result = await request(app)
+            .post('/api/v1/otp')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ reason: 'gamejoin' })
+            .expect(201)
+
+        expect(result.body.code).toBe('123456')
+    })
+
+    it('with invalid token', async () => {
+        const user = await User.create(getUser())
+        await user.generateAuthToken()
+        jest.spyOn(randomstring, 'generate').mockImplementationOnce(() => {
+            return '123456'
+        })
+
+        await request(app)
+            .post('/api/v1/otp')
+            .set('Authorization', `Bearer basdf.43134a.adsfa`)
+            .send({ reason: 'gamejoin' })
+            .expect(401)
+    })
+
+    it('with invalid reason', async () => {
+        const user = await User.create(getUser())
+        const token = await user.generateAuthToken()
+        jest.spyOn(randomstring, 'generate').mockImplementationOnce(() => {
+            return '123456'
+        })
+
+        const result = await request(app)
+            .post('/api/v1/otp')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ reason: 'badreason' })
+            .expect(500)
+
+        expect(result.body.message).toBe(Constants.GENERIC_ERROR)
     })
 })
