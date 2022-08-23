@@ -403,4 +403,19 @@ export default class UserServices {
 
         return user
     }
+
+    /**
+     * Method to check if user is manager of a team
+     * @param userId id of manager
+     * @param teamId id of team
+     */
+    authenticateManager = async (userId: string, teamId: string): Promise<IUser> => {
+        const user = await this.userModel.findById(userId)
+        if (!user) {
+            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
+        }
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(userId, teamId).test()
+
+        return user
+    }
 }

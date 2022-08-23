@@ -814,3 +814,48 @@ describe('test join team by bulk code', () => {
         expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test authenticate manager', () => {
+    it('should correctly authenticate manager', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        const result = await services.authenticateManager(user._id.toString(), team._id.toString())
+        expect(result._id.toString()).toBe(user._id.toString())
+        expect(result.username).toBe(user.username)
+    })
+
+    it('should throw error with unfound team', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        expect(services.authenticateManager(anonId, team._id.toString())).rejects.toThrowError(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
+    })
+
+    it('should throw error with non-manager', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        expect(services.authenticateManager(user._id.toString(), team._id.toString())).rejects.toThrowError(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
+    })
+})

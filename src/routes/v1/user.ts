@@ -155,7 +155,10 @@ userRouter.put(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const user = await userService.leaveManagerRole(req.query.team as string, (req.user as IUser)._id)
+            const user = await userService.leaveManagerRole(
+                req.query.team as string,
+                (req.user as IUser)._id.toString(),
+            )
             return res.json({ user })
         } catch (error) {
             next(error)
@@ -170,7 +173,10 @@ userRouter.put(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const { user, token } = await userService.changePassword((req.user as IUser)._id, req.body.newPassword)
+            const { user, token } = await userService.changePassword(
+                (req.user as IUser)._id.toString(),
+                req.body.newPassword,
+            )
             return res.json({ user, token })
         } catch (error) {
             next(error)
@@ -185,7 +191,7 @@ userRouter.put(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const user = await userService.changeEmail((req.user as IUser)._id, req.body.newEmail)
+            const user = await userService.changeEmail((req.user as IUser)._id.toString(), req.body.newEmail)
             return res.json({ user })
         } catch (error) {
             next(error)
@@ -253,7 +259,10 @@ userRouter.put(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const user = await userService.setPrivateAccount((req.user as IUser)._id, req.query.private === 'true')
+            const user = await userService.setPrivateAccount(
+                (req.user as IUser)._id.toString(),
+                req.query.private === 'true',
+            )
             return res.json({ user })
         } catch (error) {
             next(error)
@@ -268,7 +277,25 @@ userRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team, OneTimePasscode)
-            const user = await userService.joinByCode((req.user as IUser)._id, req.query.code as string)
+            const user = await userService.joinByCode((req.user as IUser)._id.toString(), req.query.code as string)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
+userRouter.get(
+    '/user/manager/authenticate',
+    query('team').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.authenticateManager(
+                (req.user as IUser)._id.toString(),
+                req.query.team as string,
+            )
             return res.json({ user })
         } catch (error) {
             next(error)

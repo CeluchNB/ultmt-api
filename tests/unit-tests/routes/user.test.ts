@@ -961,3 +961,64 @@ describe('test /POST join team by code', () => {
 
     })
 })
+
+describe('GET /user/manager/authenticate', () => {
+    it('with valid manager', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        const token = await user.generateAuthToken()
+
+        const response = await request(app)
+            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+    
+        const { user: userResponse } = response.body
+        expect(userResponse._id.toString()).toBe(user._id.toString())
+        expect(userResponse.username).toBe(user.username)
+    })
+
+    it('with non-manager', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        const token = await user.generateAuthToken()
+
+        await request(app)
+            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(401)
+    })
+
+    it('with invalid token', async () => {
+        const teamData = getTeam()
+        const userData = getUser()
+        const team = await Team.create(teamData)
+        const user = await User.create(userData)
+
+        team.managers.push(getEmbeddedUser(user))
+        await team.save()
+        user.managerTeams.push(getEmbeddedTeam(team))
+        await user.save()
+
+        await user.generateAuthToken()
+
+        await request(app)
+            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
+            .set('Authorization', `Bearer asdf.13425ra.asdf4f`)
+            .send()
+            .expect(401)
+    })
+})
