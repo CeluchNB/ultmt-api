@@ -63,7 +63,7 @@ export default class UserServices {
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        user.tokens = user?.tokens?.filter((token) => token !== jwt)
+        // TODO: Add access and refresh token to blacklist
         await user.save()
     }
 
@@ -76,7 +76,7 @@ export default class UserServices {
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        user.tokens = []
+        // TODO: Add access and refresh token to blacklist
         await user.save()
     }
 
@@ -246,7 +246,7 @@ export default class UserServices {
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        user.tokens = []
+        // TODO: No token to add to blacklist?
         user.password = newPassword
         await user.save()
         const token = await user.generateAuthToken()
@@ -343,7 +343,7 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
         user.password = newPassword
-        user.tokens = []
+        // TODO: No token to add to blacklist?
         await user.save()
 
         const token = await user.generateAuthToken()

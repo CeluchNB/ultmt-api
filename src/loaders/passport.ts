@@ -22,7 +22,7 @@ passport.use(
             if (!match) {
                 return done(null, false, { message: Constants.UNABLE_TO_LOGIN })
             }
-            return done(null, user)
+            return done(null, { id: user._id.toString() })
         },
     ),
 )
@@ -35,16 +35,10 @@ const opts: StrategyOptions = {
 
 passport.use(
     new JwtStrategy(opts, async (jwtPayload, done) => {
-        const user = await User.findById(jwtPayload.sub)
-        if (!user) {
-            return done(null, false, { message: Constants.UNABLE_TO_FIND_USER })
-        }
-
+        // check
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string)
-        if (!user.tokens?.includes(token)) {
-            return done(null, false, { message: Constants.UNABLE_TO_VERIFY_TOKEN })
-        }
+        // check redis blacklist for token
 
-        return done(null, user)
+        return done(null, { id: jwtPayload.sub })
     }),
 )

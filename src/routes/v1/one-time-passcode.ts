@@ -5,7 +5,6 @@ import OneTimePasscodeServices from '../../services/v1/one-time-passcode'
 import { body } from 'express-validator'
 import OneTimePasscode from '../../models/one-time-passcode'
 import User from '../../models/user'
-import { IUser } from '../../types'
 import { errorMiddleware } from '../../middleware/errors'
 
 export const otpRouter = Router()
@@ -20,7 +19,7 @@ otpRouter.delete('/otp/expired', async (req: Request, res: Response, next) => {
     }
 })
 
-// CREATE otp
+// POST otp
 otpRouter.post(
     '/otp',
     body('reason').isString(),
@@ -28,7 +27,7 @@ otpRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const services = new OneTimePasscodeServices(OneTimePasscode, User)
-            const code = await services.createOtp((req.user as IUser)._id.toString(), req.body.reason)
+            const code = await services.createOtp(req.user?.id as string, req.body.reason)
             return res.status(201).json({ code })
         } catch (error) {
             next(error)

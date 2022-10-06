@@ -12,7 +12,6 @@ export interface CreateUser {
 export interface IUser extends CreateUser {
     _id: Types.ObjectId
     private: boolean
-    tokens?: string[]
     playerTeams: EmbeddedTeam[]
     managerTeams: EmbeddedTeam[]
     archiveTeams: EmbeddedTeam[]

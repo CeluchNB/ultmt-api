@@ -35,7 +35,6 @@ describe('test sign up', () => {
         expect(userRecord.lastName).toBe(user.lastName)
         expect(userRecord.email).toBe(user.email)
         expect(userRecord.password).not.toBe(user.password)
-        expect(userRecord.tokens?.length).toBe(1)
         expect(userRecord.playerTeams.length).toBe(0)
         expect(userRecord.managerTeams.length).toBe(0)
         expect(userRecord.archiveTeams.length).toBe(0)
@@ -54,101 +53,101 @@ describe('test sign up', () => {
     })
 })
 
-describe('test login', () => {
-    it('with existing email', async () => {
-        const user = getUser()
+// describe('test login', () => {
+//     it('with existing email', async () => {
+//         const user = getUser()
 
-        await User.create(user)
-        const token = await services.login(user.email)
-        const userRecord = await User.findOne({ email: user.email })
+//         await User.create(user)
+//         const token = await services.login(user.email)
+//         const userRecord = await User.findOne({ email: user.email })
 
-        expect(userRecord?.tokens?.length).toBe(1)
-        expect(userRecord?.tokens?.[0]).toBe(token)
-    })
+//         expect(userRecord?.tokens?.length).toBe(1)
+//         expect(userRecord?.tokens?.[0]).toBe(token)
+//     })
 
-    it('with non-existing email', async () => {
-        const user = getUser()
+//     it('with non-existing email', async () => {
+//         const user = getUser()
 
-        await User.create(user)
-        await expect(services.login('absent@email.com')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500),
-        )
-    })
-})
+//         await User.create(user)
+//         await expect(services.login('absent@email.com')).rejects.toThrowError(
+//             new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500),
+//         )
+//     })
+// })
 
-describe('test logout', () => {
-    it('with existing email and one token', async () => {
-        const user = getUser()
+// describe('test logout', () => {
+//     it('with existing email and one token', async () => {
+//         const user = getUser()
 
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        await userRecord.save()
+//         const userRecord = await User.create(user)
+//         userRecord.tokens?.push('token1')
+//         await userRecord.save()
 
-        await services.logout(user.email, 'token1')
+//         await services.logout(user.email, 'token1')
 
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
+//         const testUser = await User.findOne({ email: user.email })
+//         expect(testUser?.tokens?.length).toBe(0)
+//     })
 
-    it('with existing email and three tokens', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        userRecord.tokens?.push('token2')
-        userRecord.tokens?.push('token3')
-        await userRecord.save()
+//     it('with existing email and three tokens', async () => {
+//         const user = getUser()
+//         const userRecord = await User.create(user)
+//         userRecord.tokens?.push('token1')
+//         userRecord.tokens?.push('token2')
+//         userRecord.tokens?.push('token3')
+//         await userRecord.save()
 
-        await services.logout(user.email, 'token2')
+//         await services.logout(user.email, 'token2')
 
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(2)
-        expect(testUser?.tokens).not.toContain('token2')
-    })
+//         const testUser = await User.findOne({ email: user.email })
+//         expect(testUser?.tokens?.length).toBe(2)
+//         expect(testUser?.tokens).not.toContain('token2')
+//     })
 
-    it('with non-existing email', async () => {
-        const user = getUser()
+//     it('with non-existing email', async () => {
+//         const user = getUser()
 
-        await User.create(user)
-        await expect(services.logout('absent@email.com', 'token1')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-})
+//         await User.create(user)
+//         await expect(services.logout('absent@email.com', 'token1')).rejects.toThrowError(
+//             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+//         )
+//     })
+// })
 
-describe('test logout all', () => {
-    it('with existing email and one token', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        await userRecord.save()
+// describe('test logout all', () => {
+//     it('with existing email and one token', async () => {
+//         const user = getUser()
+//         const userRecord = await User.create(user)
+//         userRecord.tokens?.push('token1')
+//         await userRecord.save()
 
-        await services.logoutAll(user.email)
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
+//         await services.logoutAll(user.email)
+//         const testUser = await User.findOne({ email: user.email })
+//         expect(testUser?.tokens?.length).toBe(0)
+//     })
 
-    it('with existing email and three tokens', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        userRecord.tokens?.push('token2')
-        userRecord.tokens?.push('token3')
-        await userRecord.save()
+//     it('with existing email and three tokens', async () => {
+//         const user = getUser()
+//         const userRecord = await User.create(user)
+//         userRecord.tokens?.push('token1')
+//         userRecord.tokens?.push('token2')
+//         userRecord.tokens?.push('token3')
+//         await userRecord.save()
 
-        await services.logoutAll(user.email)
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
+//         await services.logoutAll(user.email)
+//         const testUser = await User.findOne({ email: user.email })
+//         expect(testUser?.tokens?.length).toBe(0)
+//     })
 
-    it('with non-existing email', async () => {
-        const user = getUser()
-        await User.create(user)
+//     it('with non-existing email', async () => {
+//         const user = getUser()
+//         await User.create(user)
 
-        await expect(services.logoutAll('absent@email.com')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-})
+//         await expect(services.logoutAll('absent@email.com')).rejects.toThrowError(
+//             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+//         )
+//     })
+// })
 
 describe('test get user', () => {
     it('with existing, public user', async () => {
@@ -161,7 +160,6 @@ describe('test get user', () => {
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
-        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.toString()).toBe(userRecord.playerTeams?.toString())
         expect(userResponse.managerTeams.toString()).toBe(userRecord.managerTeams?.toString())
         expect(userResponse.archiveTeams.toString()).toBe(userRecord.archiveTeams?.toString())
@@ -180,7 +178,6 @@ describe('test get user', () => {
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
-        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.length).toBe(0)
         expect(userResponse.managerTeams.length).toBe(0)
         expect(userResponse.archiveTeams.length).toBe(0)
@@ -476,7 +473,6 @@ describe('test manager leave functionality', () => {
 describe('test change user password', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
-        user.tokens = ['token1', 'token2']
         await user.save()
         const oldPassword = user.password
 
@@ -484,11 +480,10 @@ describe('test change user password', () => {
         const newPassword = newUser.password as string
         expect(oldPassword).not.toBe(newPassword)
         expect(bcrypt.compareSync('Test987!', newPassword)).toBe(true)
+        expect(token.length).toBeGreaterThan(20)
 
         const newUserRecord = await User.findById(user._id.toString())
         expect(newUserRecord?.password).toBe(newPassword)
-        expect(newUserRecord?.tokens?.length).toBe(1)
-        expect(newUserRecord?.tokens?.[0]).toBe(token)
     })
 
     it('with unfound user', async () => {
@@ -641,7 +636,6 @@ describe('test request password recovery', () => {
 describe('test reset password', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
-        user.tokens = ['token1', 'token2', 'token3']
         await user.save()
         const otp = await OneTimePasscode.create({
             creator: user._id,
@@ -656,7 +650,6 @@ describe('test reset password', () => {
 
         const newUser = await User.findById(user._id)
         expect(newUser?.password).not.toBe(user.password)
-        expect(newUser?.tokens?.length).toBe(1)
 
         const newOtp = await OneTimePasscode.findById(otp._id)
         expect(newOtp).toBeNull()
