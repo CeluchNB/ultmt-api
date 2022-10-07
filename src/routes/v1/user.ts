@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express'
-import { ApiError, CreateUser, IUser } from '../../types'
+import { ApiError, CreateUser } from '../../types'
 import UserServices from '../../services/v1/user'
 import User from '../../models/user'
 import Team from '../../models/team'
@@ -39,54 +39,6 @@ userRouter.post(
         }
     },
 )
-
-// userRouter.post(
-//     '/user/login',
-//     passport.authenticate('local', { session: false }),
-//     async (req: Request, res: Response, next) => {
-//         try {
-//             const user: CreateUser = req.user as CreateUser
-//             const userService = new UserServices(User, Team)
-//             const token = await userService.login(user.email)
-//             return res.json({ token })
-//         } catch (error) {
-//             next(error)
-//         }
-//     },
-// )
-
-// userRouter.post(
-//     '/user/logout',
-//     passport.authenticate('jwt', { session: false }),
-//     async (req: Request, res: Response, next) => {
-//         try {
-//             const token = req.header('Authorization')?.replace('Bearer ', '')
-//             const email = (req?.user as CreateUser).email
-
-//             const userService = new UserServices(User, Team)
-//             await userService.logout(email, token as string)
-//             return res.send()
-//         } catch (error) {
-//             next(error)
-//         }
-//     },
-// )
-
-// userRouter.post(
-//     '/user/logoutAll',
-//     passport.authenticate('jwt', { session: false }),
-//     async (req: Request, res: Response, next) => {
-//         try {
-//             const email = (req?.user as CreateUser).email
-
-//             const userService = new UserServices(User, Team)
-//             await userService.logoutAll(email)
-//             return res.send()
-//         } catch (error) {
-//             next(error)
-//         }
-//     },
-// )
 
 userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
     return res.json(req.user)
@@ -266,21 +218,6 @@ userRouter.post(
         try {
             const userService = new UserServices(User, Team, OneTimePasscode)
             const user = await userService.joinByCode(req.user?.id as string, req.query.code as string)
-            return res.json({ user })
-        } catch (error) {
-            next(error)
-        }
-    },
-)
-
-userRouter.get(
-    '/user/manager/authenticate',
-    query('team').escape().isString(),
-    passport.authenticate('jwt', { session: false }),
-    async (req: Request, res: Response, next) => {
-        try {
-            const userService = new UserServices(User, Team)
-            const user = await userService.authenticateManager(req.user?.id as string, req.query.team as string)
             return res.json({ user })
         } catch (error) {
             next(error)

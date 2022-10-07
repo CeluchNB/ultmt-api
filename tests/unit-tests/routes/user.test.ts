@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable prettier/prettier */
 import request from 'supertest'
 import app from '../../../src/app'
 import { ApiError, IUser, OTPReason } from '../../../src/types'
@@ -36,10 +34,7 @@ describe('test /POST user', () => {
     it('with valid data', async () => {
         const user = getUser()
 
-        const response = await request(app)
-            .post('/api/v1/user')
-            .send(user)
-            .expect(201)
+        const response = await request(app).post('/api/v1/user').send(user).expect(201)
 
         const userResponse: IUser = response.body.user
         const token = response.body.token
@@ -61,200 +56,13 @@ describe('test /POST user', () => {
         const response = await request(app)
             .post('/api/v1/user')
             .send({
-                bad: 'data'
+                bad: 'data',
             })
             .expect(400)
 
         expect(response.body.message).toBe(Constants.MISSING_FIELDS)
     })
 })
-
-// describe('test /POST login', () => {
-//     it('with existing email', async () => {
-//         const user = getUser()
-        
-//         await User.create(user)
-
-//         const response = await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: user.email, password: user.password })
-//             .expect(200)
-
-//         expect(response.body.token).toBeDefined()
-//         expect(response.body.token.length).toBeGreaterThan(10)
-//     })
-
-//     it('with existing username', async () => {
-//         const user = getUser()
-        
-//         await User.create(user)
-
-//         const response = await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: user.username, password: user.password })
-//             .expect(200)
-        
-//         expect(response.body.token).toBeDefined()
-//         expect(response.body.token.length).toBeGreaterThan(10)
-//     })
-
-//     it('with wrong password', async () => {
-//         const user = getUser()
-
-//         await User.create(user)
-
-//         await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: user.email, password: 'nottherealpassword' })
-//             .expect(401)
-
-//     })
-
-//     it('without existing email', async () => {
-//         const user = getUser()
-        
-//         await User.create(user)
-
-//         await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: 'absent@email.com', password: user.password })
-//             .expect(401)
-
-//     })
-
-//     it('with null password on user', async () => {
-//         const user = getUser()
-
-//         await User.create(user)
-
-//         // @ts-ignore
-//         jest.spyOn(User, 'findOne').mockImplementationOnce(() => {
-//             return {
-//                 _id: 'id1',
-//                 firstName: 'first', 
-//                 lastName: 'last', 
-//                 email: 'first@email.com',
-//                 username: 'firstlast',
-//             }
-//         })
-
-//         await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: user.email, password: user.password })
-//             .expect(401)
-//     })
-
-//     it('with service error', async () => {
-//         const user = getUser()
-
-//         await User.create(user)
-
-//         jest.spyOn(User.prototype, 'generateAuthToken').mockImplementationOnce(() => {
-//             throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
-//         })
-
-//         const response = await request(app)
-//             .post('/api/v1/user/login')
-//             .send({ email: user.email, password: user.password })
-//             .expect(500)
-
-//         expect(response.body.message).toBe(Constants.UNABLE_TO_GENERATE_TOKEN)
-//     })
-// })
-
-// describe('test /POST logout', () => {
-//     it('with existing user and valid token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
-
-//         await request(app)
-//             .post('/api/v1/user/logout')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(200)
-
-//         const userRecord2 = await User.findById(userRecord._id)
-//         expect(userRecord2?.tokens?.length).toBe(0)
-//     })
-
-//     it('with existing user and non-existent token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         await userRecord.generateAuthToken()
-//         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
-
-//         await request(app)
-//             .post('/api/v1/user/logout')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(401)
-        
-//         const userRecord2 = await User.findById(userRecord._id)
-//         expect(userRecord2?.tokens?.length).toBe(1)
-//     })
-
-//     it('with non-existent objectid of user', async () => {
-//         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
-
-//         await request(app)
-//             .post('/api/v1/user/logout')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(401)
-//     })
-
-//     it('with service error', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
-
-//         jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
-//             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
-//         })
-
-//         await request(app)
-//             .post('/api/v1/user/logout')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(404)
-//     })
-// })
-
-// describe('test /POST logout all', () => {
-//     it('with existing user and multiple tokens', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
-//         await userRecord.generateAuthToken()
-//         await userRecord.generateAuthToken()
-
-//         await request(app)
-//             .post('/api/v1/user/logoutAll')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(200)
-
-//         const testUser = await User.findById(userRecord._id)
-//         expect(testUser?.tokens?.length).toBe(0)
-//     })
-
-//     it('with service error', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
-
-//         jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
-//             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
-//         })
-
-//         await request(app)
-//             .post('/api/v1/user/logoutAll')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(404)
-//     })
-// })
 
 // describe('test /GET me', () => {
 //     it('with valid token', async () => {
@@ -284,7 +92,7 @@ describe('test /POST user', () => {
 //             .set('Authorization', `Bearer ${token}`)
 //             .send()
 //             .expect(401)
-        
+
 //         expect(response.body._id).toBeUndefined()
 //         expect(response.body.firstName).toBeUndefined()
 //         expect(response.body.email).toBeUndefined()
@@ -296,11 +104,8 @@ describe('test /GET user', () => {
         const user = getUser()
         const userRecord = await User.create(user)
 
-        const response = await request(app)
-            .get(`/api/v1/user/${userRecord._id}`)
-            .send()
-            .expect(200)
-        
+        const response = await request(app).get(`/api/v1/user/${userRecord._id}`).send().expect(200)
+
         const userResponse = response.body
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
@@ -309,10 +114,7 @@ describe('test /GET user', () => {
     })
 
     it('with non-existing user', async () => {
-        const response = await request(app)
-            .get(`/api/v1/user/${anonId}`)
-            .send()
-            .expect(404)
+        const response = await request(app).get(`/api/v1/user/${anonId}`).send().expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
     })
@@ -324,22 +126,14 @@ describe('test /DELETE profile', () => {
         const userRecord = await User.create(user)
         const token = await userRecord.generateAuthToken()
 
-        await request(app)
-            .delete('/api/v1/user/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send()
-            .expect(200)
+        await request(app).delete('/api/v1/user/me').set('Authorization', `Bearer ${token}`).send().expect(200)
     })
 
     // TODO: change to 'with blacklisted token'
     it('test delete with non-existing token', async () => {
         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
-        await request(app)
-            .delete('/api/v1/user/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send()
-            .expect(401)
+        await request(app).delete('/api/v1/user/me').set('Authorization', `Bearer ${token}`).send().expect(401)
     })
 
     it('test delete with service error', async () => {
@@ -351,11 +145,7 @@ describe('test /DELETE profile', () => {
             throw new ApiError(Constants.GENERIC_ERROR, 500)
         })
 
-        await request(app)
-            .delete('/api/v1/user/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send()
-            .expect(500)
+        await request(app).delete('/api/v1/user/me').set('Authorization', `Bearer ${token}`).send().expect(500)
     })
 })
 
@@ -445,7 +235,7 @@ describe('test /POST leave team', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
-        
+
         const userResponse = response.body.user
         expect(userResponse._id).toBe(user._id.toString())
         expect(userResponse.playerTeams.length).toBe(0)
@@ -517,10 +307,7 @@ describe('test /GET search users', () => {
     })
 
     it('with valid query', async () => {
-        const response = await request(app)
-            .get('/api/v1/user/search?q=noah')
-            .send()
-            .expect(200)
+        const response = await request(app).get('/api/v1/user/search?q=noah').send().expect(200)
 
         const { users } = response.body
         expect(users.length).toBe(1)
@@ -528,10 +315,7 @@ describe('test /GET search users', () => {
     })
 
     it('with invalid query', async () => {
-        await request(app)
-            .get('/api/v1/user/search')
-            .send()
-            .expect(400)
+        await request(app).get('/api/v1/user/search').send().expect(400)
     })
 })
 
@@ -601,7 +385,6 @@ describe('test /PUT leave manager', () => {
             .expect(400)
 
         expect(response.body.message).toBe(Constants.USER_IS_ONLY_MANAGER)
-
     })
 })
 
@@ -614,7 +397,7 @@ describe('test /PUT change user password', () => {
             .put('/api/v1/user/changePassword')
             .send({ email: 'firstlast', password: 'Pass123!', newPassword: 'Test987!' })
             .expect(200)
-        
+
         const { user: userResponse, token } = response.body
         expect(userResponse.password).toBeUndefined()
         expect(userResponse.email).toBe(user.email)
@@ -625,10 +408,7 @@ describe('test /PUT change user password', () => {
         const userRecord = await User.findById(user._id.toString())
         expect(userRecord?.password).not.toEqual(oldPassword)
 
-        await request(app)
-            .post('/api/v1/user/login')
-            .send({ email: 'firstlast', password: 'Test987!' })
-            .expect(200)
+        await request(app).post('/api/v1/user/login').send({ email: 'firstlast', password: 'Test987!' }).expect(200)
     })
 
     it('with invalid login', async () => {
@@ -637,7 +417,6 @@ describe('test /PUT change user password', () => {
             .put('/api/v1/user/changePassword')
             .send({ email: 'firstlast', password: 'test123', newPassword: 'Test987!' })
             .expect(401)
-
     })
 
     it('with invalid new password', async () => {
@@ -646,7 +425,7 @@ describe('test /PUT change user password', () => {
             .put('/api/v1/user/changePassword')
             .send({ email: 'firstlast', password: 'Pass123!', newPassword: 'test234' })
             .expect(400)
-        
+
         expect(response.body.message).toBe(Constants.INVALID_PASSWORD)
     })
 })
@@ -659,11 +438,11 @@ describe('test /PUT change user email', () => {
             .put('/api/v1/user/changeEmail')
             .send({ email: 'first.last@email.com', password: 'Pass123!', newEmail: 'newemail@hotmail.com' })
             .expect(200)
-        
+
         const { user: userResponse } = response.body
         expect(userResponse._id.toString()).toBe(user._id.toString())
         expect(userResponse.email).toBe('newemail@hotmail.com')
-        
+
         const newUserRecord = await User.findById(userResponse._id)
         expect(newUserRecord?.email).toBe('newemail@hotmail.com')
     })
@@ -684,7 +463,7 @@ describe('test /PUT change user email', () => {
             .put('/api/v1/user/changeEmail')
             .send({ email: 'first.last@email.com', password: 'Pass123!', newEmail: 'newemail@hotmailcom' })
             .expect(400)
-        
+
         expect(response.body.message).toBe(Constants.INVALID_EMAIL)
 
         const userRecord = await User.findById(user._id)
@@ -702,7 +481,7 @@ describe('test /PUT change user names', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({ newFirstName: 'New First', newLastName: 'New Last' })
             .expect(200)
-        
+
         const { user: userResponse } = response.body
         expect(userResponse.firstName).toBe('New First')
         expect(userResponse.lastName).toBe('New Last')
@@ -733,7 +512,7 @@ describe('test /PUT change user names', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({ newFirstName: 'waytoolongofafirstname', newLastName: '' })
             .expect(400)
-        
+
         expect(response.body.message).toBe(Constants.NAME_TOO_LONG)
     })
 })
@@ -758,20 +537,18 @@ describe('test /POST request password recovery', () => {
             .expect(200)
 
         expect(response.body).toEqual({})
-        
+
         const [otp] = await OneTimePasscode.find({})
         expect(otp).toBeDefined()
         expect(otp?.passcode.length).toBe(6)
-        
+
         expect(spy).toHaveBeenCalled()
     })
 
     it('with sendgrid error', async () => {
-        jest.spyOn(sgMail, 'send').mockImplementationOnce(
-            () => {
-                throw new ApiError('', 400)
-            }
-        )
+        jest.spyOn(sgMail, 'send').mockImplementationOnce(() => {
+            throw new ApiError('', 400)
+        })
         const user = await User.create(getUser())
 
         const response = await request(app)
@@ -812,7 +589,7 @@ describe('test /POST reset password', () => {
             .expect(200)
 
         const { token, user: userResponse } = response.body
-        
+
         expect(token.length).toBeGreaterThan(10)
         expect(userResponse.username).toBe(user.username)
 
@@ -835,7 +612,7 @@ describe('test /POST reset password', () => {
             .post('/api/v1/user/resetPassword')
             .send({ passcode: '654321', newPassword: 'Test987!' })
             .expect(400)
-        
+
         expect(response.body.message).toBe(Constants.INVALID_PASSCODE)
     })
 })
@@ -852,7 +629,7 @@ describe('test /PUT set private', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
-        
+
         const { user: userResponse } = response.body
 
         expect(userResponse.username).toBe(user.username)
@@ -914,7 +691,7 @@ describe('test /POST join team by code', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
-        
+
         const { user: userResponse } = result.body
         expect(userResponse.playerTeams.length).toBe(1)
         expect(userResponse.playerTeams[0]._id.toString()).toBe(team._id.toString())
@@ -937,7 +714,7 @@ describe('test /POST join team by code', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(400)
-        
+
         expect(result.body.message).toBe(Constants.INVALID_PASSCODE)
     })
 
@@ -956,68 +733,6 @@ describe('test /POST join team by code', () => {
         await request(app)
             .post(`/api/v1/user/joinTeamByCode?code=${otp.passcode}`)
             .set('Authorization', 'Bearer da4asd44.asdgy543asf.asft53g')
-            .send()
-            .expect(401)
-
-    })
-})
-
-describe('GET /user/manager/authenticate', () => {
-    it('with valid manager', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        team.managers.push(getEmbeddedUser(user))
-        await team.save()
-        user.managerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-
-        const token = await user.generateAuthToken()
-
-        const response = await request(app)
-            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
-            .set('Authorization', `Bearer ${token}`)
-            .send()
-            .expect(200)
-    
-        const { user: userResponse } = response.body
-        expect(userResponse._id.toString()).toBe(user._id.toString())
-        expect(userResponse.username).toBe(user.username)
-    })
-
-    it('with non-manager', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        const token = await user.generateAuthToken()
-
-        await request(app)
-            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
-            .set('Authorization', `Bearer ${token}`)
-            .send()
-            .expect(401)
-    })
-
-    it('with invalid token', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        team.managers.push(getEmbeddedUser(user))
-        await team.save()
-        user.managerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-
-        await user.generateAuthToken()
-
-        await request(app)
-            .get(`/api/v1/user/manager/authenticate?team=${team._id}`)
-            .set('Authorization', `Bearer asdf.13425ra.asdf4f`)
             .send()
             .expect(401)
     })

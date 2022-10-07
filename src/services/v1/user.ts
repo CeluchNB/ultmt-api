@@ -37,50 +37,6 @@ export default class UserServices {
     }
 
     /**
-     * Method to generate an authentication token for a user
-     * Actual email/password check occurs in passport.js
-     * @param email email to login with
-     * @returns the authentication token
-     */
-    login = async (email: string): Promise<string> => {
-        const user = await this.userModel.findOne({ email })
-        const token = await user?.generateAuthToken()
-
-        if (token) {
-            return token
-        } else {
-            throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
-        }
-    }
-
-    /**
-     * Method to logout
-     * @param email Email of user to logout
-     * @param jwt authentication token to remove from user's list
-     */
-    logout = async (email: string, jwt: string) => {
-        const user = await this.userModel.findOne({ email })
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-        // TODO: Add access and refresh token to blacklist
-        await user.save()
-    }
-
-    /**
-     * Method to logout all devices
-     * @param email email of user to delete all authentication tokens
-     */
-    logoutAll = async (email: string) => {
-        const user = await this.userModel.findOne({ email })
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-        // TODO: Add access and refresh token to blacklist
-        await user.save()
-    }
-
-    /**
      * Method to get a user's public details
      * @param id id of user to get
      * @returns user document
@@ -400,21 +356,6 @@ export default class UserServices {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-
-        return user
-    }
-
-    /**
-     * Method to check if user is manager of a team
-     * @param userId id of manager
-     * @param teamId id of team
-     */
-    authenticateManager = async (userId: string, teamId: string): Promise<IUser> => {
-        const user = await this.userModel.findById(userId)
-        if (!user) {
-            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
-        }
-        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(userId, teamId).test()
 
         return user
     }

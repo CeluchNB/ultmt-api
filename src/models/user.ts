@@ -137,13 +137,11 @@ schema.methods.toJSON = function () {
 }
 
 schema.methods.generateAuthToken = async function () {
-    const payload = {
-        sub: this._id.toString(),
-        iat: Date.now(),
-    }
-
     try {
-        const token = jwt.sign(payload, process.env.JWT_SECRET as string)
+        const token = jwt.sign({}, process.env.JWT_SECRET as string, {
+            subject: this._id.toString(),
+            expiresIn: '12 hours',
+        })
         return token
     } catch (error) {
         throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
