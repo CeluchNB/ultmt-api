@@ -1,5 +1,12 @@
 import request from 'supertest'
 import app from '../../../src/app'
+import { client } from '../../../src/loaders/redis'
+
+afterAll(() => {
+    if (client.isOpen) {
+        client.quit()
+    }
+})
 
 jest.mock('node-cron', () => {
     return {

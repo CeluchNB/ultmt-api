@@ -2,8 +2,10 @@ import cors from 'cors'
 import express, { Application } from 'express'
 import { router as v1Router } from './routes/v1'
 import passport from 'passport'
-// import logger from './loaders/winston'
+import { connectRedis } from './loaders/redis'
 import './loaders/sendgrid'
+connectRedis()
+// import logger from './loaders/winston'
 // Disable cron jobs while using cloud run
 // import './loaders/cron'
 

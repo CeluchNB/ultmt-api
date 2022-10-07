@@ -41,6 +41,7 @@ userRouter.post(
 )
 
 userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
+    // TODO: change to actually get user by id
     return res.json(req.user)
 })
 

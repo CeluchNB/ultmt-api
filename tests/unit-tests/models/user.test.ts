@@ -31,7 +31,6 @@ describe('test user model', () => {
         expect(userRecord.email).toBe(userData.email)
         expect(userRecord.password).not.toBe(userData.password)
         expect(userRecord.private).toBe(false)
-        expect(userRecord.tokens?.length).toBe(0)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
@@ -76,7 +75,6 @@ describe('test user model', () => {
         expect(userJson.lastName).toBe(userData.lastName)
         expect(userJson.email).toBe(userData.email)
         expect(userJson.password).toBeUndefined()
-        expect(userJson.tokens).toBeUndefined()
         expect(userJson.private).toBe(false)
         expect(userJson.playerTeams.length).toBe(0)
         expect(userJson.managerTeams.length).toBe(0)
@@ -100,8 +98,6 @@ describe('test user model', () => {
         expect(userPostToken?.firstName).toBe(userData.firstName)
         expect(userPostToken?.lastName).toBe(userData.lastName)
         expect(userPostToken?.email).toBe(userData.email)
-        expect(userPostToken?.tokens?.length).toBe(1)
-        expect(userPostToken?.tokens?.[0]).toBe(token)
     })
 
     it('generate auth token with jwt error', async () => {
@@ -111,19 +107,6 @@ describe('test user model', () => {
         const userRecord = await user.save()
 
         jest.spyOn(jwt, 'sign').mockImplementationOnce(() => {
-            throw new Error('Error')
-        })
-
-        await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
-    })
-
-    it('generate auth token with save error', async () => {
-        const userData = getUser()
-
-        const user = new User(userData)
-        const userRecord = await user.save()
-
-        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
             throw new Error('Error')
         })
 

@@ -5,9 +5,13 @@ import { CreateUser } from '../../src/types'
 import RosterRequest from '../../src/models/roster-request'
 import ArchiveTeam from '../../src/models/archive-team'
 import OneTimePasscode from '../../src/models/one-time-passcode'
+import { createClient } from 'redis'
+
+export const redisClient = createClient({ url: process.env.REDIS_URL })
 
 export const setUpDatabase = async () => {
     await connect(process.env.MONGOOSE_URL as string)
+    await redisClient.connect()
 }
 
 export const saveUsers = async () => {
@@ -49,4 +53,7 @@ export const resetDatabase = async () => {
 
 export const tearDownDatabase = () => {
     connection.close()
+    if (redisClient.isOpen) {
+        redisClient.quit()
+    }
 }

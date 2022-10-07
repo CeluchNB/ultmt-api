@@ -7,6 +7,7 @@ import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/s
 import { getUser } from '../../fixtures/utils'
 import { OTPReason } from '../../../src/types'
 import randomstring from 'randomstring'
+import { client } from '../../../src/loaders/redis'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -18,6 +19,9 @@ afterEach(async () => {
 
 afterAll((done) => {
     tearDownDatabase()
+    if (client.isOpen) {
+        client.quit()
+    }
     done()
 })
 

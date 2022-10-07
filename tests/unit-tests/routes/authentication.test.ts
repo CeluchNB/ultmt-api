@@ -4,11 +4,12 @@ import request from 'supertest'
 import app from '../../../src/app'
 import * as Constants from '../../../src/utils/constants'
 import { ApiError } from '../../../src/types'
-import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser, getTeam } from '../../fixtures/utils'
+import { setUpDatabase, resetDatabase, tearDownDatabase, redisClient } from '../../fixtures/setup-db'
+import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import { client } from '../../../src/loaders/redis'
 import jwt from 'jsonwebtoken'
 
 jest.mock('node-cron', () => {
@@ -27,6 +28,9 @@ afterEach(async () => {
 
 afterAll((done) => {
     tearDownDatabase()
+    if (client.isOpen) {
+        client.quit()
+    }
     done()
 })
 
@@ -118,50 +122,39 @@ describe('test /POST login', () => {
     })
 })
 
-// describe('test /POST logout', () => {
-//     it('with existing user and valid token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
+describe('test /POST logout', () => {
+    it('with existing user and valid token', async () => {
+        const user = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
 
-//         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(200)
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(200)
 
-//         const userRecord2 = await User.findById(userRecord._id)
-//         expect(userRecord2?.tokens?.length).toBe(0)
-//     })
+        const exp = await redisClient.ttl(token)
+        expect(exp).toBe(60*60*12)
+        
+    })
 
-//     it('with existing user and non-existent token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         await userRecord.generateAuthToken()
-//         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
+    it('with non-existent objectid of user', async () => {
+        const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
-//         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(401)
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(404)
+    })
 
-//         const userRecord2 = await User.findById(userRecord._id)
-//         expect(userRecord2?.tokens?.length).toBe(1)
-//     })
+    it('with service error', async () => {
+        const user = getUser()
+        const userRecord = await User.create(user)
+        const token = await userRecord.generateAuthToken()
 
-//     it('with non-existent objectid of user', async () => {
-//         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
+        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
+        })
 
-//         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(401)
-//     })
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(404)
+    })
+})
 
-//     it('with service error', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
-
-//         jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
-//             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
-//         })
-
-//         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(404)
-//     })
-// })
-
-describe('test /POST logout all', () => {
+// describe('test /POST logout all', () => {
     // it('with existing user and multiple tokens', async () => {
     //     const user = getUser()
     //     const userRecord = await User.create(user)
@@ -175,18 +168,18 @@ describe('test /POST logout all', () => {
     //     expect(testUser?.tokens?.length).toBe(0)
     // })
 
-    it('with service error', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        const token = await userRecord.generateAuthToken()
+//     it('with service error', async () => {
+//         const user = getUser()
+//         const userRecord = await User.create(user)
+//         const token = await userRecord.generateAuthToken()
 
-        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
-        })
+//         jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+//             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 400)
+//         })
 
-        await request(app).post('/api/v1/auth/logoutAll').set('Authorization', `Bearer ${token}`).send().expect(404)
-    })
-})
+//         await request(app).post('/api/v1/auth/logoutAll').set('Authorization', `Bearer ${token}`).send().expect(404)
+//     })
+// })
 
 describe('test /GET authenticate manager', () => {
     it('with valid manager', async () => {

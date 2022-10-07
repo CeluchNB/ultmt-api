@@ -63,6 +63,7 @@ export default class UserServices {
      * @param id id of user to delete
      */
     deleteUser = async (id: string) => {
+        // TODO: blacklist calling token
         await this.userModel.deleteOne({ _id: id })
     }
 
@@ -299,9 +300,9 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
         user.password = newPassword
-        // TODO: No token to add to blacklist?
         await user.save()
 
+        // TODO: generate refresh token signed with password hash
         const token = await user.generateAuthToken()
 
         // delete otp

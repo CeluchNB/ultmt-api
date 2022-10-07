@@ -2,7 +2,7 @@ import * as Constants from '../../../src/utils/constants'
 import AuthenticationServices from '../../../src/services/v1/authentication'
 import User from '../../../src/models/user'
 import Team from '../../../src/models/team'
-import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase, redisClient } from '../../fixtures/setup-db'
 import { getUser, getTeam, anonId } from '../../fixtures/utils'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import jwt, { JwtPayload } from 'jsonwebtoken'
@@ -22,7 +22,7 @@ afterAll((done) => {
     done()
 })
 
-const services = new AuthenticationServices(User, Team)
+const services = new AuthenticationServices(User, Team, redisClient)
 describe('test login', () => {
     it('with existing email', async () => {
         const user = await User.create(getUser())
@@ -45,26 +45,14 @@ describe('test login', () => {
 })
 
 describe('test logout', () => {
-    //     it('with existing email and one token', async () => {
-    //         const user = getUser()
-
-    //         const userRecord = await User.create(user)
-
-    //         await services.logout(user.email, 'token1')
-    //     })
-
-    //     it('with existing email and three tokens', async () => {
-    //         const user = getUser()
-    //         const userRecord = await User.create(user)
-    //         await userRecord.save()
-
-    //         await services.logout(user.email, 'token2')
-
-    //         const testUser = await User.findOne({ email: user.email })
-    //     })
+    it('with existing email and one token', async () => {
+        const userRecord = await User.create(getUser())
+        await services.logout(userRecord._id.toString(), 'token1')
+        const exp = await redisClient.ttl('token1')
+        expect(exp).toBe(60 * 60 * 12)
+    })
 
     it('with non-existing user', async () => {
-        const user = await User.create(getUser())
         await expect(services.logout(new Types.ObjectId().toString(), 'token1')).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
