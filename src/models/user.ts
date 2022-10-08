@@ -148,6 +148,18 @@ schema.methods.generateAuthToken = async function () {
     }
 }
 
+schema.methods.generateRefreshToken = async function () {
+    try {
+        const token = jwt.sign({}, this.password, {
+            subject: this._id.toString(),
+            expiresIn: '90 days',
+        })
+        return token
+    } catch (error) {
+        throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
+    }
+}
+
 schema.index({ firstName: 'text', lastName: 'text', username: 'text' })
 
 const User = model<IUser>('User', schema)

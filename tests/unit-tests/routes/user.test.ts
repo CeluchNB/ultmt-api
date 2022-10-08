@@ -2,15 +2,16 @@ import request from 'supertest'
 import app from '../../../src/app'
 import { ApiError, IUser, OTPReason } from '../../../src/types'
 import * as Constants from '../../../src/utils/constants'
-import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../fixtures/setup-db'
+import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers, redisClient } from '../../fixtures/setup-db'
 import { getUser, anonId, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import OneTimePasscode from '../../../src/models/one-time-passcode'
-import jwt from 'jsonwebtoken'
 import Team from '../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import sgMail from '@sendgrid/mail'
 import { client } from '../../../src/loaders/redis'
+import jwt from 'jsonwebtoken'
+import { Types } from 'mongoose'
 
 jest.mock('node-cron', () => {
     return {
@@ -41,7 +42,7 @@ describe('test /POST user', () => {
         const response = await request(app).post('/api/v1/user').send(user).expect(201)
 
         const userResponse: IUser = response.body.user
-        const token = response.body.token
+        const tokens = response.body.tokens
 
         expect(userResponse.firstName).toBe(user.firstName)
         expect(userResponse.lastName).toBe(user.lastName)
@@ -52,8 +53,9 @@ describe('test /POST user', () => {
         expect(userResponse.archiveTeams?.length).toBe(0)
         expect(userResponse.stats?.length).toBe(0)
 
-        expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
     })
 
     it('with invalid data', async () => {
@@ -68,40 +70,49 @@ describe('test /POST user', () => {
     })
 })
 
-// describe('test /GET me', () => {
-//     it('with valid token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         const token = await userRecord.generateAuthToken()
+describe('test /GET me', () => {
+    it('with valid token', async () => {
+        const userRecord = await User.create(getUser())
+        const token = await userRecord.generateAuthToken()
 
-//         const response = await request(app)
-//             .get('/api/v1/user/me')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(200)
+        const response = await request(app)
+            .get('/api/v1/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
 
-//         expect(response.body._id.toString()).toBe(userRecord._id.toString())
-//         expect(response.body.firstName).toBe(userRecord.firstName)
-//         expect(response.body.email).toBe(userRecord.email)
-//     })
+        const { user } = response.body
+        expect(user._id.toString()).toBe(userRecord._id.toString())
+        expect(user.firstName).toBe(userRecord.firstName)
+        expect(user.email).toBe(userRecord.email)
+    })
 
-//     it('with invalid token', async () => {
-//         const user = getUser()
-//         const userRecord = await User.create(user)
-//         await userRecord.generateAuthToken()
-//         const token = jwt.sign({ sub: userRecord._id, iat: Date.now() }, process.env.JWT_SECRET as string)
+    it('with unfound user', async () => {
+        const token = jwt.sign({ sub: new Types.ObjectId() }, process.env.JWT_SECRET as string)
+        const response = await request(app)
+            .get('/api/v1/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
 
-//         const response = await request(app)
-//             .get('/api/v1/user/me')
-//             .set('Authorization', `Bearer ${token}`)
-//             .send()
-//             .expect(401)
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
+    })
 
-//         expect(response.body._id).toBeUndefined()
-//         expect(response.body.firstName).toBeUndefined()
-//         expect(response.body.email).toBeUndefined()
-//     })
-// })
+    it('with invalid token', async () => {
+        const userRecord = await User.create(getUser())
+        const token = await userRecord.generateAuthToken()
+        await redisClient.setEx(token, 60 * 60 * 12, '1')
+
+        const response = await request(app)
+            .get('/api/v1/user/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(401)
+
+        const { user } = response.body
+        expect(user).toBeUndefined()
+    })
+})
 
 describe('test /GET user', () => {
     it('with existing user', async () => {
@@ -402,12 +413,14 @@ describe('test /PUT change user password', () => {
             .send({ email: 'firstlast', password: 'Pass123!', newPassword: 'Test987!' })
             .expect(200)
 
-        const { user: userResponse, token } = response.body
+        const { user: userResponse, tokens } = response.body
         expect(userResponse.password).toBeUndefined()
         expect(userResponse.email).toBe(user.email)
         expect(userResponse.username).toBe(user.username)
         expect(userResponse.firstName).toBe(user.firstName)
-        expect(token).not.toBeNull()
+        expect(tokens).not.toBeNull()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
 
         const userRecord = await User.findById(user._id.toString())
         expect(userRecord?.password).not.toEqual(oldPassword)
@@ -592,9 +605,11 @@ describe('test /POST reset password', () => {
             .send({ passcode: otp.passcode, newPassword: 'Test987!' })
             .expect(200)
 
-        const { token, user: userResponse } = response.body
+        const { user: userResponse, tokens } = response.body
 
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
         expect(userResponse.username).toBe(user.username)
 
         const updatedUser = await User.findById(userResponse)

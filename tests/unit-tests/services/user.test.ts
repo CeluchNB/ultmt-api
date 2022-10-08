@@ -9,6 +9,7 @@ import { ApiError, OTPReason } from '../../../src/types'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import bcrypt from 'bcryptjs'
 import sgMail from '@sendgrid/mail'
+import { Types } from 'mongoose'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -29,7 +30,7 @@ describe('test sign up', () => {
     it('with valid user data', async () => {
         const user = getUser()
 
-        const { user: userRecord, token } = await services.signUp(user)
+        const { user: userRecord, tokens } = await services.signUp(user)
         expect(userRecord._id).toBeDefined()
         expect(userRecord.firstName).toBe(user.firstName)
         expect(userRecord.lastName).toBe(user.lastName)
@@ -41,8 +42,9 @@ describe('test sign up', () => {
         expect(userRecord.requests.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
-        expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
     })
 
     it('with invalid user data', async () => {
@@ -95,6 +97,27 @@ describe('test get user', () => {
 
     it('with bad id', async () => {
         await expect(services.getUser('badid')).rejects.toThrow()
+    })
+})
+
+describe('test get me', () => {
+    it('with valid user', async () => {
+        const userRecord = await User.create(getUser())
+        const id = new Types.ObjectId()
+        userRecord.requests = [id]
+        await userRecord.save()
+
+        const user = await services.getMe(userRecord._id.toString())
+        expect(user._id.toString()).toBe(userRecord._id.toString())
+        expect(user.email).toBe(userRecord.email)
+        expect(user.firstName).toBe(userRecord.firstName)
+        expect(user.lastName).toBe(userRecord.lastName)
+        expect(user.username).toBe(userRecord.username)
+        expect(user.requests[0].toString()).toBe(id.toString())
+    })
+
+    it('with unfound user', async () => {
+        await expect(services.getMe(anonId)).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 })
 
@@ -380,11 +403,12 @@ describe('test change user password', () => {
         await user.save()
         const oldPassword = user.password
 
-        const { user: newUser, token } = await services.changePassword(user._id.toString(), 'Test987!')
+        const { user: newUser, tokens } = await services.changePassword(user._id.toString(), 'Test987!')
         const newPassword = newUser.password as string
         expect(oldPassword).not.toBe(newPassword)
         expect(bcrypt.compareSync('Test987!', newPassword)).toBe(true)
-        expect(token.length).toBeGreaterThan(20)
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
 
         const newUserRecord = await User.findById(user._id.toString())
         expect(newUserRecord?.password).toBe(newPassword)
@@ -546,10 +570,11 @@ describe('test reset password', () => {
             reason: OTPReason.PasswordRecovery,
         })
 
-        const { token, user: userResult } = await services.resetPassword(otp.passcode, 'Test987#')
+        const { user: userResult, tokens } = await services.resetPassword(otp.passcode, 'Test987#')
 
-        expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
         expect(userResult.username).toBe(user.username)
 
         const newUser = await User.findById(user._id)

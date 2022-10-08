@@ -1,7 +1,7 @@
 import * as Constants from '../../utils/constants'
 import { IUserModel } from '../../models/user'
 import { ITeamModel } from '../../models/team'
-import { ApiError, IUser, RedisClientType } from '../../types'
+import { ApiError, IUser, RedisClientType, Tokens } from '../../types'
 import UltmtValidator from '../../utils/ultmt-validator'
 
 export default class AuthenticationServices {
@@ -21,12 +21,13 @@ export default class AuthenticationServices {
      * @param email email to login with
      * @returns the authentication token
      */
-    login = async (id: string): Promise<string> => {
+    login = async (id: string): Promise<Tokens> => {
         const user = await this.userModel.findById(id)
-        const token = await user?.generateAuthToken()
+        const access = await user?.generateAuthToken()
+        const refresh = await user?.generateRefreshToken()
 
-        if (token) {
-            return token
+        if (access && refresh) {
+            return { access, refresh }
         } else {
             throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
         }
@@ -37,13 +38,16 @@ export default class AuthenticationServices {
      * @param email Email of user to logout
      * @param jwt authentication token to blacklist
      */
-    logout = async (id: string, accessToken: string) => {
+    logout = async (id: string, accessToken: string, refreshToken?: string) => {
         const user = await this.userModel.findById(id)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
         // TODO: Add access and refresh token to blacklist
         await this.redisClient.setEx(accessToken, 60 * 60 * 12, '1')
+        if (refreshToken) {
+            await this.redisClient.setEx(refreshToken, 60 * 60 * 24 * 90, '1')
+        }
         await user.save()
     }
 

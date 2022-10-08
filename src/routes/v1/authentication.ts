@@ -3,7 +3,7 @@ import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import User from '../../models/user'
 import Team from '../../models/team'
-import { query } from 'express-validator'
+import { body, query } from 'express-validator'
 import AuthenticationServices from '../../services/v1/authentication'
 import { client } from '../../loaders/redis'
 
@@ -15,8 +15,8 @@ authRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new AuthenticationServices(User, Team, client)
-            const token = await userService.login(req.user?.id as string)
-            return res.json({ token })
+            const tokens = await userService.login(req.user?.id as string)
+            return res.json({ tokens })
         } catch (error) {
             next(error)
         }
@@ -25,13 +25,15 @@ authRouter.post(
 
 authRouter.post(
     '/auth/logout',
+    body('refresh_token').isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const token = req.header('Authorization')?.replace('Bearer ', '')
+            const accessToken = req.header('Authorization')?.replace('Bearer ', '')
+            const refreshToken = req.body.refreshToken
 
             const userService = new AuthenticationServices(User, Team, client)
-            await userService.logout(req.user?.id as string, token as string)
+            await userService.logout(req.user?.id as string, accessToken as string, refreshToken)
             return res.send()
         } catch (error) {
             next(error)

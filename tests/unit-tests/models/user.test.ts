@@ -2,7 +2,7 @@ import User from '../../../src/models/user'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -82,7 +82,7 @@ describe('test user model', () => {
         expect(userJson.stats?.length).toBe(0)
     })
 
-    it('generate auth token', async () => {
+    it('generate access token', async () => {
         const userData = getUser()
 
         const user = new User(userData)
@@ -93,14 +93,17 @@ describe('test user model', () => {
         const userPostToken = await User.findById(userRecord._id)
 
         expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+
+        const payload = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload
+        expect(payload.sub).toBe(user._id.toString())
+        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12)
 
         expect(userPostToken?.firstName).toBe(userData.firstName)
         expect(userPostToken?.lastName).toBe(userData.lastName)
         expect(userPostToken?.email).toBe(userData.email)
     })
 
-    it('generate auth token with jwt error', async () => {
+    it('generate access token with jwt error', async () => {
         const userData = getUser()
 
         const user = new User(userData)
@@ -111,6 +114,40 @@ describe('test user model', () => {
         })
 
         await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
+    })
+
+    it('generate refresh token', async () => {
+        const userData = getUser()
+
+        const user = new User(userData)
+        const userRecord = await user.save()
+
+        const token = await userRecord.generateRefreshToken()
+
+        const userPostToken = await User.findById(userRecord._id)
+
+        expect(token).toBeDefined()
+
+        const payload = jwt.verify(token, user.password as string) as JwtPayload
+        expect(payload.sub).toBe(user._id.toString())
+        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 90)
+
+        expect(userPostToken?.firstName).toBe(userData.firstName)
+        expect(userPostToken?.lastName).toBe(userData.lastName)
+        expect(userPostToken?.email).toBe(userData.email)
+    })
+
+    it('generate refresh token with jwt error', async () => {
+        const userData = getUser()
+
+        const user = new User(userData)
+        const userRecord = await user.save()
+
+        jest.spyOn(jwt, 'sign').mockImplementationOnce(() => {
+            throw new Error('Error')
+        })
+
+        await expect(userRecord.generateRefreshToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
 
     it('test with duplicate email', async () => {

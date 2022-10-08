@@ -1,7 +1,7 @@
 import { ITeamModel } from '../../models/team'
 import User, { IUserModel } from '../../models/user'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
-import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
+import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason, Tokens } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { getEmbeddedTeam, getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
@@ -29,11 +29,12 @@ export default class UserServices {
      * @param user data of user to sign up
      * @returns created user document and an authentication token
      */
-    signUp = async (user: CreateUser): Promise<{ user: IUser; token: string }> => {
+    signUp = async (user: CreateUser): Promise<{ user: IUser; tokens: Tokens }> => {
         const userObject = await this.userModel.create(user)
-        const token = await userObject.generateAuthToken()
+        const access = await userObject.generateAuthToken()
+        const refresh = await userObject.generateRefreshToken()
 
-        return { user: userObject, token }
+        return { user: userObject, tokens: { access, refresh } }
     }
 
     /**
@@ -55,6 +56,20 @@ export default class UserServices {
         }
         user.requests = []
 
+        return user
+    }
+
+    /**
+     * Method to get full user data for a user to get himself
+     * @param id id of user to get
+     * @returns user
+     */
+    getMe = async (id: string): Promise<IUser> => {
+        const user = await this.userModel.findById(id)
+
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
         return user
     }
 
@@ -198,7 +213,7 @@ export default class UserServices {
      * @param newPassword new password of user
      * @returns updated user
      */
-    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; token: string }> => {
+    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; tokens: Tokens }> => {
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
@@ -206,9 +221,10 @@ export default class UserServices {
         // TODO: No token to add to blacklist?
         user.password = newPassword
         await user.save()
-        const token = await user.generateAuthToken()
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
 
-        return { user, token }
+        return { user, tokens: { access, refresh } }
     }
 
     /**
@@ -288,7 +304,7 @@ export default class UserServices {
      * @param newPassword new password to set
      * @returns token and user details
      */
-    resetPassword = async (passcode: string, newPassword: string): Promise<{ token: string; user: IUser }> => {
+    resetPassword = async (passcode: string, newPassword: string): Promise<{ user: IUser; tokens: Tokens }> => {
         // validate OTP
         const otp = await OneTimePasscode.findOne({ passcode })
         if (!otp || otp.isExpired()) {
@@ -303,11 +319,12 @@ export default class UserServices {
         await user.save()
 
         // TODO: generate refresh token signed with password hash
-        const token = await user.generateAuthToken()
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
 
         // delete otp
         await otp.delete()
-        return { token, user }
+        return { user, tokens: { access, refresh } }
     }
 
     /**

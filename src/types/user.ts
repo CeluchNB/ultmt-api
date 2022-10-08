@@ -9,6 +9,11 @@ export interface CreateUser {
     password?: string
 }
 
+export interface Tokens {
+    access: string
+    refresh: string
+}
+
 export interface IUser extends CreateUser {
     _id: Types.ObjectId
     private: boolean
@@ -19,6 +24,7 @@ export interface IUser extends CreateUser {
     requests: Types.ObjectId[]
     openToRequests: boolean
     generateAuthToken: () => string
+    generateRefreshToken: () => string
     isModified: (property: string) => boolean
 }
 

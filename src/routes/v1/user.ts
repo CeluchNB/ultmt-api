@@ -29,21 +29,30 @@ userRouter.post(
     body('password').isString(),
     async (req: Request, res: Response, next) => {
         try {
-            const user: CreateUser = req.body
+            const userData: CreateUser = req.body
             const userService = new UserServices(User, Team)
 
-            const userObject = await userService.signUp(user)
-            return res.status(201).json(userObject)
+            const { user, tokens } = await userService.signUp(userData)
+            return res.status(201).json({ user, tokens })
         } catch (error) {
             next(error)
         }
     },
 )
 
-userRouter.get('/user/me', passport.authenticate('jwt', { session: false }), async (req: Request, res: Response) => {
-    // TODO: change to actually get user by id
-    return res.json(req.user)
-})
+userRouter.get(
+    '/user/me',
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const userService = new UserServices(User, Team)
+            const user = await userService.getMe(req.user?.id as string)
+            return res.json({ user })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 userRouter.get('/user/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
     try {
@@ -120,8 +129,8 @@ userRouter.put(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const { user, token } = await userService.changePassword(req.user?.id as string, req.body.newPassword)
-            return res.json({ user, token })
+            const { user, tokens } = await userService.changePassword(req.user?.id as string, req.body.newPassword)
+            return res.json({ user, tokens })
         } catch (error) {
             next(error)
         }
@@ -188,8 +197,8 @@ userRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team, OneTimePasscode)
-            const { token, user } = await userService.resetPassword(req.body.passcode, req.body.newPassword)
-            return res.json({ token, user })
+            const { user, tokens } = await userService.resetPassword(req.body.passcode, req.body.newPassword)
+            return res.json({ user, tokens })
         } catch (error) {
             next(error)
         }

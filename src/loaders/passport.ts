@@ -4,6 +4,8 @@ import passportJwt, { StrategyOptions } from 'passport-jwt'
 import User from '../models/user'
 import bcrypt from 'bcryptjs'
 import * as Constants from '../utils/constants'
+import { client } from './redis'
+import { ApiError } from '../types'
 
 const LocalStrategy = passportLocal.Strategy
 const JwtStrategy = passportJwt.Strategy
@@ -31,6 +33,10 @@ const opts: StrategyOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKeyProvider: async (_req, rawJwtToken, done) => {
         // check redis blacklist here
+        const exists = await client.get(rawJwtToken)
+        if (exists) {
+            return done(new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401))
+        }
         return done(null, process.env.JWT_SECRET)
     },
 }

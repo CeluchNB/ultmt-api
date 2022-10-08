@@ -26,12 +26,16 @@ const services = new AuthenticationServices(User, Team, redisClient)
 describe('test login', () => {
     it('with existing email', async () => {
         const user = await User.create(getUser())
-        const token = await services.login(user._id.toString())
+        const tokens = await services.login(user._id.toString())
 
-        const payload = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload
+        const accessPayload = jwt.verify(tokens.access, process.env.JWT_SECRET as string) as JwtPayload
+        const refreshPayload = jwt.verify(tokens.refresh, user.password as string) as JwtPayload
 
-        expect(payload.sub).toBe(user._id.toString())
-        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12)
+        expect(accessPayload.sub).toBe(user._id.toString())
+        expect(accessPayload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12)
+
+        expect(refreshPayload.sub).toBe(user._id.toString())
+        expect(refreshPayload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 90)
     })
 
     it('with non-existing user', async () => {
@@ -47,13 +51,15 @@ describe('test login', () => {
 describe('test logout', () => {
     it('with existing email and one token', async () => {
         const userRecord = await User.create(getUser())
-        await services.logout(userRecord._id.toString(), 'token1')
-        const exp = await redisClient.ttl('token1')
-        expect(exp).toBe(60 * 60 * 12)
+        await services.logout(userRecord._id.toString(), 'token1', 'token2')
+        const accessExp = await redisClient.ttl('token1')
+        expect(accessExp).toBe(60 * 60 * 12)
+        const refreshExp = await redisClient.ttl('token2')
+        expect(refreshExp).toBe(60 * 60 * 24 * 90)
     })
 
     it('with non-existing user', async () => {
-        await expect(services.logout(new Types.ObjectId().toString(), 'token1')).rejects.toThrowError(
+        await expect(services.logout(new Types.ObjectId().toString(), 'token1', 'token2')).rejects.toThrowError(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })

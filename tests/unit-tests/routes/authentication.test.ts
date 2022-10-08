@@ -45,8 +45,9 @@ describe('test /POST login', () => {
             .send({ email: user.email, password: user.password })
             .expect(200)
 
-        expect(response.body.token).toBeDefined()
-        expect(response.body.token.length).toBeGreaterThan(10)
+        expect(response.body.tokens).toBeDefined()
+        expect(response.body.tokens.access.length).toBeGreaterThan(20)
+        expect(response.body.tokens.refresh.length).toBeGreaterThan(20)
     })
 
     it('with existing username', async () => {
@@ -59,8 +60,9 @@ describe('test /POST login', () => {
             .send({ email: user.username, password: user.password })
             .expect(200)
 
-        expect(response.body.token).toBeDefined()
-        expect(response.body.token.length).toBeGreaterThan(10)
+        expect(response.body.tokens).toBeDefined()
+        expect(response.body.tokens.access.length).toBeGreaterThan(20)
+        expect(response.body.tokens.refresh.length).toBeGreaterThan(20)
     })
 
     it('with wrong password', async () => {
@@ -126,12 +128,15 @@ describe('test /POST logout', () => {
     it('with existing user and valid token', async () => {
         const user = getUser()
         const userRecord = await User.create(user)
-        const token = await userRecord.generateAuthToken()
+        const accessToken = await userRecord.generateAuthToken()
+        const refreshToken = await userRecord.generateRefreshToken()
 
-        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(200)
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${accessToken}`).send({ refreshToken }).expect(200)
 
-        const exp = await redisClient.ttl(token)
-        expect(exp).toBe(60*60*12)
+        const accessExp = await redisClient.ttl(accessToken)
+        expect(accessExp).toBe(60*60*12)
+        const refreshExp = await redisClient.ttl(refreshToken)
+        expect(refreshExp).toBe(60*60*24*90)
         
     })
 
@@ -139,6 +144,22 @@ describe('test /POST logout', () => {
         const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
 
         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(404)
+    })
+
+    it('with expired token', async () => {
+        const user = await User.create(getUser())
+        const token = jwt.sign({}, process.env.JWT_SECRET as string, { expiresIn: 0, subject: user._id.toString() })
+
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(401)
+    })
+
+    it('with blacklisted token', async () => {
+        const user = await User.create(getUser())
+        const token = jwt.sign({}, process.env.JWT_SECRET as string, { expiresIn: 60*60*12, subject: user._id.toString() })
+        await client.setEx(token, 60*60*12, '1')
+
+        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(401)
+
     })
 
     it('with service error', async () => {
