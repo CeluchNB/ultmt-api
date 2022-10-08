@@ -3,6 +3,7 @@ import { IUserModel } from '../../models/user'
 import { ITeamModel } from '../../models/team'
 import { ApiError, IUser, RedisClientType, Tokens } from '../../types'
 import UltmtValidator from '../../utils/ultmt-validator'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 export default class AuthenticationServices {
     userModel: IUserModel
@@ -64,5 +65,44 @@ export default class AuthenticationServices {
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(userId, teamId).test()
 
         return user
+    }
+
+    /**
+     * Method to refresh access token
+     * @param userId id of user
+     * @param accessToken access token for user
+     * @param refreshToken refresh token for user
+     * @returns tokens
+     */
+    refreshTokens = async (refreshToken: string): Promise<Tokens> => {
+        const tokenData = jwt.decode(refreshToken) as JwtPayload
+
+        const user = await this.userModel.findById(tokenData.sub)
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        // ensure token not in blacklist
+        const exist = await this.redisClient.get(refreshToken)
+        if (exist) {
+            throw new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401)
+        }
+        try {
+            const refreshPayload = jwt.verify(refreshToken, user.password as string) as JwtPayload
+
+            const access = await user.generateAuthToken()
+
+            const timeUntilExp = Number(refreshPayload.exp) - Math.floor(new Date().getTime() / 1000)
+            // only generate new refresh token if there is a month left before expiration
+            if (timeUntilExp < 60 * 60 * 24 * 30) {
+                await this.redisClient.setEx(refreshToken, 60 * 60 * 24 * 30, '1')
+                const refresh = await user.generateRefreshToken()
+                return { access, refresh }
+            }
+
+            return { access, refresh: refreshToken }
+        } catch (error) {
+            throw new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401)
+        }
     }
 }

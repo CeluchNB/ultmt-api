@@ -14,8 +14,8 @@ authRouter.post(
     passport.authenticate('local', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userService = new AuthenticationServices(User, Team, client)
-            const tokens = await userService.login(req.user?.id as string)
+            const authService = new AuthenticationServices(User, Team, client)
+            const tokens = await authService.login(req.user?.id as string)
             return res.json({ tokens })
         } catch (error) {
             next(error)
@@ -25,15 +25,15 @@ authRouter.post(
 
 authRouter.post(
     '/auth/logout',
-    body('refresh_token').isString(),
+    body('refreshToken').isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
             const accessToken = req.header('Authorization')?.replace('Bearer ', '')
             const refreshToken = req.body.refreshToken
 
-            const userService = new AuthenticationServices(User, Team, client)
-            await userService.logout(req.user?.id as string, accessToken as string, refreshToken)
+            const authService = new AuthenticationServices(User, Team, client)
+            await authService.logout(req.user?.id as string, accessToken as string, refreshToken)
             return res.send()
         } catch (error) {
             next(error)
@@ -47,13 +47,24 @@ authRouter.get(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            const userService = new AuthenticationServices(User, Team, client)
-            const user = await userService.authenticateManager(req.user?.id as string, req.query.team as string)
+            const authService = new AuthenticationServices(User, Team, client)
+            const user = await authService.authenticateManager(req.user?.id as string, req.query.team as string)
             return res.json({ user })
         } catch (error) {
             next(error)
         }
     },
 )
+
+authRouter.post('/auth/refresh', async (req: Request, res: Response, next) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '')
+        const authService = new AuthenticationServices(User, Team, client)
+        const tokens = await authService.refreshTokens(token as string)
+        return res.json({ tokens })
+    } catch (error) {
+        next(error)
+    }
+})
 
 authRouter.use(errorMiddleware)

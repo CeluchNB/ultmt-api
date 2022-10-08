@@ -11,6 +11,7 @@ import Team from '../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import { client } from '../../../src/loaders/redis'
 import jwt from 'jsonwebtoken'
+import MockDate from 'mockdate'
 
 jest.mock('node-cron', () => {
     return {
@@ -260,5 +261,36 @@ describe('test /GET authenticate manager', () => {
             .set('Authorization', `Bearer asdf.13425ra.asdf4f`)
             .send()
             .expect(401)
+    })
+})
+
+describe('test /POST refresh', () => {
+    it('with valid data', async () => {
+        const user = await User.create(getUser())
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
+        MockDate.set(new Date().getTime() + 2000)
+
+        const response = await request(app)
+            .post('/api/v1/auth/refresh')
+            .set('Authorization', `Bearer ${refresh}`)
+            .send()
+            .expect(200)
+
+        const { tokens } = response.body
+        expect(tokens.access).not.toBe(access)
+        expect(tokens.refresh).toBe(refresh)
+        MockDate.reset()
+    })
+
+    it('with service error', async () => {
+        const token = jwt.sign({ sub: anonId }, process.env.JWT_SECRET as string)
+        const response = await request(app)
+            .post('/api/v1/auth/refresh')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
     })
 })

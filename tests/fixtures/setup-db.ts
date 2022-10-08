@@ -49,6 +49,7 @@ export const resetDatabase = async () => {
     await RosterRequest.deleteMany({})
     await ArchiveTeam.deleteMany({})
     await OneTimePasscode.deleteMany({})
+    await redisClient.flushAll()
 }
 
 export const tearDownDatabase = () => {

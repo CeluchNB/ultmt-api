@@ -8,6 +8,7 @@ import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { ApiError } from '../../../src/types/errors'
 import { Types } from 'mongoose'
+import MockDate from 'mockdate'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -135,6 +136,68 @@ describe('test authenticate manager', () => {
 
         expect(services.authenticateManager(user._id.toString(), team._id.toString())).rejects.toThrowError(
             Constants.UNAUTHORIZED_MANAGER,
+        )
+    })
+})
+
+describe('test refresh tokens', () => {
+    it('valid data with new refresh token', async () => {
+        const user = await User.create(getUser())
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
+        MockDate.set(new Date().getTime() + 2000)
+
+        const tokens = await services.refreshTokens(refresh)
+        expect(tokens.access).not.toEqual(access)
+        expect(tokens.refresh).toEqual(refresh)
+
+        const keys = await redisClient.keys('*')
+        expect(keys.length).toBe(0)
+        MockDate.reset()
+    })
+
+    it('with valid data with old token', async () => {
+        const user = await User.create(getUser())
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
+        MockDate.set(new Date().getTime() + 1000 * 60 * 60 * 24 * 75)
+
+        const tokens = await services.refreshTokens(refresh)
+        expect(tokens.access).not.toEqual(access)
+        expect(tokens.refresh).not.toEqual(refresh)
+
+        const keys = await redisClient.keys('*')
+        expect(keys.length).toBe(1)
+        MockDate.reset()
+    })
+
+    it('with expired refresh token', async () => {
+        const user = await User.create(getUser())
+        const refresh = await user.generateRefreshToken()
+        MockDate.set(new Date().getTime() + 1000 * 60 * 60 * 24 * 91)
+
+        await expect(services.refreshTokens(refresh)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401),
+        )
+        MockDate.reset()
+    })
+
+    it('with unfound user', async () => {
+        const user = await User.create(getUser())
+        const refresh = jwt.sign({ sub: anonId }, user.password as string)
+
+        await expect(services.refreshTokens(refresh)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+        )
+    })
+
+    it('with token in blacklist', async () => {
+        const user = await User.create(getUser())
+        const refresh = await user.generateRefreshToken()
+        await redisClient.setEx(refresh, 30, '1')
+
+        await expect(services.refreshTokens(refresh)).rejects.toThrowError(
+            new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401),
         )
     })
 })
