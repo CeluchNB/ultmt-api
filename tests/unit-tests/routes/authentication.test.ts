@@ -289,8 +289,8 @@ describe('test /POST refresh', () => {
             .post('/api/v1/auth/refresh')
             .set('Authorization', `Bearer ${token}`)
             .send()
-            .expect(404)
+            .expect(401)
 
-        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
+        expect(response.body.message).toBe(Constants.UNABLE_TO_VERIFY_TOKEN)
     })
 })

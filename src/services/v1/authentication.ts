@@ -79,7 +79,7 @@ export default class AuthenticationServices {
 
         const user = await this.userModel.findById(tokenData.sub)
         if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+            throw new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401)
         }
 
         // ensure token not in blacklist

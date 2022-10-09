@@ -187,7 +187,7 @@ describe('test refresh tokens', () => {
         const refresh = jwt.sign({ sub: anonId }, user.password as string)
 
         await expect(services.refreshTokens(refresh)).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
+            new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401),
         )
     })
 
