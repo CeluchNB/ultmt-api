@@ -34,7 +34,10 @@ jobs:
         run: docker compose -f docker-compose.dev.yml up -d --build
         
       - name: Add dependencies
-        run: yarn install
+        run: |
+          echo ${{ secrets.REDIS_URL }}
+          cat .env
+          yarn install
 
       - name: Run tests
         run: yarn test
