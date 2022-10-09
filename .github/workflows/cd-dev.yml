@@ -27,7 +27,7 @@ jobs:
           echo MONGOOSE_URL=${{ secrets.DOCKER_MONGOOSE_URL }} >> .env
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
           echo SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }} >> .env
-          echo REDIS_URL=${{ secrets.REDIS_URL }} >> .env
+          echo REDIS_URL=${{ secrets.REDIS_URL }}
           cd ..
       
       - name: Run Docker CI container
