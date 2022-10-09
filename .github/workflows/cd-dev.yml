@@ -28,16 +28,15 @@ jobs:
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
           echo SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }} >> .env
           echo REDIS_URL=${{ secrets.REDIS_URL }} >> .env
+          echo ${{ secrets.REDIS_URL }}
+          cat .env
           cd ..
       
       - name: Run Docker CI container
         run: docker compose -f docker-compose.dev.yml up -d --build
         
       - name: Add dependencies
-        run: |
-          echo ${{ secrets.REDIS_URL }}
-          cat .env
-          yarn install
+        run: yarn install
 
       - name: Run tests
         run: yarn test
