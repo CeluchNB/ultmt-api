@@ -1,15 +1,6 @@
 version: "3.8"
 
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - 3000:3000
-    volumes:
-      - ./:/app
-    command: yarn dev
-  
   mongo:
     image: mongo
     ports:
@@ -17,6 +8,25 @@ services:
     volumes:
       - mongodb:/data/db
       - mongodb_config:/data/configdb
+  redis:
+    image: redis
+    command: redis-server
+    ports:
+      - 6379:6379
+    volumes:
+      - redis:/data
+  app:
+    depends_on:
+      - mongo
+      - redis
+    build:
+      context: .
+    ports:
+      - 4000:4000
+    volumes:
+      - ./:/app
+    command: yarn dev
 volumes:
  mongodb:
  mongodb_config:
+ redis:
