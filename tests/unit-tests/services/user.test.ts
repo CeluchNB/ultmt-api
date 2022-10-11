@@ -9,6 +9,7 @@ import { ApiError, OTPReason } from '../../../src/types'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import bcrypt from 'bcryptjs'
 import sgMail from '@sendgrid/mail'
+import { Types } from 'mongoose'
 
 const services: UserServices = new UserServices(User, Team)
 
@@ -29,21 +30,21 @@ describe('test sign up', () => {
     it('with valid user data', async () => {
         const user = getUser()
 
-        const { user: userRecord, token } = await services.signUp(user)
+        const { user: userRecord, tokens } = await services.signUp(user)
         expect(userRecord._id).toBeDefined()
         expect(userRecord.firstName).toBe(user.firstName)
         expect(userRecord.lastName).toBe(user.lastName)
         expect(userRecord.email).toBe(user.email)
         expect(userRecord.password).not.toBe(user.password)
-        expect(userRecord.tokens?.length).toBe(1)
         expect(userRecord.playerTeams.length).toBe(0)
         expect(userRecord.managerTeams.length).toBe(0)
         expect(userRecord.archiveTeams.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
         expect(userRecord.stats?.length).toBe(0)
 
-        expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
     })
 
     it('with invalid user data', async () => {
@@ -51,102 +52,6 @@ describe('test sign up', () => {
         user.email = 'bad@email'
 
         await expect(services.signUp(user)).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
-    })
-})
-
-describe('test login', () => {
-    it('with existing email', async () => {
-        const user = getUser()
-
-        await User.create(user)
-        const token = await services.login(user.email)
-        const userRecord = await User.findOne({ email: user.email })
-
-        expect(userRecord?.tokens?.length).toBe(1)
-        expect(userRecord?.tokens?.[0]).toBe(token)
-    })
-
-    it('with non-existing email', async () => {
-        const user = getUser()
-
-        await User.create(user)
-        await expect(services.login('absent@email.com')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500),
-        )
-    })
-})
-
-describe('test logout', () => {
-    it('with existing email and one token', async () => {
-        const user = getUser()
-
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        await userRecord.save()
-
-        await services.logout(user.email, 'token1')
-
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
-
-    it('with existing email and three tokens', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        userRecord.tokens?.push('token2')
-        userRecord.tokens?.push('token3')
-        await userRecord.save()
-
-        await services.logout(user.email, 'token2')
-
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(2)
-        expect(testUser?.tokens).not.toContain('token2')
-    })
-
-    it('with non-existing email', async () => {
-        const user = getUser()
-
-        await User.create(user)
-        await expect(services.logout('absent@email.com', 'token1')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-})
-
-describe('test logout all', () => {
-    it('with existing email and one token', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        await userRecord.save()
-
-        await services.logoutAll(user.email)
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
-
-    it('with existing email and three tokens', async () => {
-        const user = getUser()
-        const userRecord = await User.create(user)
-        userRecord.tokens?.push('token1')
-        userRecord.tokens?.push('token2')
-        userRecord.tokens?.push('token3')
-        await userRecord.save()
-
-        await services.logoutAll(user.email)
-        const testUser = await User.findOne({ email: user.email })
-        expect(testUser?.tokens?.length).toBe(0)
-    })
-
-    it('with non-existing email', async () => {
-        const user = getUser()
-        await User.create(user)
-
-        await expect(services.logoutAll('absent@email.com')).rejects.toThrowError(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
     })
 })
 
@@ -161,7 +66,6 @@ describe('test get user', () => {
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
-        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.toString()).toBe(userRecord.playerTeams?.toString())
         expect(userResponse.managerTeams.toString()).toBe(userRecord.managerTeams?.toString())
         expect(userResponse.archiveTeams.toString()).toBe(userRecord.archiveTeams?.toString())
@@ -180,7 +84,6 @@ describe('test get user', () => {
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
-        expect(userResponse.tokens?.toString()).toBe(userRecord.tokens?.toString())
         expect(userResponse.playerTeams.length).toBe(0)
         expect(userResponse.managerTeams.length).toBe(0)
         expect(userResponse.archiveTeams.length).toBe(0)
@@ -194,6 +97,27 @@ describe('test get user', () => {
 
     it('with bad id', async () => {
         await expect(services.getUser('badid')).rejects.toThrow()
+    })
+})
+
+describe('test get me', () => {
+    it('with valid user', async () => {
+        const userRecord = await User.create(getUser())
+        const id = new Types.ObjectId()
+        userRecord.requests = [id]
+        await userRecord.save()
+
+        const user = await services.getMe(userRecord._id.toString())
+        expect(user._id.toString()).toBe(userRecord._id.toString())
+        expect(user.email).toBe(userRecord.email)
+        expect(user.firstName).toBe(userRecord.firstName)
+        expect(user.lastName).toBe(userRecord.lastName)
+        expect(user.username).toBe(userRecord.username)
+        expect(user.requests[0].toString()).toBe(id.toString())
+    })
+
+    it('with unfound user', async () => {
+        await expect(services.getMe(anonId)).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 })
 
@@ -476,19 +400,18 @@ describe('test manager leave functionality', () => {
 describe('test change user password', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
-        user.tokens = ['token1', 'token2']
         await user.save()
         const oldPassword = user.password
 
-        const { user: newUser, token } = await services.changePassword(user._id.toString(), 'Test987!')
+        const { user: newUser, tokens } = await services.changePassword(user._id.toString(), 'Test987!')
         const newPassword = newUser.password as string
         expect(oldPassword).not.toBe(newPassword)
         expect(bcrypt.compareSync('Test987!', newPassword)).toBe(true)
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
 
         const newUserRecord = await User.findById(user._id.toString())
         expect(newUserRecord?.password).toBe(newPassword)
-        expect(newUserRecord?.tokens?.length).toBe(1)
-        expect(newUserRecord?.tokens?.[0]).toBe(token)
     })
 
     it('with unfound user', async () => {
@@ -641,22 +564,21 @@ describe('test request password recovery', () => {
 describe('test reset password', () => {
     it('with valid data', async () => {
         const user = await User.create(getUser())
-        user.tokens = ['token1', 'token2', 'token3']
         await user.save()
         const otp = await OneTimePasscode.create({
             creator: user._id,
             reason: OTPReason.PasswordRecovery,
         })
 
-        const { token, user: userResult } = await services.resetPassword(otp.passcode, 'Test987#')
+        const { user: userResult, tokens } = await services.resetPassword(otp.passcode, 'Test987#')
 
-        expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+        expect(tokens).toBeDefined()
+        expect(tokens.access.length).toBeGreaterThan(20)
+        expect(tokens.refresh.length).toBeGreaterThan(20)
         expect(userResult.username).toBe(user.username)
 
         const newUser = await User.findById(user._id)
         expect(newUser?.password).not.toBe(user.password)
-        expect(newUser?.tokens?.length).toBe(1)
 
         const newOtp = await OneTimePasscode.findById(otp._id)
         expect(newOtp).toBeNull()
@@ -812,50 +734,5 @@ describe('test join team by bulk code', () => {
             reason: OTPReason.TeamJoin,
         })
         expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
-    })
-})
-
-describe('test authenticate manager', () => {
-    it('should correctly authenticate manager', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        team.managers.push(getEmbeddedUser(user))
-        await team.save()
-        user.managerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-
-        const result = await services.authenticateManager(user._id.toString(), team._id.toString())
-        expect(result._id.toString()).toBe(user._id.toString())
-        expect(result.username).toBe(user.username)
-    })
-
-    it('should throw error with unfound team', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        team.managers.push(getEmbeddedUser(user))
-        await team.save()
-        user.managerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-
-        expect(services.authenticateManager(anonId, team._id.toString())).rejects.toThrowError(
-            Constants.UNAUTHORIZED_MANAGER,
-        )
-    })
-
-    it('should throw error with non-manager', async () => {
-        const teamData = getTeam()
-        const userData = getUser()
-        const team = await Team.create(teamData)
-        const user = await User.create(userData)
-
-        expect(services.authenticateManager(user._id.toString(), team._id.toString())).rejects.toThrowError(
-            Constants.UNAUTHORIZED_MANAGER,
-        )
     })
 })

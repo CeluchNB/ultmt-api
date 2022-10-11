@@ -66,7 +66,6 @@ const schema = new Schema<IUser>({
     },
     password: { type: String, required: true },
     private: { type: Boolean, required: true, default: false },
-    tokens: [{ type: String }],
     requests: [{ type: Types.ObjectId }],
     playerTeams: [
         {
@@ -133,21 +132,28 @@ schema.pre('save', async function (this: IUser, next) {
 schema.methods.toJSON = function () {
     const userObject = this.toObject()
     delete userObject.password
-    delete userObject.tokens
 
     return userObject
 }
 
 schema.methods.generateAuthToken = async function () {
-    const payload = {
-        sub: this._id.toString(),
-        iat: Date.now(),
-    }
-
     try {
-        const token = jwt.sign(payload, process.env.JWT_SECRET as string)
-        this.tokens = this.tokens?.concat(token)
-        await this.save()
+        const token = jwt.sign({}, process.env.JWT_SECRET as string, {
+            subject: this._id.toString(),
+            expiresIn: '12 hours',
+        })
+        return token
+    } catch (error) {
+        throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
+    }
+}
+
+schema.methods.generateRefreshToken = async function () {
+    try {
+        const token = jwt.sign({}, this.password, {
+            subject: this._id.toString(),
+            expiresIn: '90 days',
+        })
         return token
     } catch (error) {
         throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)

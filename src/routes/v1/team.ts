@@ -7,7 +7,7 @@ import RosterRequest from '../../models/roster-request'
 import ArchiveTeam from '../../models/archive-team'
 import OneTimePasscode from '../../models/one-time-passcode'
 import { errorMiddleware } from '../../middleware/errors'
-import { CreateTeam, IUser } from '../../types'
+import { CreateTeam } from '../../types'
 import { query, body, param } from 'express-validator'
 
 export const teamRouter = Router()
@@ -35,7 +35,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = req.body.team as CreateTeam
-            const teamResponse = await teamServices.createTeam(team, (req.user as IUser)._id.toString())
+            const teamResponse = await teamServices.createTeam(team, req.user?.id as string)
 
             return res.status(201).json({ team: teamResponse })
         } catch (error) {
@@ -61,7 +61,7 @@ teamRouter.get(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-            const team = await teamServices.getManagedTeam(req.params.id, (req.user as IUser)._id.toString())
+            const team = await teamServices.getManagedTeam(req.params.id, req.user?.id as string)
             return res.json({ team })
         } catch (error) {
             next(error)
@@ -78,7 +78,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = await teamServices.removePlayer(
-                (req.user as IUser)._id.toString(),
+                req.user?.id as string,
                 req.params.id,
                 req.query.user as string,
             )
@@ -100,7 +100,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = await teamServices.rollover(
-                (req.user as IUser)._id.toString(),
+                req.user?.id as string,
                 req.params.id,
                 req.body.copyPlayers,
                 new Date(req.body.seasonStart),
@@ -122,7 +122,7 @@ teamRouter.put(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = await teamServices.setRosterOpen(
-                (req.user as IUser)._id.toString(),
+                req.user?.id as string,
                 req.params.id,
                 req.query.open === 'true',
             )
@@ -142,7 +142,7 @@ teamRouter.post(
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
             const team = await teamServices.addManager(
-                (req.user as IUser)._id.toString(),
+                req.user?.id as string,
                 req.query.manager as string,
                 req.params.id,
             )
@@ -160,10 +160,7 @@ teamRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam, OneTimePasscode)
-            const code = await teamServices.createBulkJoinCode(
-                (req.user as IUser)._id.toString(),
-                req.query.id as string,
-            )
+            const code = await teamServices.createBulkJoinCode(req.user?.id as string, req.query.id as string)
             return res.json({ code })
         } catch (error) {
             next(error)

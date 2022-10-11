@@ -4,7 +4,8 @@ import passportJwt, { StrategyOptions } from 'passport-jwt'
 import User from '../models/user'
 import bcrypt from 'bcryptjs'
 import * as Constants from '../utils/constants'
-import jwt from 'jsonwebtoken'
+import { client } from './redis'
+import { ApiError } from '../types'
 
 const LocalStrategy = passportLocal.Strategy
 const JwtStrategy = passportJwt.Strategy
@@ -22,29 +23,26 @@ passport.use(
             if (!match) {
                 return done(null, false, { message: Constants.UNABLE_TO_LOGIN })
             }
-            return done(null, user)
+            return done(null, { id: user._id.toString() })
         },
     ),
 )
 
 const ExtractJwt = passportJwt.ExtractJwt
 const opts: StrategyOptions = {
-    secretOrKey: process.env.JWT_SECRET,
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKeyProvider: async (_req, rawJwtToken, done) => {
+        // check redis blacklist here
+        const exists = await client.get(rawJwtToken)
+        if (exists) {
+            return done(new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401))
+        }
+        return done(null, process.env.JWT_SECRET)
+    },
 }
 
 passport.use(
     new JwtStrategy(opts, async (jwtPayload, done) => {
-        const user = await User.findById(jwtPayload.sub)
-        if (!user) {
-            return done(null, false, { message: Constants.UNABLE_TO_FIND_USER })
-        }
-
-        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string)
-        if (!user.tokens?.includes(token)) {
-            return done(null, false, { message: Constants.UNABLE_TO_VERIFY_TOKEN })
-        }
-
-        return done(null, user)
+        return done(null, { id: jwtPayload.sub })
     }),
 )

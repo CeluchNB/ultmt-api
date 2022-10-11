@@ -1,7 +1,7 @@
 import { ITeamModel } from '../../models/team'
 import User, { IUserModel } from '../../models/user'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
-import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason } from '../../types'
+import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason, Tokens } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { getEmbeddedTeam, getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
@@ -29,55 +29,12 @@ export default class UserServices {
      * @param user data of user to sign up
      * @returns created user document and an authentication token
      */
-    signUp = async (user: CreateUser): Promise<{ user: IUser; token: string }> => {
+    signUp = async (user: CreateUser): Promise<{ user: IUser; tokens: Tokens }> => {
         const userObject = await this.userModel.create(user)
-        const token = await userObject.generateAuthToken()
+        const access = await userObject.generateAuthToken()
+        const refresh = await userObject.generateRefreshToken()
 
-        return { user: userObject, token }
-    }
-
-    /**
-     * Method to generate an authentication token for a user
-     * Actual email/password check occurs in passport.js
-     * @param email email to login with
-     * @returns the authentication token
-     */
-    login = async (email: string): Promise<string> => {
-        const user = await this.userModel.findOne({ email })
-        const token = await user?.generateAuthToken()
-
-        if (token) {
-            return token
-        } else {
-            throw new ApiError(Constants.UNABLE_TO_GENERATE_TOKEN, 500)
-        }
-    }
-
-    /**
-     * Method to logout
-     * @param email Email of user to logout
-     * @param jwt authentication token to remove from user's list
-     */
-    logout = async (email: string, jwt: string) => {
-        const user = await this.userModel.findOne({ email })
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-        user.tokens = user?.tokens?.filter((token) => token !== jwt)
-        await user.save()
-    }
-
-    /**
-     * Method to logout all devices
-     * @param email email of user to delete all authentication tokens
-     */
-    logoutAll = async (email: string) => {
-        const user = await this.userModel.findOne({ email })
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
-        user.tokens = []
-        await user.save()
+        return { user: userObject, tokens: { access, refresh } }
     }
 
     /**
@@ -99,6 +56,20 @@ export default class UserServices {
         }
         user.requests = []
 
+        return user
+    }
+
+    /**
+     * Method to get full user data for a user to get himself
+     * @param id id of user to get
+     * @returns user
+     */
+    getMe = async (id: string): Promise<IUser> => {
+        const user = await this.userModel.findById(id)
+
+        if (!user) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
         return user
     }
 
@@ -241,17 +212,18 @@ export default class UserServices {
      * @param newPassword new password of user
      * @returns updated user
      */
-    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; token: string }> => {
+    changePassword = async (userId: string, newPassword: string): Promise<{ user: IUser; tokens: Tokens }> => {
         const user = await this.userModel.findById(userId)
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        user.tokens = []
+
         user.password = newPassword
         await user.save()
-        const token = await user.generateAuthToken()
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
 
-        return { user, token }
+        return { user, tokens: { access, refresh } }
     }
 
     /**
@@ -331,7 +303,7 @@ export default class UserServices {
      * @param newPassword new password to set
      * @returns token and user details
      */
-    resetPassword = async (passcode: string, newPassword: string): Promise<{ token: string; user: IUser }> => {
+    resetPassword = async (passcode: string, newPassword: string): Promise<{ user: IUser; tokens: Tokens }> => {
         // validate OTP
         const otp = await OneTimePasscode.findOne({ passcode })
         if (!otp || otp.isExpired()) {
@@ -343,14 +315,14 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
         user.password = newPassword
-        user.tokens = []
         await user.save()
 
-        const token = await user.generateAuthToken()
+        const access = await user.generateAuthToken()
+        const refresh = await user.generateRefreshToken()
 
         // delete otp
         await otp.delete()
-        return { token, user }
+        return { user, tokens: { access, refresh } }
     }
 
     /**
@@ -400,21 +372,6 @@ export default class UserServices {
 
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
-
-        return user
-    }
-
-    /**
-     * Method to check if user is manager of a team
-     * @param userId id of manager
-     * @param teamId id of team
-     */
-    authenticateManager = async (userId: string, teamId: string): Promise<IUser> => {
-        const user = await this.userModel.findById(userId)
-        if (!user) {
-            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
-        }
-        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(userId, teamId).test()
 
         return user
     }

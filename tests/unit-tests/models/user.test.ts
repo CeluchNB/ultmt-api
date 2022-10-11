@@ -2,7 +2,7 @@ import User from '../../../src/models/user'
 import * as Constants from '../../../src/utils/constants'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
 import { getUser } from '../../fixtures/utils'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -31,7 +31,6 @@ describe('test user model', () => {
         expect(userRecord.email).toBe(userData.email)
         expect(userRecord.password).not.toBe(userData.password)
         expect(userRecord.private).toBe(false)
-        expect(userRecord.tokens?.length).toBe(0)
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
@@ -76,7 +75,6 @@ describe('test user model', () => {
         expect(userJson.lastName).toBe(userData.lastName)
         expect(userJson.email).toBe(userData.email)
         expect(userJson.password).toBeUndefined()
-        expect(userJson.tokens).toBeUndefined()
         expect(userJson.private).toBe(false)
         expect(userJson.playerTeams.length).toBe(0)
         expect(userJson.managerTeams.length).toBe(0)
@@ -84,7 +82,7 @@ describe('test user model', () => {
         expect(userJson.stats?.length).toBe(0)
     })
 
-    it('generate auth token', async () => {
+    it('generate access token', async () => {
         const userData = getUser()
 
         const user = new User(userData)
@@ -95,16 +93,17 @@ describe('test user model', () => {
         const userPostToken = await User.findById(userRecord._id)
 
         expect(token).toBeDefined()
-        expect(token.length).toBeGreaterThan(10)
+
+        const payload = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload
+        expect(payload.sub).toBe(user._id.toString())
+        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12)
 
         expect(userPostToken?.firstName).toBe(userData.firstName)
         expect(userPostToken?.lastName).toBe(userData.lastName)
         expect(userPostToken?.email).toBe(userData.email)
-        expect(userPostToken?.tokens?.length).toBe(1)
-        expect(userPostToken?.tokens?.[0]).toBe(token)
     })
 
-    it('generate auth token with jwt error', async () => {
+    it('generate access token with jwt error', async () => {
         const userData = getUser()
 
         const user = new User(userData)
@@ -117,17 +116,38 @@ describe('test user model', () => {
         await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
 
-    it('generate auth token with save error', async () => {
+    it('generate refresh token', async () => {
         const userData = getUser()
 
         const user = new User(userData)
         const userRecord = await user.save()
 
-        jest.spyOn(User.prototype, 'save').mockImplementationOnce(() => {
+        const token = await userRecord.generateRefreshToken()
+
+        const userPostToken = await User.findById(userRecord._id)
+
+        expect(token).toBeDefined()
+
+        const payload = jwt.verify(token, user.password as string) as JwtPayload
+        expect(payload.sub).toBe(user._id.toString())
+        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 90)
+
+        expect(userPostToken?.firstName).toBe(userData.firstName)
+        expect(userPostToken?.lastName).toBe(userData.lastName)
+        expect(userPostToken?.email).toBe(userData.email)
+    })
+
+    it('generate refresh token with jwt error', async () => {
+        const userData = getUser()
+
+        const user = new User(userData)
+        const userRecord = await user.save()
+
+        jest.spyOn(jwt, 'sign').mockImplementationOnce(() => {
             throw new Error('Error')
         })
 
-        await expect(userRecord.generateAuthToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
+        await expect(userRecord.generateRefreshToken()).rejects.toThrowError(Constants.UNABLE_TO_GENERATE_TOKEN)
     })
 
     it('test with duplicate email', async () => {

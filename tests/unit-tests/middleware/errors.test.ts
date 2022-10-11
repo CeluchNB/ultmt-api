@@ -212,6 +212,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.INVALID_PASSCODE, 400),
         )
     })
+
+    it('with invalid token', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_VERIFY_TOKEN} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_VERIFY_TOKEN, 401),
+        )
+    })
 })
 
 describe('test middleware', () => {
