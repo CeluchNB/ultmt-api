@@ -144,13 +144,6 @@ describe('test /DELETE profile', () => {
         await request(app).delete('/api/v1/user/me').set('Authorization', `Bearer ${token}`).send().expect(200)
     })
 
-    // TODO: change to 'with blacklisted token'
-    // it('test delete with non-existing token', async () => {
-    //     const token = jwt.sign({ sub: anonId, iat: Date.now() }, process.env.JWT_SECRET as string)
-
-    //     await request(app).delete('/api/v1/user/me').set('Authorization', `Bearer ${token}`).send().expect(401)
-    // })
-
     it('test delete with service error', async () => {
         const user = getUser()
         const userRecord = await User.create(user)

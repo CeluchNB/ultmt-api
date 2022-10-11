@@ -44,7 +44,7 @@ export default class AuthenticationServices {
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        // TODO: Add access and refresh token to blacklist
+
         await this.redisClient.setEx(accessToken, 60 * 60 * 12, '1')
         if (refreshToken) {
             await this.redisClient.setEx(refreshToken, 60 * 60 * 24 * 90, '1')
