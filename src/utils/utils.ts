@@ -38,3 +38,13 @@ Thank you!
 The Ultmt App Password Recovery
 </p>`
 }
+
+export const parseBoolean = (bool: string): boolean | undefined => {
+    if (bool === 'true') {
+        return true
+    } else if (bool === 'false') {
+        return false
+    }
+
+    return undefined
+}

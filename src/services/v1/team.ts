@@ -5,7 +5,7 @@ import { IArchiveTeamModel } from '../../models/archive-team'
 import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
-import { Types } from 'mongoose'
+import { FilterQuery, Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
@@ -282,7 +282,7 @@ export default class TeamServices {
      * @param term search term
      * @returns array of team objects matching
      */
-    search = async (term: string): Promise<ITeam[]> => {
+    search = async (term: string, rosterOpen?: boolean): Promise<ITeam[]> => {
         await new UltmtValidator().enoughSearchCharacters(term).test()
         // If the search term contains a space, we create a matrix of [place, name] x [split terms]
         // to test in the find method's $or parameter
@@ -302,10 +302,12 @@ export default class TeamServices {
             }
         }
 
-        const teams = await this.teamModel.find({
-            $or: tests,
-            rosterOpen: true,
-        })
+        const filter: FilterQuery<ITeam> = { $or: tests }
+        if (rosterOpen !== undefined) {
+            filter.rosterOpen = rosterOpen
+        }
+
+        const teams = await this.teamModel.find(filter)
 
         // if the search term contains a space, we perform a simple ranking based on the
         // levenshtein distance between the original term and the full name of the team
