@@ -96,7 +96,8 @@ describe('test user model', () => {
 
         const payload = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload
         expect(payload.sub).toBe(user._id.toString())
-        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12)
+        const expectedTime = Math.floor(new Date().getTime() / 1000) + 60 * 60 * 12
+        expect(Math.abs(expectedTime - (payload.exp || 0))).toBeLessThanOrEqual(10)
 
         expect(userPostToken?.firstName).toBe(userData.firstName)
         expect(userPostToken?.lastName).toBe(userData.lastName)
@@ -130,7 +131,8 @@ describe('test user model', () => {
 
         const payload = jwt.verify(token, user.password as string) as JwtPayload
         expect(payload.sub).toBe(user._id.toString())
-        expect(payload.exp).toBe(Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 90)
+        const expectedTime = Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 90
+        expect(Math.abs(expectedTime - (payload.exp || 0))).toBeLessThanOrEqual(10)
 
         expect(userPostToken?.firstName).toBe(userData.firstName)
         expect(userPostToken?.lastName).toBe(userData.lastName)
