@@ -463,9 +463,40 @@ describe('test /GET search', () => {
             .send()
             .expect(200)
 
-        const json = response.body
-        expect(json.length).toBe(1)
-        expect(json[0].name).toBe('Temper')
+        const { teams } = response.body
+        expect(teams.length).toBe(1)
+        expect(teams[0].name).toBe('Temper')
+    })
+
+    it('with false roster open param', async () => {
+        const [team1] = await Team.find({})
+        team1.rosterOpen = false
+        await team1.save()
+
+        const term = 'Pit'
+        const response = await request(app)
+            .get(`/api/v1/team/search?q=${term}&rosterOpen=false`)
+            .send()
+            .expect(200)
+
+        const { teams } = response.body
+        expect(teams.length).toBe(1)
+        expect(teams[0].name).toBe('Temper')
+    })
+
+    it('with true roster open param', async () => {
+        const [team1] = await Team.find({})
+        team1.rosterOpen = false
+        await team1.save()
+
+        const term = 'Pit'
+        const response = await request(app)
+            .get(`/api/v1/team/search?q=${term}&rosterOpen=true`)
+            .send()
+            .expect(200)
+
+        const { teams } = response.body
+        expect(teams.length).toBe(0)
     })
 
     it('with invalid query', async () => {

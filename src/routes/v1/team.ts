@@ -9,19 +9,26 @@ import OneTimePasscode from '../../models/one-time-passcode'
 import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam } from '../../types'
 import { query, body, param } from 'express-validator'
+import { parseBoolean } from '../../utils/utils'
 
 export const teamRouter = Router()
 
-teamRouter.get('/team/search', query('q').escape().isString(), async (req: Request, res: Response, next) => {
-    try {
-        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-        const term = (req.query.q as string) || ''
-        const teams = await teamServices.search(term)
-        return res.send(teams)
-    } catch (error) {
-        next(error)
-    }
-})
+teamRouter.get(
+    '/team/search',
+    query('q').escape().isString(),
+    query('rosterOpen').escape().isString(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const term = (req.query.q as string) || ''
+            const rosterOpen = parseBoolean(req.query.rosterOpen as string)
+            const teams = await teamServices.search(term, rosterOpen)
+            return res.json({ teams })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 teamRouter.post(
     '/team',
