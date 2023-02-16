@@ -93,7 +93,7 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
           service: 'ultmt-api'
-          image: ${{ var.CONTAINER_REPOSITORY }}
+          image: ${{ vars.CONTAINER_REPOSITORY }}
           region: us-east4
           secrets: |
             JWT_SECRET=ULTMT_JWT_SECRET:latest
