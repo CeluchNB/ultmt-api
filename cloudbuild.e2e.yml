@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-east4-docker.pkg.dev/ultmt-app-e2e/ultmt-services/ultmt-api', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-east4-docker.pkg.dev/ultmt-app-e2e/ultmt-services/ultmt-api']
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -3,13 +3,30 @@ name: Deploy
 on:
   push:
     branches:
-      - develop
+      - dev
+      - e2e
+      - prod
   workflow_call:
 
 jobs:
+  get-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+    steps:
+      - name: Some check on branch
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "env_name=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/e2e" ]; then
+            echo "env_name=e2e" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=dev" >> $GITHUB_OUTPUT
+          fi
   test:
     runs-on: ubuntu-latest
-    
     environment:
       name: Test
 
@@ -47,8 +64,10 @@ jobs:
         run: docker compose -f docker-compose.dev.yml down
 
   deploy:
-    needs: test
+    needs: [test, get-environment]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.get-environment.outputs.env_name }}
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -60,19 +79,25 @@ jobs:
       - name: 'Authenticate to GCP'
         uses: 'google-github-actions/auth@v0'
         with:
-          workload_identity_provider: 'projects/267063385539/locations/global/workloadIdentityPools/dev-ultmt-pool/providers/dev-ultmt-provider'
-          service_account: 'ultmt-service-account@dev-ultmt-app.iam.gserviceaccount.com'
+          workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.SERVICE_ACCOUNT }}
       
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v0'
       
       - name: "Deploy Registry"
         run: |
-          gcloud builds submit --config=cloudbuild.ci-dev.yml .
+          gcloud builds submit --config=cloudbuild.${{ needs.get-environment.outputs.env_name }}.yml .
 
       - name: "Deploy Cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
           service: 'ultmt-api'
-          image: 'us-central1-docker.pkg.dev/dev-ultmt-app/cloud-run-source-deploy/ultmt-api'
+          image: ${{ vars.CONTAINER_REPOSITORY }}
+          region: us-east4
+          secrets: |
+            JWT_SECRET=ULTMT_JWT_SECRET:latest
+            SENDGRID_API_KEY=SENDGRID_API_KEY:latest
+            MONGOOSE_URL=ULTMT_MONGOOSE_URL:latest
+            REDIS_URL=REDIS_URL:latest
 
