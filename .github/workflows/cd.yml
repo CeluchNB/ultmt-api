@@ -5,7 +5,7 @@ on:
     branches:
       - dev
       - e2e
-      - prod
+      - main
   workflow_call:
 
 jobs:
