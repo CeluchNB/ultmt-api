@@ -4,7 +4,9 @@ name: Docker CI
 on:
   push:
     branches-ignore:
-      - develop
+      - dev
+      - e2e
+      - prod
   pull_request:
   workflow_call:
 
