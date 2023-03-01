@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-import { EmbeddedTeam } from '.'
+import { EmbeddedTeam, ITeam } from '.'
 
 export interface CreateUser {
     firstName: string
@@ -34,3 +34,5 @@ export interface EmbeddedUser {
     lastName: string
     username: string
 }
+
+export type UserProfile = { user: IUser; fullManagerTeams: ITeam[] }

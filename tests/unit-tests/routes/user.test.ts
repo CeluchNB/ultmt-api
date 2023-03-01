@@ -81,10 +81,11 @@ describe('test /GET me', () => {
             .send()
             .expect(200)
 
-        const { user } = response.body
+        const { user, fullManagerTeams } = response.body
         expect(user._id.toString()).toBe(userRecord._id.toString())
         expect(user.firstName).toBe(userRecord.firstName)
         expect(user.email).toBe(userRecord.email)
+        expect(fullManagerTeams.length).toBe(0)
     })
 
     it('with unfound user', async () => {
