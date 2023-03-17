@@ -46,8 +46,8 @@ userRouter.get(
     async (req: Request, res: Response, next) => {
         try {
             const userService = new UserServices(User, Team)
-            const user = await userService.getMe(req.user?.id as string)
-            return res.json({ user })
+            const { user, fullManagerTeams } = await userService.getMe(req.user?.id as string)
+            return res.json({ user, fullManagerTeams })
         } catch (error) {
             next(error)
         }

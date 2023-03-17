@@ -70,6 +70,7 @@ export const schema = new Schema<ITeam>({
         default: false,
     },
     requests: [{ type: SchemaTypes.ObjectId }],
+    // TODO: this is unused, remove
     games: [{ type: SchemaTypes.ObjectId }],
 })
 
