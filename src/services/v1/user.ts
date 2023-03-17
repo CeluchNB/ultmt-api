@@ -1,7 +1,7 @@
 import { ITeamModel } from '../../models/team'
 import User, { IUserModel } from '../../models/user'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
-import { ApiError, CreateUser, EmbeddedUser, IUser, OTPReason, Tokens } from '../../types'
+import { ApiError, CreateUser, EmbeddedUser, UserProfile, IUser, OTPReason, Tokens } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { getEmbeddedTeam, getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
@@ -64,13 +64,22 @@ export default class UserServices {
      * @param id id of user to get
      * @returns user
      */
-    getMe = async (id: string): Promise<IUser> => {
+    getMe = async (id: string): Promise<UserProfile> => {
         const user = await this.userModel.findById(id)
 
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
-        return user
+
+        const teams = []
+        for (const team of user.managerTeams) {
+            const fullTeam = await this.teamModel.findById(team._id)
+            if (fullTeam) {
+                teams.push(fullTeam)
+            }
+        }
+
+        return { user, fullManagerTeams: teams }
     }
 
     /**
