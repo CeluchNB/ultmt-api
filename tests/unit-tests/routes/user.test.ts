@@ -38,6 +38,7 @@ afterAll((done) => {
 describe('test /POST user', () => {
     it('with valid data', async () => {
         const user = getUser()
+        user.lastName = "O'Brien"
 
         const response = await request(app).post('/api/v1/user').send(user).expect(201)
 

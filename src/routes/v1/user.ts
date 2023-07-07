@@ -23,9 +23,9 @@ userRouter.get('/user/search', query('q').escape(), async (req: Request, res: Re
 
 userRouter.post(
     '/user',
-    body('firstName').escape().isString(),
-    body('lastName').escape().isString(),
-    body('username').escape().isString(),
+    body('firstName').isString(),
+    body('lastName').isString(),
+    body('username').isString(),
     body('password').isString(),
     async (req: Request, res: Response, next) => {
         try {
