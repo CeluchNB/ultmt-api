@@ -67,7 +67,7 @@ export const schema = new Schema<ITeam>({
     rosterOpen: {
         type: Boolean,
         required: true,
-        default: false,
+        default: true,
     },
     requests: [{ type: SchemaTypes.ObjectId }],
     // TODO: this is unused, remove
