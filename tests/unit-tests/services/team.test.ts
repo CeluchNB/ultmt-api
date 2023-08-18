@@ -47,6 +47,7 @@ describe('test create team', () => {
         expect(teamResponse.seasonStart.getFullYear()).toBe(new Date(team.seasonStart).getFullYear())
         expect(teamResponse.seasonEnd.getFullYear()).toBe(new Date(team.seasonEnd).getFullYear())
         expect(teamResponse.requests.length).toBe(0)
+        expect(teamResponse.rosterOpen).toBe(true)
 
         expect(teamRecord?.place).toBe(team.place)
         expect(teamRecord?.name).toBe(team.name)
@@ -56,6 +57,7 @@ describe('test create team', () => {
         expect(teamRecord?.seasonStart.getFullYear()).toBe(new Date(team.seasonStart).getFullYear())
         expect(teamRecord?.seasonEnd.getFullYear()).toBe(new Date(team.seasonEnd).getFullYear())
         expect(teamRecord?.requests.length).toBe(0)
+        expect(teamRecord?.rosterOpen).toBe(true)
 
         expect(userRecord?.managerTeams?.length).toBe(1)
         expect(userRecord?.managerTeams?.[0]._id.toString()).toBe(teamResponse._id.toString())
