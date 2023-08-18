@@ -57,7 +57,7 @@ export default class TeamServices {
             managers: [],
             players: [],
             seasonNumber: 1,
-            rosterOpen: false,
+            rosterOpen: true,
             requests: [],
             games: [],
         }
