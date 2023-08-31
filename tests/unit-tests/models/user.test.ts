@@ -34,7 +34,6 @@ describe('test user model', () => {
         expect(userRecord.playerTeams?.length).toBe(0)
         expect(userRecord.managerTeams?.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
-        expect(userRecord.stats?.length).toBe(0)
         expect(userRecord.openToRequests).toBe(true)
     })
 
@@ -79,7 +78,6 @@ describe('test user model', () => {
         expect(userJson.playerTeams.length).toBe(0)
         expect(userJson.managerTeams.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
-        expect(userJson.stats?.length).toBe(0)
     })
 
     it('generate access token', async () => {

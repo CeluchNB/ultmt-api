@@ -16,6 +16,9 @@ const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
+})
+
+beforeEach(() => {
     MockDate.set(new Date('2022'))
 })
 
@@ -743,6 +746,7 @@ describe('test get archived team', () => {
 
 describe('test create otp for bulk join', () => {
     it('with valid data', async () => {
+        MockDate.set(new Date('2022-12-31'))
         const team = getTeam()
         const manager = getUser()
         const teamRecord = await Team.create(team)
@@ -758,6 +762,8 @@ describe('test create otp for bulk join', () => {
 
         const otp = await OneTimePasscode.findOne({ passcode: result })
         expect(otp?.team.toString()).toEqual(teamRecord._id.toString())
+        const time = otp?.expiresAt.getTime() || 0
+        expect(Math.abs(time - new Date().getTime() - 24 * 60 * 60 * 1000)).toBeLessThan(100)
     })
 
     it('with non-existent team', async () => {

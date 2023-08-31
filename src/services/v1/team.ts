@@ -395,10 +395,13 @@ export default class TeamServices {
 
         await new UltmtValidator().userIsManager(managerId, teamId).test
 
+        const expiresAt = new Date()
+        expiresAt.setUTCDate(expiresAt.getUTCDate() + 1)
         const otp = await this.otpModel.create({
             creator: manager._id,
             team: team._id,
             reason: OTPReason.TeamJoin,
+            expiresAt,
         })
 
         return otp.passcode

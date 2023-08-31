@@ -50,7 +50,6 @@ export default class UserServices {
         }
 
         if (user.private) {
-            user.stats = []
             user.playerTeams = []
             user.managerTeams = []
         }

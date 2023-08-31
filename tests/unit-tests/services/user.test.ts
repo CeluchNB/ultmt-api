@@ -40,7 +40,6 @@ describe('test sign up', () => {
         expect(userRecord.managerTeams.length).toBe(0)
         expect(userRecord.archiveTeams.length).toBe(0)
         expect(userRecord.requests.length).toBe(0)
-        expect(userRecord.stats?.length).toBe(0)
 
         expect(tokens).toBeDefined()
         expect(tokens.access.length).toBeGreaterThan(20)
@@ -70,7 +69,6 @@ describe('test get user', () => {
         expect(userResponse.managerTeams.toString()).toBe(userRecord.managerTeams?.toString())
         expect(userResponse.archiveTeams.toString()).toBe(userRecord.archiveTeams?.toString())
         expect(userResponse.requests.length).toBe(0)
-        expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
 
     it('with existing, private user', async () => {
@@ -88,7 +86,6 @@ describe('test get user', () => {
         expect(userResponse.managerTeams.length).toBe(0)
         expect(userResponse.archiveTeams.length).toBe(0)
         expect(userResponse.requests.length).toBe(0)
-        expect(userResponse.stats.length).toBe(0)
     })
 
     it('with non-existent user', async () => {
