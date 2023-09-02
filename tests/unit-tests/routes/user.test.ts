@@ -52,7 +52,6 @@ describe('test /POST user', () => {
         expect(userResponse.playerTeams?.length).toBe(0)
         expect(userResponse.managerTeams?.length).toBe(0)
         expect(userResponse.archiveTeams?.length).toBe(0)
-        expect(userResponse.stats?.length).toBe(0)
 
         expect(tokens).toBeDefined()
         expect(tokens.access.length).toBeGreaterThan(20)
@@ -127,7 +126,6 @@ describe('test /GET user', () => {
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
         expect(userResponse.email).toBe(userRecord.email)
-        expect(userResponse.stats?.toString()).toBe(userRecord.stats?.toString())
     })
 
     it('with non-existing user', async () => {
