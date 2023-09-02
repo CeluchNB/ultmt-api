@@ -32,11 +32,6 @@ teamRouter.get(
 
 teamRouter.post(
     '/team',
-    body('place').escape().isString(),
-    body('name').escape().isString(),
-    body('teamname').escape().isString(),
-    body('seasonStart').escape().isString(),
-    body('seasonEnd').escape().isString(),
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {

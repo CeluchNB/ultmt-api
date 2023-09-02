@@ -16,6 +16,9 @@ const services = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
+})
+
+beforeEach(() => {
     MockDate.set(new Date('2022'))
 })
 
@@ -239,9 +242,13 @@ describe('test team rollover', () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
         team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(manager))
         team.players.push(getEmbeddedUser(user))
         await team.save()
         manager.managerTeams.push(getEmbeddedTeam(team))
+        manager.playerTeams.push(getEmbeddedTeam(team))
+        const prevManagerTeam = getTeam()
+        manager.archiveTeams.push(prevManagerTeam)
         await manager.save()
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
@@ -273,8 +280,9 @@ describe('test team rollover', () => {
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
         expect(managerRecord?.managerTeams[0]._id.toString()).toBe(newTeam._id.toString())
-        expect(managerRecord?.archiveTeams.length).toBe(1)
-        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(team._id.toString())
+        expect(managerRecord?.archiveTeams.length).toBe(2)
+        expect(managerRecord?.archiveTeams[0]._id.toString()).toBe(prevManagerTeam._id.toString())
+        expect(managerRecord?.archiveTeams[1]._id.toString()).toBe(team._id.toString())
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.playerTeams.length).toBe(1)
@@ -738,6 +746,7 @@ describe('test get archived team', () => {
 
 describe('test create otp for bulk join', () => {
     it('with valid data', async () => {
+        MockDate.set(new Date('2022-12-31'))
         const team = getTeam()
         const manager = getUser()
         const teamRecord = await Team.create(team)
@@ -753,6 +762,8 @@ describe('test create otp for bulk join', () => {
 
         const otp = await OneTimePasscode.findOne({ passcode: result })
         expect(otp?.team.toString()).toEqual(teamRecord._id.toString())
+        const time = otp?.expiresAt.getTime() || 0
+        expect(Math.abs(time - new Date().getTime() - 24 * 60 * 60 * 1000)).toBeLessThan(100)
     })
 
     it('with non-existent team', async () => {

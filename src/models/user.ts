@@ -97,7 +97,6 @@ const schema = new Schema<IUser>({
             seasonEnd: Date,
         },
     ],
-    stats: [{ type: Types.ObjectId }],
     openToRequests: {
         type: Boolean,
         required: true,

@@ -222,7 +222,7 @@ export default class TeamServices {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
                 const embeddedTeam = getEmbeddedTeam(team)
                 embeddedTeam._id = oldId
-                if (!managerRecord.archiveTeams.includes(embeddedTeam)) {
+                if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     managerRecord.archiveTeams.push(embeddedTeam)
                 }
                 managerRecord.managerTeams.push(getEmbeddedTeam(team))
@@ -237,7 +237,7 @@ export default class TeamServices {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
                 const embeddedTeam = getEmbeddedTeam(team)
                 embeddedTeam._id = oldId
-                if (!playerRecord.archiveTeams.includes(embeddedTeam)) {
+                if (playerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     playerRecord.archiveTeams.push(embeddedTeam)
                 }
                 if (copyPlayers) {
@@ -395,10 +395,13 @@ export default class TeamServices {
 
         await new UltmtValidator().userIsManager(managerId, teamId).test
 
+        const expiresAt = new Date()
+        expiresAt.setUTCDate(expiresAt.getUTCDate() + 1)
         const otp = await this.otpModel.create({
             creator: manager._id,
             team: team._id,
             reason: OTPReason.TeamJoin,
+            expiresAt,
         })
 
         return otp.passcode

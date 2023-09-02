@@ -20,7 +20,6 @@ export interface IUser extends CreateUser {
     playerTeams: EmbeddedTeam[]
     managerTeams: EmbeddedTeam[]
     archiveTeams: EmbeddedTeam[]
-    stats: Types.ObjectId[]
     requests: Types.ObjectId[]
     openToRequests: boolean
     generateAuthToken: () => string
