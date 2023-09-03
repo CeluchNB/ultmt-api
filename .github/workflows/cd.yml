@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create env
         run: |
@@ -57,7 +57,9 @@ jobs:
         run: yarn test
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Stop containers
         if: always()
@@ -74,23 +76,23 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: 'Authenticate to GCP'
-        uses: 'google-github-actions/auth@v0'
+        uses: 'google-github-actions/auth@v1'
         with:
           workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.SERVICE_ACCOUNT }}
       
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v0'
+        uses: 'google-github-actions/setup-gcloud@v1'
       
       - name: "Deploy Registry"
         run: |
           gcloud builds submit --config=cloudbuild.${{ needs.get-environment.outputs.env_name }}.yml .
 
       - name: "Deploy Cloud Run"
-        uses: 'google-github-actions/deploy-cloudrun@v0'
+        uses: 'google-github-actions/deploy-cloudrun@v1'
         with:
           service: 'ultmt-api'
           image: ${{ vars.CONTAINER_REPOSITORY }}

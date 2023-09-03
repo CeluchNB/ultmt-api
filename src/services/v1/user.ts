@@ -49,10 +49,6 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        if (user.private) {
-            user.playerTeams = []
-            user.managerTeams = []
-        }
         user.requests = []
 
         return user
