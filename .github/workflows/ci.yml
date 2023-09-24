@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create env
         run: |
@@ -60,7 +60,7 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create env
         run: |
@@ -85,7 +85,9 @@ jobs:
         run: yarn test
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Stop containers
         if: always()
