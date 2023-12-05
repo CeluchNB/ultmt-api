@@ -38,3 +38,4 @@ export const INVALID_SEASON_DATE =
 export const NAME_TOO_LONG = 'The provided name is too long.'
 export const UNABLE_TO_SEND_EMAIL = 'Unable to send email right now. Please try again soon.'
 export const INVALID_PASSCODE = 'This passcode is not in our records or expired. Please request a new one.'
+export const INVALID_SOURCE_TYPE = 'The source type of this verification request is invalid.'

@@ -291,7 +291,7 @@ export default class UserServices {
         try {
             await sgMail.send({
                 to: userEmail,
-                from: 'passwordrecovery@theultmtapp.com',
+                from: 'developer@theultmtapp.com',
                 subject: 'Create a new password!',
                 html: getPasscodeHtml(user.firstName, otp.passcode),
             })
