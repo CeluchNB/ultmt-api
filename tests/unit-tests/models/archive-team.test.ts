@@ -39,6 +39,5 @@ describe('test archive team model', () => {
         expect(archiveTeam.continuationId.toString()).not.toBe(archiveTeam._id.toString())
         expect(archiveTeam.rosterOpen).toBe(team.rosterOpen)
         expect(archiveTeam.requests.length).toBe(team.requests.length)
-        expect(archiveTeam.games.length).toBe(team.games.length)
     })
 })

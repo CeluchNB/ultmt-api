@@ -9,22 +9,6 @@ export interface CreateTeam {
     seasonEnd: string
 }
 
-export interface ITeam {
-    _id: Types.ObjectId
-    place: string
-    name: string
-    teamname: string
-    managers: EmbeddedUser[]
-    players: EmbeddedUser[]
-    seasonStart: Date
-    seasonEnd: Date
-    seasonNumber: number
-    continuationId: Types.ObjectId
-    rosterOpen: boolean
-    requests: Types.ObjectId[]
-    games: Types.ObjectId[]
-}
-
 export interface EmbeddedTeam {
     _id: Types.ObjectId
     place: string
@@ -32,4 +16,15 @@ export interface EmbeddedTeam {
     teamname: string
     seasonStart: Date
     seasonEnd: Date
+    verified: boolean
+}
+
+export interface ITeam extends EmbeddedTeam {
+    managers: EmbeddedUser[]
+    players: EmbeddedUser[]
+    seasonNumber: number
+    continuationId: Types.ObjectId
+    rosterOpen: boolean
+    requests: Types.ObjectId[]
+    verified: boolean
 }

@@ -70,8 +70,7 @@ export const schema = new Schema<ITeam>({
         default: true,
     },
     requests: [{ type: SchemaTypes.ObjectId }],
-    // TODO: this is unused, remove
-    games: [{ type: SchemaTypes.ObjectId }],
+    verified: { type: Boolean, default: false },
 })
 
 schema.index({ place: 'text', name: 'text', teamname: 'text' })

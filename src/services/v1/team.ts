@@ -59,7 +59,7 @@ export default class TeamServices {
             seasonNumber: 1,
             rosterOpen: true,
             requests: [],
-            games: [],
+            verified: false,
         }
 
         saveTeam.continuationId = saveTeam._id

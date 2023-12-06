@@ -7,7 +7,7 @@ export enum SourceType {
     TOURNAMENT = 'tournament',
 }
 
-interface IVerification {
+interface IVerificationRequest {
     _id: Types.ObjectId
     sourceType: string
     sourceId: Types.ObjectId
@@ -15,4 +15,4 @@ interface IVerification {
     status: string
 }
 
-export default IVerification
+export default IVerificationRequest

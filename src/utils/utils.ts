@@ -12,6 +12,7 @@ export const getEmbeddedTeam = (team: ITeam): EmbeddedTeam => {
         teamname: team.teamname,
         seasonStart: team.seasonStart,
         seasonEnd: team.seasonEnd,
+        verified: team.verified,
     }
 }
 
@@ -21,6 +22,7 @@ export const getEmbeddedUser = (user: IUser): EmbeddedUser => {
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
+        verified: user.verified,
     }
 }
 
