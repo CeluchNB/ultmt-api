@@ -22,7 +22,7 @@ export const getVerification = async (verificationId: string): Promise<IVerifica
     return verification
 }
 
-export const requestVerification = async (sourceType: string, sourceId: string, creatorId: string) => {
+export const requestVerification = async (sourceType: string, sourceId: string, creatorId = '') => {
     const user = await User.findById(creatorId)
 
     if (!user) {
