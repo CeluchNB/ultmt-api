@@ -71,6 +71,7 @@ export const schema = new Schema<ITeam>({
     },
     requests: [{ type: SchemaTypes.ObjectId }],
     verified: { type: Boolean, default: false },
+    designation: { type: SchemaTypes.ObjectId },
 })
 
 schema.index({ place: 'text', name: 'text', teamname: 'text' })

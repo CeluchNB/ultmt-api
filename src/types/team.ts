@@ -7,6 +7,7 @@ export interface CreateTeam {
     teamname: string
     seasonStart: string
     seasonEnd: string
+    designation?: Types.ObjectId
 }
 
 export interface EmbeddedTeam {
@@ -17,6 +18,7 @@ export interface EmbeddedTeam {
     seasonStart: Date
     seasonEnd: Date
     verified: boolean
+    designation?: Types.ObjectId
 }
 
 export interface ITeam extends EmbeddedTeam {

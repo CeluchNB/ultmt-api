@@ -26,6 +26,7 @@ export const getTeam = (): ITeam => {
         rosterOpen: false,
         requests: [],
         verified: false,
+        designation: undefined,
     }
 }
 

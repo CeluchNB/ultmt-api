@@ -13,6 +13,7 @@ export const getEmbeddedTeam = (team: ITeam): EmbeddedTeam => {
         seasonStart: team.seasonStart,
         seasonEnd: team.seasonEnd,
         verified: team.verified,
+        designation: team.designation,
     }
 }
 

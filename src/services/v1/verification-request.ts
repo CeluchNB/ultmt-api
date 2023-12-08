@@ -33,6 +33,24 @@ export const requestVerification = async (sourceType: string, sourceId: string, 
         throw new ApiError(Constants.INVALID_SOURCE_TYPE, 400)
     }
 
+    // TODO: verify source type + source id exists & no verification exists
+    const prevVerification = await VerificationRequest.findOne({ sourceType, sourceId })
+    if (prevVerification?.status === 'pending') {
+        throw new ApiError(Constants.VERIFICATION_REQUEST_ALREADY_EXISTS, 400)
+    }
+
+    if (sourceType === 'team') {
+        const sourceTeam = await Team.findById(sourceId)
+        if (!sourceTeam) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+    } else if (sourceType === 'user') {
+        const sourceUser = await User.findById(sourceId)
+        if (!sourceUser) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+    }
+
     const verification = await VerificationRequest.create({
         sourceType,
         sourceId,

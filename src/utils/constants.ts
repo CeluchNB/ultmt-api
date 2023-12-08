@@ -42,3 +42,4 @@ export const INVALID_SOURCE_TYPE = 'The source type of this verification request
 export const UNABLE_TO_FIND_VERIFICATION = 'Unable to find verification.'
 export const UNAUTHORIZED_TO_VERIFY = 'You are unauthorized to respond to verifications.'
 export const INVALID_RESPONSE_TYPE = 'This is not a valid response type.'
+export const VERIFICATION_REQUEST_ALREADY_EXISTS = 'A verification request already exists.'
