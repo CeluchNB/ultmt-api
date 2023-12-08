@@ -231,9 +231,15 @@ describe('test user error response parsing', () => {
         )
     })
 
-    it('unauthorized to verify request', () => {
+    it('with unauthorized to verify request', () => {
         expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_TO_VERIFY} extra details`)).toEqual(
             createExpressErrorObject(Constants.UNAUTHORIZED_TO_VERIFY, 401),
+        )
+    })
+
+    it('with invalid response type', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_RESPONSE_TYPE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_RESPONSE_TYPE, 400),
         )
     })
 })

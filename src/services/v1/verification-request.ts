@@ -22,7 +22,7 @@ export const getVerification = async (verificationId: string): Promise<IVerifica
     return verification
 }
 
-export const requestVerification = async (sourceType: string, sourceId: string, creatorId = '') => {
+export const requestVerification = async (sourceType: string, sourceId: string, creatorId: string) => {
     const user = await User.findById(creatorId)
 
     if (!user) {
@@ -59,6 +59,10 @@ export const respondToVerification = async (
     response: 'approved' | 'denied',
     userId = '',
 ): Promise<IVerificationRequest> => {
+    if (!['approved', 'denied'].includes(response)) {
+        throw new ApiError(Constants.INVALID_RESPONSE_TYPE, 400)
+    }
+
     const verification = await VerificationRequest.findById(verficationId)
 
     if (!verification) {

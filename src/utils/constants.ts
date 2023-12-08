@@ -41,3 +41,4 @@ export const INVALID_PASSCODE = 'This passcode is not in our records or expired.
 export const INVALID_SOURCE_TYPE = 'The source type of this verification request is invalid.'
 export const UNABLE_TO_FIND_VERIFICATION = 'Unable to find verification.'
 export const UNAUTHORIZED_TO_VERIFY = 'You are unauthorized to respond to verifications.'
+export const INVALID_RESPONSE_TYPE = 'This is not a valid response type.'

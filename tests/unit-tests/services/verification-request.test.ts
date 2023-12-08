@@ -2,10 +2,16 @@ import VerificationRequest from '../../../src/models/verification-request'
 import { setUpDatabase, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
 import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
-import { getVerification, requestVerification } from '../../../src/services/v1/verification-request'
-import { getUser } from '../../fixtures/utils'
+import {
+    getVerification,
+    requestVerification,
+    respondToVerification,
+} from '../../../src/services/v1/verification-request'
+import { getUser, getTeam } from '../../fixtures/utils'
 import User from '../../../src/models/user'
 import sgMail from '@sendgrid/mail'
+import Team from '../../../src/models/team'
+import { IUser } from '../../../src/types'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -96,6 +102,98 @@ describe('verification request services', () => {
             expect(result).toBeNull()
 
             expect(spy).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('respond to verification', () => {
+        let creator: IUser
+        beforeEach(async () => {
+            creator = await User.create({ ...getUser(), email: 'noah.celuch@gmail.com' })
+        })
+
+        it('with successful team approve', async () => {
+            const team = await Team.create(getTeam())
+            const verificationRequest = await VerificationRequest.create({
+                sourceType: 'team',
+                sourceId: team._id,
+                creator,
+            })
+
+            const result = await respondToVerification(
+                verificationRequest._id.toHexString(),
+                'approved',
+                creator._id.toHexString(),
+            )
+
+            expect(result.status).toBe('approved')
+
+            const updatedTeam = await Team.findOne({})
+            expect(updatedTeam?.verified).toBe(true)
+        })
+
+        it('with successful user approve', async () => {
+            const user = await User.create({ ...getUser(), username: 'firstlast2' })
+            const verificationRequest = await VerificationRequest.create({
+                sourceType: 'user',
+                sourceId: user._id,
+                creator,
+            })
+
+            const result = await respondToVerification(
+                verificationRequest._id.toHexString(),
+                'approved',
+                creator._id.toHexString(),
+            )
+
+            expect(result.status).toBe('approved')
+
+            const updatedUser = await User.findById(user._id)
+            expect(updatedUser?.verified).toBe(true)
+        })
+
+        it('with successful deny', async () => {
+            const team = await Team.create(getTeam())
+            const verificationRequest = await VerificationRequest.create({
+                sourceType: 'team',
+                sourceId: team._id,
+                creator,
+            })
+
+            const result = await respondToVerification(
+                verificationRequest._id.toHexString(),
+                'denied',
+                creator._id.toHexString(),
+            )
+
+            expect(result.status).toBe('denied')
+
+            const updatedTeam = await Team.findOne({})
+            expect(updatedTeam?.verified).toBe(false)
+        })
+
+        it('with invalid response type', async () => {
+            await expect(
+                respondToVerification(new Types.ObjectId().toHexString(), 'badresponse' as 'approved'),
+            ).rejects.toThrow(Constants.INVALID_RESPONSE_TYPE)
+        })
+
+        it('with unfound verification', async () => {
+            await expect(respondToVerification(new Types.ObjectId().toHexString(), 'approved')).rejects.toThrow(
+                Constants.UNABLE_TO_FIND_VERIFICATION,
+            )
+        })
+
+        it('with unauthorized responder', async () => {
+            const user = await User.create({ ...getUser(), username: 'firstlast2' })
+            const verificationRequest = await VerificationRequest.create({
+                sourceType: 'user',
+                sourceId: user._id,
+                creator,
+            })
+
+            await expect(
+                respondToVerification(verificationRequest._id.toHexString(), 'approved', user._id.toHexString()),
+            ).rejects.toThrow(Constants.UNAUTHORIZED_TO_VERIFY)
         })
     })
 })

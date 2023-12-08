@@ -27,7 +27,7 @@ verificationRequestRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const { sourceType, sourceId } = req.body
-            await requestVerification(sourceType, sourceId, req.user?.id)
+            await requestVerification(sourceType, sourceId, req.user?.id as string)
             res.sendStatus(201)
         } catch (e) {
             next(e)
