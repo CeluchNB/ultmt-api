@@ -394,7 +394,7 @@ export default class TeamServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        await new UltmtValidator().userIsManager(managerId, teamId).test
+        await new UltmtValidator().userIsManager(managerId, teamId).test()
 
         const expiresAt = new Date()
         expiresAt.setUTCDate(expiresAt.getUTCDate() + 1)
@@ -414,5 +414,22 @@ export default class TeamServices {
      * @param teamId id of team to change designation for
      * @param designationId new designation id
      */
-    changeDesignation = async (teamId: string, designationId: string) => {}
+    changeDesignation = async (managerId: string, teamId: string, designationId: string): Promise<ITeam> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        team.designation = new Types.ObjectId(designationId)
+        await team.save()
+
+        return team
+    }
 }

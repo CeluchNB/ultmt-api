@@ -61,10 +61,11 @@ describe('verification request services', () => {
                 {},
             ]),
         )
-        it('handles successful creation', async () => {
+        it('handles successful team creation', async () => {
             const user = getUser()
             const creator = await await User.create(user)
             const sourceId = new Types.ObjectId()
+            await Team.create({ ...getTeam(), _id: sourceId })
 
             await requestVerification('team', sourceId.toHexString(), creator._id.toHexString())
 
@@ -74,6 +75,65 @@ describe('verification request services', () => {
             expect(result?.creator._id.toHexString()).toBe(creator._id.toHexString())
 
             expect(spy).toHaveBeenCalled()
+        })
+
+        it('handles failed team creation', async () => {
+            const user = getUser()
+            const creator = await await User.create(user)
+            const sourceId = new Types.ObjectId()
+
+            await expect(
+                requestVerification('team', sourceId.toHexString(), creator._id.toHexString()),
+            ).rejects.toThrow(Constants.UNABLE_TO_FIND_TEAM)
+
+            const result = await VerificationRequest.findOne({})
+            expect(result).toBeNull()
+        })
+
+        it('handles successful user creation', async () => {
+            const user = getUser()
+            const creator = await await User.create(user)
+            const sourceId = new Types.ObjectId()
+            await User.create({ ...getUser(), email: 'newemail@email.com', username: 'newusername', _id: sourceId })
+
+            await requestVerification('user', sourceId.toHexString(), creator._id.toHexString())
+
+            const result = await VerificationRequest.findOne({})
+            expect(result?.sourceType).toBe('user')
+            expect(result?.sourceId.toHexString()).toBe(sourceId.toHexString())
+            expect(result?.creator._id.toHexString()).toBe(creator._id.toHexString())
+
+            expect(spy).toHaveBeenCalled()
+        })
+
+        it('handles failed user creation', async () => {
+            const user = getUser()
+            const creator = await await User.create(user)
+            const sourceId = new Types.ObjectId()
+
+            await expect(
+                requestVerification('user', sourceId.toHexString(), creator._id.toHexString()),
+            ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+
+            const result = await VerificationRequest.findOne({})
+            expect(result).toBeNull()
+        })
+
+        it('with previous verification', async () => {
+            const user = getUser()
+            const creator = await await User.create(user)
+            const sourceId = new Types.ObjectId()
+
+            await VerificationRequest.create({
+                sourceType: 'team',
+                sourceId,
+                status: 'pending',
+                creator,
+            })
+
+            await expect(
+                requestVerification('team', sourceId.toHexString(), creator._id.toHexString()),
+            ).rejects.toThrow(Constants.VERIFICATION_REQUEST_ALREADY_EXISTS)
         })
 
         it('handles unfound creator', async () => {

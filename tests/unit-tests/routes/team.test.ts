@@ -11,6 +11,8 @@ import ArchiveTeam from '../../../src/models/archive-team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import MockDate from 'mockdate'
 import { client } from '../../../src/loaders/redis'
+import TeamDesignation from '../../../src/models/team-designation'
+import { Types } from 'mongoose'
 
 jest.mock('node-cron', () => {
     return {
@@ -667,5 +669,52 @@ describe('test /POST create bulk join code', () => {
             .set('Authorization', 'Bearer 1234.adsf4t4sase.qer45sf')
             .send()
             .expect(401)
+    })
+})
+
+describe('test /PUT team designation', () => {
+    it('with successful call', async () => {
+        const team = getTeam()
+        const manager = getUser()
+        const teamRecord = await Team.create(team)
+        const managerRecord = await User.create(manager)
+        teamRecord.managers.push(managerRecord._id)
+        await teamRecord.save()
+        const token = await managerRecord.generateAuthToken()
+        managerRecord.managerTeams.push(getEmbeddedTeam(teamRecord))
+        await managerRecord.save()
+
+        const designation = await TeamDesignation.create({
+            description: 'Test Description',
+            abbreviation: 'RD'
+        })
+
+        const response = await request(app)
+            .put(`/api/v1/team/${team._id.toHexString()}/designation`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                designation: designation._id.toHexString(),
+            })
+            .expect(200)
+
+        const { team: teamResponse } = response.body
+
+        expect(teamResponse.designation).toBe(designation._id.toHexString())
+    })
+
+    it('with unsuccessful call', async () => {
+        const manager = getUser()
+        const managerRecord = await User.create(manager)
+        const token = await managerRecord.generateAuthToken()
+
+        const response = await request(app)
+            .put(`/api/v1/team/${new Types.ObjectId().toHexString()}/designation`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                designation: '12341234',
+            })
+            .expect(404)
+
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })

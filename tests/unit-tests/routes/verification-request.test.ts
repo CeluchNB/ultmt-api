@@ -3,11 +3,12 @@ import request from 'supertest'
 import app from '../../../src/app'
 import VerificationRequest from '../../../src/models/verification-request'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser } from '../../fixtures/utils'
+import { getTeam, getUser } from '../../fixtures/utils'
 import { Types } from 'mongoose'
 import { client } from '../../../src/loaders/redis'
 import User from '../../../src/models/user'
 import sgMail from '@sendgrid/mail'
+import Team from '../../../src/models/team'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -71,6 +72,7 @@ describe('Verfication Request', () => {
             const user = await User.create(getUser())
             const token = await user.generateAuthToken()
             const sourceId = new Types.ObjectId()
+            await Team.create({ ...getTeam(), _id: sourceId })
 
             await request(app)
                 .post('/api/v1/verification-request')

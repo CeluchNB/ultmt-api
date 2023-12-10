@@ -23,8 +23,8 @@ export interface IUser extends CreateUser {
     requests: Types.ObjectId[]
     openToRequests: boolean
     verified: boolean
-    generateAuthToken: () => string
-    generateRefreshToken: () => string
+    generateAuthToken: () => Promise<string>
+    generateRefreshToken: () => Promise<string>
     isModified: (property: string) => boolean
 }
 
