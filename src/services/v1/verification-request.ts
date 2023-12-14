@@ -66,7 +66,7 @@ export const requestVerification = async (sourceType: string, sourceId: string, 
 <p>You have a request to verify:</p>
 <p>Source Type: ${sourceType}</p>
 <p>Source Id: ${sourceId}</p>
-<a href="https://theultmtapp.com/verify-request?${verification._id}"><p>Verify Request</p></a>
+<a href="https://theultmtapp.com/verify-request?id=${verification._id}"><p>Verify Request</p></a>
 </div>
         `,
     })
