@@ -6,12 +6,14 @@ import sgMail from '@sendgrid/mail'
 import { Types } from 'mongoose'
 import IVerificationRequest from '../../types/verification-request'
 import Team from '../../models/team'
+import UltmtValidator from '../../utils/ultmt-validator'
 
 const VALID_SOURCE_TYPES = ['team', 'user']
 const ADMIN_EMAIL = 'noah.celuch@gmail.com'
 
 // NOT USING CLASS W/ DEPENDENCY INJECTION FOR VERIFICATION REQUEST
-// TODO: MIGRATE OTHER SERVICES TO THIS PATTERN
+// TODO: MIGRATE OTHER SERVICES TO THIS PATTERN?
+// Use a Nodejs DI library
 
 export const getVerification = async (verificationId: string): Promise<IVerificationRequest> => {
     const verification = await VerificationRequest.findById(verificationId)
@@ -58,7 +60,7 @@ export const requestVerification = async (sourceType: string, sourceId: string, 
     })
 
     await sgMail.send({
-        to: 'noah.celuch@gmail.com',
+        to: ADMIN_EMAIL,
         from: 'developer@theultmtapp.com',
         subject: 'Request for Verification',
         html: `
@@ -87,11 +89,7 @@ export const respondToVerification = async (
         throw new ApiError(Constants.UNABLE_TO_FIND_VERIFICATION, 404)
     }
 
-    const user = await User.findById(userId)
-
-    if (user?.email !== ADMIN_EMAIL) {
-        throw new ApiError(Constants.UNAUTHORIZED_TO_VERIFY, 401)
-    }
+    await new UltmtValidator().userIsAdmin(userId).test()
 
     verification.status = response
     await verification.save()

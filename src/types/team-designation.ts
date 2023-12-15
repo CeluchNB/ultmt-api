@@ -1,9 +1,12 @@
 import { Types } from 'mongoose'
 
-interface ITeamDesignation {
-    _id: Types.ObjectId
+export interface TeamDesignationData {
     description: string
     abbreviation: string
+}
+
+interface ITeamDesignation extends TeamDesignationData {
+    _id: Types.ObjectId
 }
 
 export default ITeamDesignation

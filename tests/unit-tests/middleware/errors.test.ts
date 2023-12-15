@@ -242,6 +242,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.INVALID_RESPONSE_TYPE, 400),
         )
     })
+
+    it('with unauthorized admin', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_ADMIN} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_ADMIN, 401),
+        )
+    })
 })
 
 describe('test middleware', () => {

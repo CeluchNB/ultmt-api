@@ -1,17 +1,17 @@
-import VerificationRequest from '../../../src/models/verification-request'
-import { setUpDatabase, tearDownDatabase, resetDatabase } from '../../fixtures/setup-db'
-import * as Constants from '../../../src/utils/constants'
+import VerificationRequest from '../../../../src/models/verification-request'
+import { setUpDatabase, tearDownDatabase, resetDatabase } from '../../../fixtures/setup-db'
+import * as Constants from '../../../../src/utils/constants'
 import { Types } from 'mongoose'
 import {
     getVerification,
     requestVerification,
     respondToVerification,
-} from '../../../src/services/v1/verification-request'
-import { getUser, getTeam } from '../../fixtures/utils'
-import User from '../../../src/models/user'
+} from '../../../../src/services/v1/verification-request'
+import { getUser, getTeam } from '../../../fixtures/utils'
+import User from '../../../../src/models/user'
 import sgMail from '@sendgrid/mail'
-import Team from '../../../src/models/team'
-import { IUser } from '../../../src/types'
+import Team from '../../../../src/models/team'
+import { IUser } from '../../../../src/types'
 
 beforeAll(async () => {
     await setUpDatabase()

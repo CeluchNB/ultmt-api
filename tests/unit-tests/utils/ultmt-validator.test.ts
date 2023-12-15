@@ -543,4 +543,21 @@ describe('test ultmt validator', () => {
         expect(result).toBe(true)
         MockDate.reset()
     })
+
+    it('test admin validation with valid admin', async () => {
+        const user = await User.create({ ...getUser(), email: 'noah.celuch@gmail.com' })
+        const validator = new UltmtValidator()
+        validator.userIsAdmin(user._id.toHexString())
+
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('test admin validation with invalid admin', async () => {
+        const user = await User.create({ ...getUser() })
+        const validator = new UltmtValidator()
+        validator.userIsAdmin(user._id.toHexString())
+
+        await expect(validator.test()).rejects.toThrow(Constants.UNAUTHORIZED_ADMIN)
+    })
 })

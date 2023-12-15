@@ -1,14 +1,14 @@
-import * as Constants from '../../../src/utils/constants'
+import * as Constants from '../../../../src/utils/constants'
 import request from 'supertest'
-import app from '../../../src/app'
-import VerificationRequest from '../../../src/models/verification-request'
-import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getTeam, getUser } from '../../fixtures/utils'
+import app from '../../../../src/app'
+import VerificationRequest from '../../../../src/models/verification-request'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../../fixtures/setup-db'
+import { getTeam, getUser } from '../../../fixtures/utils'
 import { Types } from 'mongoose'
-import { client } from '../../../src/loaders/redis'
-import User from '../../../src/models/user'
+import { client } from '../../../../src/loaders/redis'
+import User from '../../../../src/models/user'
 import sgMail from '@sendgrid/mail'
-import Team from '../../../src/models/team'
+import Team from '../../../../src/models/team'
 
 beforeAll(async () => {
     await setUpDatabase()
