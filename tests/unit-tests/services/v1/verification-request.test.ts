@@ -253,7 +253,7 @@ describe('verification request services', () => {
 
             await expect(
                 respondToVerification(verificationRequest._id.toHexString(), 'approved', user._id.toHexString()),
-            ).rejects.toThrow(Constants.UNAUTHORIZED_TO_VERIFY)
+            ).rejects.toThrow(Constants.UNAUTHORIZED_ADMIN)
         })
     })
 })

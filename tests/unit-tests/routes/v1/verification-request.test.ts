@@ -146,7 +146,7 @@ describe('Verfication Request', () => {
                 .send()
                 .expect(401)
 
-            expect(response.body.message).toBe(Constants.UNAUTHORIZED_TO_VERIFY)
+            expect(response.body.message).toBe(Constants.UNAUTHORIZED_ADMIN)
         })
     })
 })
