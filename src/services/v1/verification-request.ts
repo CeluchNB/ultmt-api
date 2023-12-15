@@ -7,6 +7,7 @@ import { Types } from 'mongoose'
 import IVerificationRequest from '../../types/verification-request'
 import Team from '../../models/team'
 import UltmtValidator from '../../utils/ultmt-validator'
+import { getVerificationHtml } from '../../utils/utils'
 
 const VALID_SOURCE_TYPES = ['team', 'user']
 const ADMIN_EMAIL = 'noah.celuch@gmail.com'
@@ -63,14 +64,7 @@ export const requestVerification = async (sourceType: string, sourceId: string, 
         to: ADMIN_EMAIL,
         from: 'developer@theultmtapp.com',
         subject: 'Request for Verification',
-        html: `
-<div>
-<p>You have a request to verify:</p>
-<p>Source Type: ${sourceType}</p>
-<p>Source Id: ${sourceId}</p>
-<a href="https://theultmtapp.com/verify-request?id=${verification._id}"><p>Verify Request</p></a>
-</div>
-        `,
+        html: getVerificationHtml(sourceType, sourceId, verification._id.toHexString()),
     })
 }
 
