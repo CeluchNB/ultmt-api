@@ -330,7 +330,7 @@ describe('test search user', () => {
     })
 })
 
-describe('test manager leave functionality', () => {
+describe('test manager leave', () => {
     beforeEach(async () => {
         await saveUsers()
     })
@@ -385,17 +385,31 @@ describe('test manager leave functionality', () => {
         )
     })
 
-    it('with last manager error', async () => {
-        const [manager] = await User.find({})
+    it('with last manager leaving', async () => {
+        const [manager, playerOne, playerTwo] = await User.find({})
         const team = await Team.create(getTeam())
         team.managers.push(getEmbeddedUser(manager))
+        team.players.push(getEmbeddedUser(playerOne))
+        team.players.push(getEmbeddedUser(playerTwo))
         await team.save()
+
         manager.managerTeams.push(getEmbeddedTeam(team))
         await manager.save()
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
 
-        await expect(services.leaveManagerRole(team._id.toString(), manager._id.toString())).rejects.toThrowError(
-            Constants.USER_IS_ONLY_MANAGER,
-        )
+        const result = await services.leaveManagerRole(team._id.toString(), manager._id.toString())
+        expect(result.managerTeams.length).toBe(0)
+
+        const teamRecords = await Team.find({})
+        expect(teamRecords.length).toBe(0)
+
+        const [managerRecord, playerOneRecord, playerTwoRecord] = await User.find({})
+        expect(managerRecord.managerTeams.length).toBe(0)
+        expect(playerOneRecord.playerTeams.length).toBe(0)
+        expect(playerTwoRecord.playerTeams.length).toBe(0)
     })
 })
 

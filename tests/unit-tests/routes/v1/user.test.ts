@@ -377,7 +377,7 @@ describe('test /PUT leave manager', () => {
             .expect(401)
     })
 
-    it('with last manager error', async () => {
+    it('with unfound team error', async () => {
         const [manager] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
@@ -387,12 +387,12 @@ describe('test /PUT leave manager', () => {
         await manager.save()
 
         const response = await request(app)
-            .put(`/api/v1/user/managerLeave?team=${team._id}`)
+            .put(`/api/v1/user/managerLeave?team=${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
-            .expect(400)
+            .expect(404)
 
-        expect(response.body.message).toBe(Constants.USER_IS_ONLY_MANAGER)
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
 
