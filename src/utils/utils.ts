@@ -12,6 +12,8 @@ export const getEmbeddedTeam = (team: ITeam): EmbeddedTeam => {
         teamname: team.teamname,
         seasonStart: team.seasonStart,
         seasonEnd: team.seasonEnd,
+        verified: team.verified,
+        designation: team.designation,
     }
 }
 
@@ -21,6 +23,7 @@ export const getEmbeddedUser = (user: IUser): EmbeddedUser => {
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
+        verified: user.verified,
     }
 }
 
@@ -37,6 +40,15 @@ Thank you!
 <br />
 The Ultmt App Password Recovery
 </p>`
+}
+
+export const getVerificationHtml = (sourceType: string, sourceId: string, verificationId: string): string => {
+    return `<div>
+<p>You have a request to verify:</p>
+<p>Source Type: ${sourceType}</p>
+<p>Source Id: ${sourceId}</p>
+<a href="https://theultmtapp.com/admin/verify-request?id=${verificationId}"><p>Verify Request</p></a>
+</div>`
 }
 
 export const parseBoolean = (bool: string): boolean | undefined => {

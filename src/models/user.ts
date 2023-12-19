@@ -102,6 +102,7 @@ const schema = new Schema<IUser>({
         required: true,
         default: true,
     },
+    verified: { type: Boolean, default: false },
 })
 
 const isValidPassword = (password: string): boolean => {

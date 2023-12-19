@@ -1,13 +1,13 @@
-import * as Constants from '../../../src/utils/constants'
+import * as Constants from '../../../../src/utils/constants'
 import request from 'supertest'
-import app from '../../../src/app'
-import User from '../../../src/models/user'
-import OneTimePasscode from '../../../src/models/one-time-passcode'
-import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { getUser } from '../../fixtures/utils'
-import { OTPReason } from '../../../src/types'
+import app from '../../../../src/app'
+import User from '../../../../src/models/user'
+import OneTimePasscode from '../../../../src/models/one-time-passcode'
+import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../../fixtures/setup-db'
+import { getUser } from '../../../fixtures/utils'
+import { OTPReason } from '../../../../src/types'
 import randomstring from 'randomstring'
-import { client } from '../../../src/loaders/redis'
+import { client } from '../../../../src/loaders/redis'
 
 beforeAll(async () => {
     await setUpDatabase()

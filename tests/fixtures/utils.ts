@@ -25,7 +25,8 @@ export const getTeam = (): ITeam => {
         continuationId: new Types.ObjectId(),
         rosterOpen: false,
         requests: [],
-        games: [],
+        verified: false,
+        designation: undefined,
     }
 }
 

@@ -49,8 +49,11 @@ export default class TeamServices {
         await new UltmtValidator().validSeasonDates(seasonStart, seasonEnd).test()
 
         const saveTeam: ITeam = {
-            ...team,
             _id: new Types.ObjectId(),
+            place: team.place,
+            name: team.name,
+            teamname: team.teamname,
+            designation: team.designation,
             seasonStart,
             seasonEnd,
             continuationId: new Types.ObjectId(),
@@ -59,7 +62,7 @@ export default class TeamServices {
             seasonNumber: 1,
             rosterOpen: true,
             requests: [],
-            games: [],
+            verified: false,
         }
 
         saveTeam.continuationId = saveTeam._id
@@ -74,8 +77,6 @@ export default class TeamServices {
 
         teamObject.managers.push(getEmbeddedUser(user))
         await teamObject.save()
-
-        // TODO:: Perform creation of RosterRequest objects here
 
         return teamObject
     }
@@ -393,7 +394,7 @@ export default class TeamServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        await new UltmtValidator().userIsManager(managerId, teamId).test
+        await new UltmtValidator().userIsManager(managerId, teamId).test()
 
         const expiresAt = new Date()
         expiresAt.setUTCDate(expiresAt.getUTCDate() + 1)
@@ -405,5 +406,30 @@ export default class TeamServices {
         })
 
         return otp.passcode
+    }
+
+    /**
+     * Method to allow a team to change it's designation. If the team is verified this will trigger
+     * a new verification request.
+     * @param teamId id of team to change designation for
+     * @param designationId new designation id
+     */
+    changeDesignation = async (managerId: string, teamId: string, designationId: string): Promise<ITeam> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        team.designation = new Types.ObjectId(designationId)
+        await team.save()
+
+        return team
     }
 }

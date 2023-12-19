@@ -25,7 +25,10 @@ enum ValidationType {
     ENOUGH_SEARCH_CHARACTERS,
     USER_NOT_MANAGER,
     VALID_SEASON_DATES,
+    IS_ADMIN,
 }
+
+const ADMIN_EMAIL = 'noah.celuch@gmail.com'
 
 type Validation = {
     type: ValidationType
@@ -141,6 +144,11 @@ export default class UltmtValidator {
 
     validSeasonDates = (seasonStart: Date, seasonEnd: Date): UltmtValidator => {
         this.validations.push({ type: ValidationType.VALID_SEASON_DATES, data: { seasonStart, seasonEnd } })
+        return this
+    }
+
+    userIsAdmin = (userId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.IS_ADMIN, data: { userId } })
         return this
     }
 
@@ -399,6 +407,16 @@ export default class UltmtValidator {
                 if (seasonStart > seasonEnd) {
                     throw new ApiError(Constants.INVALID_SEASON_DATE, 400)
                 }
+                break
+            }
+            case ValidationType.IS_ADMIN: {
+                const { userId } = validation.data
+                const user = await User.findById(userId)
+
+                if (user?.email !== ADMIN_EMAIL) {
+                    throw new ApiError(Constants.UNAUTHORIZED_ADMIN, 404)
+                }
+
                 break
             }
         }
