@@ -31,7 +31,6 @@ describe('test team model', () => {
         expect(teamRecord.seasonNumber).toBe(1)
         expect(teamRecord.continuationId).toBeDefined()
         expect(teamRecord.requests.length).toBe(0)
-        expect(teamRecord.games.length).toBe(0)
     })
 
     it('test save with invalid team name', async () => {

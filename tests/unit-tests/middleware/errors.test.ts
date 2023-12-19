@@ -218,6 +218,36 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNABLE_TO_VERIFY_TOKEN, 401),
         )
     })
+
+    it('with invalid source type', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_SOURCE_TYPE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_SOURCE_TYPE, 400),
+        )
+    })
+
+    it('with unable to find verification', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNABLE_TO_FIND_VERIFICATION} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNABLE_TO_FIND_VERIFICATION, 404),
+        )
+    })
+
+    it('with unauthorized to verify request', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_TO_VERIFY} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_TO_VERIFY, 401),
+        )
+    })
+
+    it('with invalid response type', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.INVALID_RESPONSE_TYPE} extra details`)).toEqual(
+            createExpressErrorObject(Constants.INVALID_RESPONSE_TYPE, 400),
+        )
+    })
+
+    it('with unauthorized admin', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.UNAUTHORIZED_ADMIN} extra details`)).toEqual(
+            createExpressErrorObject(Constants.UNAUTHORIZED_ADMIN, 401),
+        )
+    })
 })
 
 describe('test middleware', () => {

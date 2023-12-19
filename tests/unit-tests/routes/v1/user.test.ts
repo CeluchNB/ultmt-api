@@ -1,15 +1,15 @@
 import request from 'supertest'
-import app from '../../../src/app'
-import { ApiError, IUser, OTPReason } from '../../../src/types'
-import * as Constants from '../../../src/utils/constants'
-import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers, redisClient } from '../../fixtures/setup-db'
-import { getUser, anonId, getTeam } from '../../fixtures/utils'
-import User from '../../../src/models/user'
-import OneTimePasscode from '../../../src/models/one-time-passcode'
-import Team from '../../../src/models/team'
-import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
+import app from '../../../../src/app'
+import { ApiError, IUser, OTPReason } from '../../../../src/types'
+import * as Constants from '../../../../src/utils/constants'
+import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers, redisClient } from '../../../fixtures/setup-db'
+import { getUser, anonId, getTeam } from '../../../fixtures/utils'
+import User from '../../../../src/models/user'
+import OneTimePasscode from '../../../../src/models/one-time-passcode'
+import Team from '../../../../src/models/team'
+import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import sgMail from '@sendgrid/mail'
-import { client } from '../../../src/loaders/redis'
+import { client } from '../../../../src/loaders/redis'
 import jwt from 'jsonwebtoken'
 import { Types } from 'mongoose'
 
@@ -377,7 +377,7 @@ describe('test /PUT leave manager', () => {
             .expect(401)
     })
 
-    it('with last manager error', async () => {
+    it('with unfound team error', async () => {
         const [manager] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
@@ -387,12 +387,12 @@ describe('test /PUT leave manager', () => {
         await manager.save()
 
         const response = await request(app)
-            .put(`/api/v1/user/managerLeave?team=${team._id}`)
+            .put(`/api/v1/user/managerLeave?team=${anonId}`)
             .set('Authorization', `Bearer ${token}`)
             .send()
-            .expect(400)
+            .expect(404)
 
-        expect(response.body.message).toBe(Constants.USER_IS_ONLY_MANAGER)
+        expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
 

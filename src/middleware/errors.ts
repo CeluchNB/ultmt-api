@@ -73,6 +73,16 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.INVALID_PASSCODE, 400)
     } else if (error.includes(Constants.UNABLE_TO_VERIFY_TOKEN)) {
         return createExpressErrorObject(Constants.UNABLE_TO_VERIFY_TOKEN, 401)
+    } else if (error.includes(Constants.INVALID_SOURCE_TYPE)) {
+        return createExpressErrorObject(Constants.INVALID_SOURCE_TYPE, 400)
+    } else if (error.includes(Constants.UNABLE_TO_FIND_VERIFICATION)) {
+        return createExpressErrorObject(Constants.UNABLE_TO_FIND_VERIFICATION, 404)
+    } else if (error.includes(Constants.UNAUTHORIZED_TO_VERIFY)) {
+        return createExpressErrorObject(Constants.UNAUTHORIZED_TO_VERIFY, 401)
+    } else if (error.includes(Constants.INVALID_RESPONSE_TYPE)) {
+        return createExpressErrorObject(Constants.INVALID_RESPONSE_TYPE, 400)
+    } else if (error.includes(Constants.UNAUTHORIZED_ADMIN)) {
+        return createExpressErrorObject(Constants.UNAUTHORIZED_ADMIN, 401)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

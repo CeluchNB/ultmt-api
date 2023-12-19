@@ -198,7 +198,24 @@ export default class UserServices {
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
 
         if (team.managers.length < 2) {
-            throw new ApiError(Constants.USER_IS_ONLY_MANAGER, 400)
+            // TODO: this is not safe in the long term
+            // update manager
+            manager.managerTeams = manager.managerTeams.filter((t) => !t._id.equals(teamId))
+            await manager.save()
+
+            // update players
+            for (const i of team.players) {
+                const playerRecord = await this.userModel.findById(i._id)
+                if (playerRecord) {
+                    playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+
+                    await playerRecord.save()
+                }
+            }
+
+            await team.delete()
+
+            return manager
         }
 
         team.managers = team.managers.filter((user) => !user._id.equals(managerId))
@@ -291,7 +308,7 @@ export default class UserServices {
         try {
             await sgMail.send({
                 to: userEmail,
-                from: 'passwordrecovery@theultmtapp.com',
+                from: 'developer@theultmtapp.com',
                 subject: 'Create a new password!',
                 html: getPasscodeHtml(user.firstName, otp.passcode),
             })

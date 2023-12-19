@@ -180,4 +180,24 @@ teamRouter.get('/archiveTeam/:id', param('id').escape().isString(), async (req: 
     }
 })
 
+teamRouter.put(
+    '/team/:id/designation',
+    param('id').escape().isString(),
+    body('designation').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.changeDesignation(
+                req.user?.id as string,
+                req.params.id,
+                req.body.designation,
+            )
+            return res.json({ team })
+        } catch (e) {
+            next(e)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

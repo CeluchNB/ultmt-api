@@ -3,7 +3,7 @@ import { ITeam } from '../types'
 import { Document, model, Schema, SchemaTypes } from 'mongoose'
 import validator from 'validator'
 
-export const schema = new Schema<ITeam>({
+export const teamSchema = {
     place: { type: String, required: true, maxLength: 20 },
     name: { type: String, required: true, maxLength: 20 },
     teamname: {
@@ -70,9 +70,11 @@ export const schema = new Schema<ITeam>({
         default: true,
     },
     requests: [{ type: SchemaTypes.ObjectId }],
-    // TODO: this is unused, remove
-    games: [{ type: SchemaTypes.ObjectId }],
-})
+    verified: { type: Boolean, default: false },
+    designation: { type: SchemaTypes.ObjectId },
+}
+
+const schema = new Schema<ITeam>(teamSchema)
 
 schema.index({ place: 'text', name: 'text', teamname: 'text' })
 

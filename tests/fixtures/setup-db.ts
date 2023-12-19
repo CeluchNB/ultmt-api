@@ -5,6 +5,8 @@ import { CreateUser } from '../../src/types'
 import RosterRequest from '../../src/models/roster-request'
 import ArchiveTeam from '../../src/models/archive-team'
 import OneTimePasscode from '../../src/models/one-time-passcode'
+import TeamDesignation from '../../src/models/team-designation'
+import VerificationRequest from '../../src/models/verification-request'
 import { createClient } from 'redis'
 
 export const redisClient = createClient({ url: process.env.REDIS_URL })
@@ -49,6 +51,8 @@ export const resetDatabase = async () => {
     await RosterRequest.deleteMany({})
     await ArchiveTeam.deleteMany({})
     await OneTimePasscode.deleteMany({})
+    await VerificationRequest.deleteMany({})
+    await TeamDesignation.deleteMany({})
     if (redisClient.isOpen) {
         await redisClient.flushAll()
     }

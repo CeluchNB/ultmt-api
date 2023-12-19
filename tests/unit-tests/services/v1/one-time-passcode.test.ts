@@ -1,11 +1,11 @@
-import * as Constants from '../../../src/utils/constants'
-import { resetDatabase, setUpDatabase, tearDownDatabase } from '../../fixtures/setup-db'
-import { anonId, getUser } from '../../fixtures/utils'
-import User from '../../../src/models/user'
-import OneTimePasscode from '../../../src/models/one-time-passcode'
-import OneTimePasscodeServices from '../../../src/services/v1/one-time-passcode'
+import * as Constants from '../../../../src/utils/constants'
+import { resetDatabase, setUpDatabase, tearDownDatabase } from '../../../fixtures/setup-db'
+import { anonId, getUser } from '../../../fixtures/utils'
+import User from '../../../../src/models/user'
+import OneTimePasscode from '../../../../src/models/one-time-passcode'
+import OneTimePasscodeServices from '../../../../src/services/v1/one-time-passcode'
 import randomstring from 'randomstring'
-import { ApiError } from '../../../src/types'
+import { ApiError } from '../../../../src/types'
 
 beforeAll(async () => {
     await setUpDatabase()
