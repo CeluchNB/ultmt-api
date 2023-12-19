@@ -185,24 +185,19 @@ export default class UserServices {
      * @returns new team
      */
     leaveManagerRole = async (teamId: string, managerId: string): Promise<IUser> => {
-        console.log('trying leave')
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
-        console.log('got team', team)
         const manager = await this.userModel.findById(managerId)
         if (!manager) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }
 
-        console.log('got manager', manager)
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
 
-        console.log('is manager')
         if (team.managers.length < 2) {
-            console.log('last manager')
             // TODO: this is not safe in the long term
             // update manager
             manager.managerTeams = manager.managerTeams.filter((t) => !t._id.equals(teamId))
@@ -223,7 +218,6 @@ export default class UserServices {
             return manager
         }
 
-        console.log('not last manager')
         team.managers = team.managers.filter((user) => !user._id.equals(managerId))
         await team.save()
 

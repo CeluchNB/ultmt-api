@@ -113,7 +113,6 @@ userRouter.put(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
-            console.log('in request', req.user, req.query.team)
             const userService = new UserServices(User, Team)
             const user = await userService.leaveManagerRole(req.query.team as string, req.user?.id as string)
             return res.json({ user })

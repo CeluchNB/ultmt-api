@@ -33,9 +33,7 @@ const opts: StrategyOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKeyProvider: async (_req, rawJwtToken, done) => {
         // check redis blacklist here
-        console.log('getting token', rawJwtToken)
         const exists = await client.get(rawJwtToken)
-        console.log('token exists', exists)
         if (exists) {
             return done(new ApiError(Constants.UNABLE_TO_VERIFY_TOKEN, 401))
         }
@@ -45,7 +43,6 @@ const opts: StrategyOptions = {
 
 passport.use(
     new JwtStrategy(opts, async (jwtPayload, done) => {
-        console.log('payload', jwtPayload)
         return done(null, { id: jwtPayload.sub })
     }),
 )
