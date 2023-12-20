@@ -470,4 +470,75 @@ export default class TeamServices {
 
         await team.delete()
     }
+
+    archiveTeam = async (managerId: string, teamId: string): Promise<ITeam> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        // close roster for archive and new team
+        const oldId = team._id
+        const players = team.players
+
+        team.rosterOpen = false
+
+        // Delete any requests related to the team
+        for (const id of team.requests) {
+            const request = await this.requestModel.findById(id)
+            if (!request) {
+                continue
+            }
+            const user = await this.userModel.findById(request.user)
+            if (!user) {
+                continue
+            }
+
+            user.requests = user.requests.filter((reqId) => !reqId.equals(id))
+            await user.save()
+            await request.delete()
+        }
+
+        team.requests = []
+
+        const result = await this.archiveTeamModel.insertMany([team])
+        const archiveTeam = result[0]
+
+        await this.teamModel.deleteOne({ _id: oldId })
+
+        // update managers
+        for (const i of team.managers) {
+            const managerRecord = await this.userModel.findById(i)
+            if (managerRecord) {
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
+                const embeddedTeam = getEmbeddedTeam(archiveTeam)
+                if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
+                    managerRecord.archiveTeams.push(embeddedTeam)
+                }
+                await managerRecord.save()
+            }
+        }
+
+        // update players
+        for (const i of players) {
+            const playerRecord = await this.userModel.findById(i)
+            if (playerRecord) {
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
+                const embeddedTeam = getEmbeddedTeam(archiveTeam)
+                if (playerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
+                    playerRecord.archiveTeams.push(embeddedTeam)
+                }
+                await playerRecord.save()
+            }
+        }
+
+        return archiveTeam
+    }
 }

@@ -215,4 +215,16 @@ teamRouter.delete(
     },
 )
 
+teamRouter.put(
+    '/team/:id/archive',
+    param('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+        } catch (e) {
+            next(e)
+        }
+    },
+)
+
 teamRouter.use(errorMiddleware)

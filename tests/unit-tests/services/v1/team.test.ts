@@ -921,3 +921,108 @@ describe('test delete team', () => {
         expect(teamResults.length).toBe(1)
     })
 })
+
+describe('test archive team', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('handles success', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        const req1 = await RosterRequest.create({
+            team: team._id,
+            user: playerTwo._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+
+        const req2 = await RosterRequest.create({
+            team: team._id,
+            user: anonId,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+
+        team.players = [getEmbeddedUser(playerOne)]
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(req1._id, new Types.ObjectId(), req2._id)
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.requests.push(req1._id)
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        const result = await services.archiveTeam(manager._id.toHexString(), team._id.toHexString())
+
+        const archiveTeamResult = getEmbeddedTeam(result)
+
+        const [managerRecord, playerOneRecord, playerTwoRecord] = await User.find({})
+        expect(managerRecord.managerTeams.length).toBe(0)
+        expect(managerRecord.archiveTeams[0]).toMatchObject(archiveTeamResult)
+
+        expect(playerOneRecord.playerTeams.length).toBe(0)
+        expect(playerOneRecord.archiveTeams[0]).toMatchObject(archiveTeamResult)
+
+        expect(playerTwoRecord.playerTeams.length).toBe(0)
+        expect(playerTwoRecord.archiveTeams.length).toBe(0)
+        expect(playerTwoRecord.requests.length).toBe(0)
+
+        const archiveTeamRecord = await ArchiveTeam.findOne({})
+        expect(archiveTeamRecord).toMatchObject(archiveTeamResult)
+        expect(archiveTeamRecord?.requests.length).toBe(0)
+
+        const teamRecords = await Team.find()
+        expect(teamRecords.length).toBe(0)
+
+        const requestRecords = await RosterRequest.find()
+        expect(requestRecords.length).toBe(1)
+    })
+
+    it('handles unfound team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.archiveTeam(manager._id.toHexString(), anonId)).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('handles unfound manager', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.archiveTeam(anonId, team._id.toHexString())).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_USER,
+        )
+    })
+})

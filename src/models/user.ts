@@ -1,4 +1,4 @@
-import { Schema, Types, model, Document } from 'mongoose'
+import { Schema, Types, model, Document, SchemaTypes } from 'mongoose'
 import type { IUser } from '../types/user'
 import bcrypt from 'bcryptjs'
 import PasswordValidator from 'password-validator'
@@ -75,6 +75,8 @@ const schema = new Schema<IUser>({
             teamname: String,
             seasonStart: Date,
             seasonEnd: Date,
+            verified: Boolean,
+            designation: SchemaTypes.ObjectId,
         },
     ],
     managerTeams: [
@@ -85,6 +87,8 @@ const schema = new Schema<IUser>({
             teamname: String,
             seasonStart: Date,
             seasonEnd: Date,
+            verified: Boolean,
+            designation: SchemaTypes.ObjectId,
         },
     ],
     archiveTeams: [
@@ -95,6 +99,8 @@ const schema = new Schema<IUser>({
             teamname: String,
             seasonStart: Date,
             seasonEnd: Date,
+            verified: Boolean,
+            designation: SchemaTypes.ObjectId,
         },
     ],
     openToRequests: {
@@ -109,12 +115,7 @@ const isValidPassword = (password: string): boolean => {
     const validateSchema = new PasswordValidator()
 
     // eslint-disable-next-line prettier/prettier
-    validateSchema
-        .is().min(7)
-        .is().max(20)
-        .has().letters()
-        .has().digits()
-        .has().symbols()
+    validateSchema.is().min(7).is().max(20).has().letters().has().digits().has().symbols()
 
     return validateSchema.validate(password) as boolean
 }
