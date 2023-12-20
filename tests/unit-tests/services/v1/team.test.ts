@@ -852,3 +852,72 @@ describe('test change designation', () => {
         ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 })
+
+describe('test delete team', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('successfully deletes team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await services.deleteTeam(manager._id.toHexString(), team._id.toHexString())
+
+        const [managerResult, playerOneResult, playerTwoResult] = await User.find({})
+        expect(managerResult.managerTeams.length).toBe(0)
+        expect(playerOneResult.playerTeams.length).toBe(0)
+        expect(playerTwoResult.playerTeams.length).toBe(0)
+
+        const teams = await Team.find()
+        expect(teams.length).toBe(0)
+    })
+
+    it('handles unfound team error', async () => {
+        await Team.create(getTeam())
+        const [manager] = await User.find({})
+
+        await expect(services.deleteTeam(manager._id.toHexString(), anonId)).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('handles unfound manager error', async () => {
+        const team = await Team.create(getTeam())
+
+        await expect(services.deleteTeam(anonId, team._id.toHexString())).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('handles not last manager error', async () => {
+        const team = await Team.create(getTeam())
+        const [managerOne, managerTwo] = await User.find({})
+
+        team.managers.push(getEmbeddedUser(managerOne), getEmbeddedUser(managerTwo))
+        await team.save()
+
+        managerOne.managerTeams.push(getEmbeddedTeam(team))
+        await managerOne.save()
+
+        managerTwo.managerTeams.push(getEmbeddedTeam(team))
+        await managerTwo.save()
+
+        await expect(services.deleteTeam(managerOne._id.toHexString(), team._id.toHexString())).rejects.toThrow(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
+
+        const teamResults = await Team.find()
+        expect(teamResults.length).toBe(1)
+    })
+})

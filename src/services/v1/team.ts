@@ -432,4 +432,42 @@ export default class TeamServices {
 
         return team
     }
+
+    /**
+     * Method to fully delete a team.
+     *
+     * @param managerId id of manager deleting team. Must be the only manager left on the team.
+     * @param teamId id of team to delete
+     */
+    deleteTeam = async (managerId: string, teamId: string) => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        if (team.managers.length > 1) {
+            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
+        }
+
+        await this.userModel.updateMany(
+            { _id: { $in: team.players.map((p) => p._id) } },
+            {
+                $pull: {
+                    playerTeams: { _id: team._id },
+                },
+            },
+        )
+
+        manager.managerTeams = manager.managerTeams.filter((mTeam) => !mTeam._id.equals(team._id))
+        await manager.save()
+
+        await team.delete()
+    }
 }
