@@ -206,6 +206,9 @@ teamRouter.delete(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            await teamServices.deleteTeam(req.user?.id as string, req.params.id)
+            return res.sendStatus(200)
         } catch (e) {
             next(e)
         }

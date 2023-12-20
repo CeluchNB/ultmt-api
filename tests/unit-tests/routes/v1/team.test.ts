@@ -85,11 +85,7 @@ describe('test /POST team', () => {
         const userRecord = await User.create(user)
         await userRecord.generateAuthToken()
 
-        await request(app)
-            .post('/api/v1/team')
-            .set('Authorization', `Bearer ${anonId}`)
-            .send({ team: {} })
-            .expect(401)
+        await request(app).post('/api/v1/team').set('Authorization', `Bearer ${anonId}`).send({ team: {} }).expect(401)
     })
 })
 
@@ -99,10 +95,7 @@ describe('test /GET public team', () => {
 
         const teamRecord = await Team.create(team)
 
-        const response = await request(app)
-            .get(`/api/v1/team/${teamRecord._id}`)
-            .send()
-            .expect(200)
+        const response = await request(app).get(`/api/v1/team/${teamRecord._id}`).send().expect(200)
 
         const teamResponse = response.body.team as ITeam
 
@@ -116,10 +109,7 @@ describe('test /GET public team', () => {
 
         await Team.create(team)
 
-        const response = await request(app)
-            .get(`/api/v1/team/${anonId}`)
-            .send()
-            .expect(404)
+        const response = await request(app).get(`/api/v1/team/${anonId}`).send().expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
@@ -215,7 +205,7 @@ describe('test /POST remove player', () => {
         const teamResponse = response.body.team
         expect(teamResponse._id.toString()).toBe(team._id.toString())
         expect(teamResponse.players.length).toBe(0)
-        
+
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(0)
 
@@ -286,10 +276,10 @@ describe('test /POST rollover', () => {
             .send({
                 copyPlayers: true,
                 seasonStart: new Date(),
-                seasonEnd: new Date()
+                seasonEnd: new Date(),
             })
             .expect(200)
-        
+
         const responseTeam = response.body.team as ITeam
         expect(responseTeam._id.toString()).not.toBe(team._id.toString())
         expect(responseTeam.managers.length).toBe(1)
@@ -327,7 +317,7 @@ describe('test /POST rollover', () => {
             .send({
                 copyPlayers: true,
                 seasonStart: new Date(),
-                seasonEnd: new Date()
+                seasonEnd: new Date(),
             })
             .expect(401)
     })
@@ -347,10 +337,10 @@ describe('test /POST rollover', () => {
             .send({
                 copyPlayers: true,
                 seasonStart: new Date(),
-                seasonEnd: new Date()
+                seasonEnd: new Date(),
             })
             .expect(404)
-        
+
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
@@ -460,10 +450,7 @@ describe('test /GET search', () => {
 
     it('with valid query', async () => {
         const term = 'Pit'
-        const response = await request(app)
-            .get(`/api/v1/team/search?q=${term}`)
-            .send()
-            .expect(200)
+        const response = await request(app).get(`/api/v1/team/search?q=${term}`).send().expect(200)
 
         const { teams } = response.body
         expect(teams.length).toBe(1)
@@ -476,10 +463,7 @@ describe('test /GET search', () => {
         await team1.save()
 
         const term = 'Pit'
-        const response = await request(app)
-            .get(`/api/v1/team/search?q=${term}&rosterOpen=false`)
-            .send()
-            .expect(200)
+        const response = await request(app).get(`/api/v1/team/search?q=${term}&rosterOpen=false`).send().expect(200)
 
         const { teams } = response.body
         expect(teams.length).toBe(1)
@@ -492,20 +476,14 @@ describe('test /GET search', () => {
         await team1.save()
 
         const term = 'Pit'
-        const response = await request(app)
-            .get(`/api/v1/team/search?q=${term}&rosterOpen=true`)
-            .send()
-            .expect(200)
+        const response = await request(app).get(`/api/v1/team/search?q=${term}&rosterOpen=true`).send().expect(200)
 
         const { teams } = response.body
         expect(teams.length).toBe(0)
     })
 
     it('with invalid query', async () => {
-        await request(app)
-            .get('/api/v1/team/search')
-            .send()
-            .expect(400)
+        await request(app).get('/api/v1/team/search').send().expect(400)
     })
 })
 
@@ -514,7 +492,7 @@ describe('test /POST add manager', () => {
         await saveUsers()
     })
 
-    it('with valid query', async () =>{
+    it('with valid query', async () => {
         const [manager, user] = await User.find({})
         const token = await manager.generateAuthToken()
         const team = await Team.create(getTeam())
@@ -575,7 +553,7 @@ describe('test /POST add manager', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(400)
-        
+
         expect(response.body.message).toEqual(Constants.USER_ALREADY_MANAGES_TEAM)
     })
 })
@@ -585,10 +563,7 @@ describe('test /GET archived team route', () => {
         const team = getTeam()
         await ArchiveTeam.create(team)
 
-        const response = await request(app)
-            .get(`/api/v1/archiveTeam/${team._id}`)
-            .send()
-            .expect(200)
+        const response = await request(app).get(`/api/v1/archiveTeam/${team._id}`).send().expect(200)
 
         const { team: teamResponse } = response.body
         expect(teamResponse._id.toString()).toBe(team._id.toString())
@@ -601,11 +576,8 @@ describe('test /GET archived team route', () => {
         const team = getTeam()
         await ArchiveTeam.create(team)
 
-        const response = await request(app)
-            .get(`/api/v1/archiveTeam/${anonId}`)
-            .send()
-            .expect(404)
-        
+        const response = await request(app).get(`/api/v1/archiveTeam/${anonId}`).send().expect(404)
+
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
@@ -627,7 +599,7 @@ describe('test /POST create bulk join code', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
-        
+
         const { code } = response.body
         expect(code.length).toBe(6)
         expect(Number(code)).not.toBeNaN()
@@ -649,7 +621,7 @@ describe('test /POST create bulk join code', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(404)
-        
+
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
     })
 
@@ -672,7 +644,7 @@ describe('test /POST create bulk join code', () => {
     })
 })
 
-describe('test /PUT team designation', () => {
+describe('test PUT /team/:id/designation', () => {
     it('with successful call', async () => {
         const team = getTeam()
         const manager = getUser()
@@ -686,7 +658,7 @@ describe('test /PUT team designation', () => {
 
         const designation = await TeamDesignation.create({
             description: 'Test Description',
-            abbreviation: 'RD'
+            abbreviation: 'RD',
         })
 
         const response = await request(app)
@@ -716,5 +688,52 @@ describe('test /PUT team designation', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
+
+describe('test DELETE /team', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('handles successful deletion', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        const token = await manager.generateAuthToken()
+        await manager.save()
+
+        await request(app)
+            .delete(`/api/v1/team/${team._id.toHexString()}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const allTeams = await Team.find()
+        expect(allTeams.length).toBe(0)
+    })
+
+    it('handles error case', async () => {
+        const team = await Team.create(getTeam())
+        const [manager] = await User.find({})
+
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        const token = await manager.generateAuthToken()
+        await manager.save()
+
+        await request(app).delete(`/api/v1/team/${anonId}`).set('Authorization', `Bearer ${token}`).send().expect(404)
     })
 })
