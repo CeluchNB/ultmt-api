@@ -737,3 +737,81 @@ describe('test DELETE /team', () => {
         await request(app).delete(`/api/v1/team/${anonId}`).set('Authorization', `Bearer ${token}`).send().expect(404)
     })
 })
+
+describe('test PUT /team/:id/archive', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('handles success case', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        const token = await manager.generateAuthToken()
+        await manager.save()
+
+        const result = await request(app)
+            .put(`/api/v1/team/${team._id.toHexString()}/archive`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(200)
+
+        const archiveTeamRecord = await ArchiveTeam.findOne({})
+
+        expect(archiveTeamRecord?._id.toHexString()).toBe(result.body.team._id)
+        expect(archiveTeamRecord?.teamname).toBe(result.body.team.teamname)
+
+        const [managerRecord, playerRecord] = await User.find()
+
+        expect(managerRecord.managerTeams.length).toBe(0)
+        expect(managerRecord.archiveTeams.length).toBe(1)
+
+        expect(playerRecord.playerTeams.length).toBe(0)
+        expect(playerRecord.archiveTeams.length).toBe(1)
+
+        const teamRecords = await Team.find()
+        expect(teamRecords.length).toBe(0)
+    })
+
+    it('handles error case', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        const token = await manager.generateAuthToken()
+        await manager.save()
+
+        const result = await request(app)
+            .put(`/api/v1/team/${anonId}/archive`)
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .expect(404)
+
+        expect(result.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
+
+        const archiveTeamRecords = await ArchiveTeam.find()
+        expect(archiveTeamRecords.length).toBe(0)
+
+        const teamRecords = await Team.find()
+        expect(teamRecords.length).toBe(1)
+    })
+})

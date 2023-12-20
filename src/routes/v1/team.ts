@@ -221,6 +221,9 @@ teamRouter.put(
     passport.authenticate('jwt', { session: false }),
     async (req: Request, res: Response, next) => {
         try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.archiveTeam(req.user?.id as string, req.params.id)
+            return res.json({ team })
         } catch (e) {
             next(e)
         }

@@ -471,6 +471,13 @@ export default class TeamServices {
         await team.delete()
     }
 
+    /**
+     * Method to archive a team without rolling it over.
+     *
+     * @param managerId id of manager making the call
+     * @param teamId id of team to archive
+     * @returns archive team record
+     */
     archiveTeam = async (managerId: string, teamId: string): Promise<ITeam> => {
         const manager = await this.userModel.findById(managerId)
         if (!manager) {
@@ -514,14 +521,12 @@ export default class TeamServices {
         await this.teamModel.deleteOne({ _id: oldId })
 
         // update managers
+        const embeddedTeam = getEmbeddedTeam(archiveTeam)
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(archiveTeam)
-                if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
-                    managerRecord.archiveTeams.push(embeddedTeam)
-                }
+                managerRecord.archiveTeams.push(embeddedTeam)
                 await managerRecord.save()
             }
         }
@@ -531,10 +536,7 @@ export default class TeamServices {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(archiveTeam)
-                if (playerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
-                    playerRecord.archiveTeams.push(embeddedTeam)
-                }
+                playerRecord.archiveTeams.push(embeddedTeam)
                 await playerRecord.save()
             }
         }
