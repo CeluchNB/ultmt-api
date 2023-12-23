@@ -400,16 +400,9 @@ describe('test manager leave', () => {
         playerTwo.playerTeams.push(getEmbeddedTeam(team))
         await playerTwo.save()
 
-        const result = await services.leaveManagerRole(team._id.toString(), manager._id.toString())
-        expect(result.managerTeams.length).toBe(0)
-
-        const teamRecords = await Team.find({})
-        expect(teamRecords.length).toBe(0)
-
-        const [managerRecord, playerOneRecord, playerTwoRecord] = await User.find({})
-        expect(managerRecord.managerTeams.length).toBe(0)
-        expect(playerOneRecord.playerTeams.length).toBe(0)
-        expect(playerTwoRecord.playerTeams.length).toBe(0)
+        await expect(services.leaveManagerRole(team._id.toString(), manager._id.toString())).rejects.toThrow(
+            Constants.USER_IS_ONLY_MANAGER,
+        )
     })
 })
 
