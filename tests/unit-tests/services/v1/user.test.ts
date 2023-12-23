@@ -745,3 +745,31 @@ describe('test join team by bulk code', () => {
         expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
+
+describe('test username taken', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with username already take', async () => {
+        const [user] = await User.find()
+
+        const result = await services.usernameTaken(user.username)
+        expect(result).toBe(true)
+    })
+
+    it('with username not taken', async () => {
+        const [user] = await User.find()
+
+        const result = await services.usernameTaken(`${user.username}75930957`)
+        expect(result).toBe(false)
+    })
+
+    it('with missing username', async () => {
+        await expect(services.usernameTaken()).rejects.toThrow(Constants.INVALID_USERNAME)
+    })
+
+    it('with short string', async () => {
+        await expect(services.usernameTaken('a')).rejects.toThrow(Constants.INVALID_USERNAME)
+    })
+})

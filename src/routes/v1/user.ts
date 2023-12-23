@@ -21,6 +21,16 @@ userRouter.get('/user/search', query('q').escape(), async (req: Request, res: Re
     }
 })
 
+userRouter.get('/user/username-taken', async (req: Request, res: Response, next) => {
+    try {
+        const userService = new UserServices(User, Team, OneTimePasscode)
+        const taken = await userService.usernameTaken(req.query.username as string)
+        return res.json({ taken })
+    } catch (error) {
+        next(error)
+    }
+})
+
 userRouter.post(
     '/user',
     body('firstName').isString(),

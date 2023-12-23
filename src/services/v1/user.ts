@@ -348,7 +348,7 @@ export default class UserServices {
     }
 
     /**
-     *
+     * Method to join a team by code
      * @param userId id of user
      * @param passcode passcode for team
      * @returns updated user
@@ -378,5 +378,19 @@ export default class UserServices {
         await user.save()
 
         return user
+    }
+
+    /**
+     * Method to check for a used username
+     * @param username username user is attempting to use
+     * @returns boolean
+     */
+    usernameTaken = async (username?: string): Promise<boolean> => {
+        if (!username || username.length < 2) {
+            throw new ApiError(Constants.INVALID_USERNAME, 400)
+        }
+
+        const users = await this.userModel.find({ username })
+        return users.length > 0
     }
 }
