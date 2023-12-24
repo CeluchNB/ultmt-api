@@ -543,4 +543,19 @@ export default class TeamServices {
 
         return archiveTeam
     }
+
+    /**
+     * Method to check if a teamname has been taken
+     * @param teamname teamname to check
+     * @returns boolean
+     */
+    teamnameTaken = async (teamname?: string): Promise<boolean> => {
+        if (!teamname || teamname.length < 2) {
+            throw new ApiError(Constants.DUPLICATE_TEAM_NAME, 400)
+        }
+
+        const teams = await this.teamModel.find({ teamname })
+
+        return teams.length > 0
+    }
 }

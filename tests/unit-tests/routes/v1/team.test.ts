@@ -815,3 +815,31 @@ describe('test PUT /team/:id/archive', () => {
         expect(teamRecords.length).toBe(1)
     })
 })
+
+describe('test GET /team/teamname-taken', () => {
+    it('with taken teamname', async () => {
+        const team = await Team.create(getTeam())
+        const response = await request(app)
+            .get(`/api/v1/team/teamname-taken?teamname=${team.teamname}`)
+            .send()
+            .expect(200)
+
+        expect(response.body.taken).toBe(true)
+    })
+
+    it('with free teamname', async () => {
+        const team = await Team.create(getTeam())
+        const response = await request(app)
+            .get(`/api/v1/team/teamname-taken?teamname=${team.teamname}75828`)
+            .send()
+            .expect(200)
+
+        expect(response.body.taken).toBe(false)
+    })
+
+    it('with invalid teamname', async () => {
+        const response = await request(app).get(`/api/v1/team/teamname-taken`).send().expect(400)
+
+        expect(response.body.message).toBe(Constants.DUPLICATE_TEAM_NAME)
+    })
+})

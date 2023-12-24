@@ -1025,4 +1025,28 @@ describe('test archive team', () => {
             Constants.UNABLE_TO_FIND_USER,
         )
     })
+
+    describe('test teamname taken', () => {
+        it('with taken teamname', async () => {
+            const team = await Team.create(getTeam())
+
+            const result = await services.teamnameTaken(team.teamname)
+            expect(result).toBe(true)
+        })
+
+        it('with free teamname', async () => {
+            const team = await Team.create(getTeam())
+
+            const result = await services.teamnameTaken(`${team.teamname}7582574`)
+            expect(result).toBe(false)
+        })
+
+        it('with missing teamname', async () => {
+            await expect(services.teamnameTaken()).rejects.toThrow(Constants.DUPLICATE_TEAM_NAME)
+        })
+
+        it('with invalid teamname', async () => {
+            await expect(services.teamnameTaken('a')).rejects.toThrow(Constants.DUPLICATE_TEAM_NAME)
+        })
+    })
 })

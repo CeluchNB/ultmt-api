@@ -30,6 +30,16 @@ teamRouter.get(
     },
 )
 
+teamRouter.get('/team/teamname-taken', async (req: Request, res: Response, next) => {
+    try {
+        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+        const taken = await teamServices.teamnameTaken(req.query.teamname as string)
+        return res.json({ taken })
+    } catch (e) {
+        next(e)
+    }
+})
+
 teamRouter.post(
     '/team',
     passport.authenticate('jwt', { session: false }),
