@@ -30,6 +30,16 @@ teamRouter.get(
     },
 )
 
+teamRouter.get('/team/teamname-taken', async (req: Request, res: Response, next) => {
+    try {
+        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+        const taken = await teamServices.teamnameTaken(req.query.teamname as string)
+        return res.json({ taken })
+    } catch (e) {
+        next(e)
+    }
+})
+
 teamRouter.post(
     '/team',
     passport.authenticate('jwt', { session: false }),
@@ -193,6 +203,36 @@ teamRouter.put(
                 req.params.id,
                 req.body.designation,
             )
+            return res.json({ team })
+        } catch (e) {
+            next(e)
+        }
+    },
+)
+
+teamRouter.delete(
+    '/team/:id',
+    param('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            await teamServices.deleteTeam(req.user?.id as string, req.params.id)
+            return res.sendStatus(200)
+        } catch (e) {
+            next(e)
+        }
+    },
+)
+
+teamRouter.put(
+    '/team/:id/archive',
+    param('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.archiveTeam(req.user?.id as string, req.params.id)
             return res.json({ team })
         } catch (e) {
             next(e)

@@ -400,16 +400,9 @@ describe('test manager leave', () => {
         playerTwo.playerTeams.push(getEmbeddedTeam(team))
         await playerTwo.save()
 
-        const result = await services.leaveManagerRole(team._id.toString(), manager._id.toString())
-        expect(result.managerTeams.length).toBe(0)
-
-        const teamRecords = await Team.find({})
-        expect(teamRecords.length).toBe(0)
-
-        const [managerRecord, playerOneRecord, playerTwoRecord] = await User.find({})
-        expect(managerRecord.managerTeams.length).toBe(0)
-        expect(playerOneRecord.playerTeams.length).toBe(0)
-        expect(playerTwoRecord.playerTeams.length).toBe(0)
+        await expect(services.leaveManagerRole(team._id.toString(), manager._id.toString())).rejects.toThrow(
+            Constants.USER_IS_ONLY_MANAGER,
+        )
     })
 })
 
@@ -750,5 +743,33 @@ describe('test join team by bulk code', () => {
             reason: OTPReason.TeamJoin,
         })
         expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+    })
+})
+
+describe('test username taken', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with username already take', async () => {
+        const [user] = await User.find()
+
+        const result = await services.usernameTaken(user.username)
+        expect(result).toBe(true)
+    })
+
+    it('with username not taken', async () => {
+        const [user] = await User.find()
+
+        const result = await services.usernameTaken(`${user.username}75930957`)
+        expect(result).toBe(false)
+    })
+
+    it('with missing username', async () => {
+        await expect(services.usernameTaken()).rejects.toThrow(Constants.INVALID_USERNAME)
+    })
+
+    it('with short string', async () => {
+        await expect(services.usernameTaken('a')).rejects.toThrow(Constants.INVALID_USERNAME)
     })
 })

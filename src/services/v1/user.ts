@@ -198,24 +198,7 @@ export default class UserServices {
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
 
         if (team.managers.length < 2) {
-            // TODO: this is not safe in the long term
-            // update manager
-            manager.managerTeams = manager.managerTeams.filter((t) => !t._id.equals(teamId))
-            await manager.save()
-
-            // update players
-            for (const i of team.players) {
-                const playerRecord = await this.userModel.findById(i._id)
-                if (playerRecord) {
-                    playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
-
-                    await playerRecord.save()
-                }
-            }
-
-            await team.delete()
-
-            return manager
+            throw new ApiError(Constants.USER_IS_ONLY_MANAGER, 400)
         }
 
         team.managers = team.managers.filter((user) => !user._id.equals(managerId))
@@ -365,7 +348,7 @@ export default class UserServices {
     }
 
     /**
-     *
+     * Method to join a team by code
      * @param userId id of user
      * @param passcode passcode for team
      * @returns updated user
@@ -395,5 +378,19 @@ export default class UserServices {
         await user.save()
 
         return user
+    }
+
+    /**
+     * Method to check for a used username
+     * @param username username user is attempting to use
+     * @returns boolean
+     */
+    usernameTaken = async (username?: string): Promise<boolean> => {
+        if (!username || username.length < 2) {
+            throw new ApiError(Constants.INVALID_USERNAME, 400)
+        }
+
+        const users = await this.userModel.find({ username })
+        return users.length > 0
     }
 }

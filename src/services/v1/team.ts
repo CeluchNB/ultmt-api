@@ -184,6 +184,8 @@ export default class TeamServices {
         // store needed values
         const oldId = team._id
         const players = team.players
+        const oldSeasonStart = team.seasonStart
+        const oldSeasonEnd = team.seasonEnd
 
         // update team document and delete old one
         team.isNew = true
@@ -217,12 +219,13 @@ export default class TeamServices {
         await team.save()
 
         // update managers
+        const embeddedTeam = getEmbeddedTeam({ ...team, seasonStart: oldSeasonStart, seasonEnd: oldSeasonEnd })
+        embeddedTeam._id = oldId
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(team)
-                embeddedTeam._id = oldId
+
                 if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     managerRecord.archiveTeams.push(embeddedTeam)
                 }
@@ -236,8 +239,6 @@ export default class TeamServices {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(team)
-                embeddedTeam._id = oldId
                 if (playerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     playerRecord.archiveTeams.push(embeddedTeam)
                 }
@@ -431,5 +432,131 @@ export default class TeamServices {
         await team.save()
 
         return team
+    }
+
+    /**
+     * Method to fully delete a team.
+     *
+     * @param managerId id of manager deleting team. Must be the only manager left on the team.
+     * @param teamId id of team to delete
+     */
+    deleteTeam = async (managerId: string, teamId: string) => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        if (team.managers.length > 1) {
+            throw new ApiError(Constants.UNAUTHORIZED_MANAGER, 401)
+        }
+
+        await this.userModel.updateMany(
+            { _id: { $in: team.players.map((p) => p._id) } },
+            {
+                $pull: {
+                    playerTeams: { _id: team._id },
+                },
+            },
+        )
+
+        manager.managerTeams = manager.managerTeams.filter((mTeam) => !mTeam._id.equals(team._id))
+        await manager.save()
+
+        await team.delete()
+    }
+
+    /**
+     * Method to archive a team without rolling it over.
+     *
+     * @param managerId id of manager making the call
+     * @param teamId id of team to archive
+     * @returns archive team record
+     */
+    archiveTeam = async (managerId: string, teamId: string): Promise<ITeam> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        // close roster for archive and new team
+        const oldId = team._id
+        const players = team.players
+
+        team.rosterOpen = false
+
+        // Delete any requests related to the team
+        for (const id of team.requests) {
+            const request = await this.requestModel.findById(id)
+            if (!request) {
+                continue
+            }
+            const user = await this.userModel.findById(request.user)
+            if (!user) {
+                continue
+            }
+
+            user.requests = user.requests.filter((reqId) => !reqId.equals(id))
+            await user.save()
+            await request.delete()
+        }
+
+        team.requests = []
+
+        const result = await this.archiveTeamModel.insertMany([team])
+        const archiveTeam = result[0]
+
+        await this.teamModel.deleteOne({ _id: oldId })
+
+        // update managers
+        const embeddedTeam = getEmbeddedTeam(archiveTeam)
+        for (const i of team.managers) {
+            const managerRecord = await this.userModel.findById(i)
+            if (managerRecord) {
+                managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
+                managerRecord.archiveTeams.push(embeddedTeam)
+                await managerRecord.save()
+            }
+        }
+
+        // update players
+        for (const i of players) {
+            const playerRecord = await this.userModel.findById(i)
+            if (playerRecord) {
+                playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
+                playerRecord.archiveTeams.push(embeddedTeam)
+                await playerRecord.save()
+            }
+        }
+
+        return archiveTeam
+    }
+
+    /**
+     * Method to check if a teamname has been taken
+     * @param teamname teamname to check
+     * @returns boolean
+     */
+    teamnameTaken = async (teamname?: string): Promise<boolean> => {
+        if (!teamname || teamname.length < 2) {
+            throw new ApiError(Constants.DUPLICATE_TEAM_NAME, 400)
+        }
+
+        const teams = await this.teamModel.find({ teamname })
+
+        return teams.length > 0
     }
 }

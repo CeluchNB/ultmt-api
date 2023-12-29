@@ -749,3 +749,35 @@ describe('test /POST join team by code', () => {
             .expect(401)
     })
 })
+
+describe('test GET /username taken', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('with taken username', async () => {
+        const [user] = await User.find()
+        const response = await request(app)
+            .get(`/api/v1/user/username-taken?username=${user.username}`)
+            .send()
+            .expect(200)
+
+        expect(response.body.taken).toBe(true)
+    })
+
+    it('with free username', async () => {
+        const [user] = await User.find()
+        const response = await request(app)
+            .get(`/api/v1/user/username-taken?username=${user.username}759234h`)
+            .send()
+            .expect(200)
+
+        expect(response.body.taken).toBe(false)
+    })
+
+    it('with error username', async () => {
+        const response = await request(app).get(`/api/v1/user/username-taken?username=a`).send().expect(400)
+
+        expect(response.body.message).toBe(Constants.INVALID_USERNAME)
+    })
+})
