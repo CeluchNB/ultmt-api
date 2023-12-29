@@ -184,6 +184,8 @@ export default class TeamServices {
         // store needed values
         const oldId = team._id
         const players = team.players
+        const oldSeasonStart = team.seasonStart
+        const oldSeasonEnd = team.seasonEnd
 
         // update team document and delete old one
         team.isNew = true
@@ -217,12 +219,13 @@ export default class TeamServices {
         await team.save()
 
         // update managers
+        const embeddedTeam = getEmbeddedTeam({ ...team, seasonStart: oldSeasonStart, seasonEnd: oldSeasonEnd })
+        embeddedTeam._id = oldId
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
                 managerRecord.managerTeams = managerRecord.managerTeams.filter((mTeam) => !mTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(team)
-                embeddedTeam._id = oldId
+
                 if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     managerRecord.archiveTeams.push(embeddedTeam)
                 }
@@ -236,8 +239,6 @@ export default class TeamServices {
             const playerRecord = await this.userModel.findById(i)
             if (playerRecord) {
                 playerRecord.playerTeams = playerRecord.playerTeams.filter((pTeam) => !pTeam._id.equals(oldId))
-                const embeddedTeam = getEmbeddedTeam(team)
-                embeddedTeam._id = oldId
                 if (playerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     playerRecord.archiveTeams.push(embeddedTeam)
                 }

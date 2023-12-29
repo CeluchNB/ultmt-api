@@ -252,7 +252,13 @@ describe('test team rollover', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        const newTeam = await services.rollover(manager._id, team._id.toString(), true, new Date(), new Date())
+        const newTeam = await services.rollover(
+            manager._id,
+            team._id.toString(),
+            true,
+            new Date('2023'),
+            new Date('2023'),
+        )
         expect(newTeam._id.toString()).not.toBe(team._id.toString())
         expect(newTeam.place).toBe(team.place)
         expect(newTeam.name).toBe(team.name)
@@ -261,6 +267,8 @@ describe('test team rollover', () => {
         expect(newTeam.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
         expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
+        expect(newTeam.seasonStart).not.toEqual(team.seasonStart)
+        expect(newTeam.seasonEnd).not.toEqual(team.seasonEnd)
 
         const oldTeamRecord = await Team.findById(team._id)
         expect(oldTeamRecord).toBeNull()
@@ -275,6 +283,8 @@ describe('test team rollover', () => {
         expect(archiveTeamRecord?.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
         expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
+        expect(archiveTeamRecord?.seasonStart).toEqual(team.seasonStart)
+        expect(archiveTeamRecord?.seasonEnd).toEqual(team.seasonEnd)
 
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
