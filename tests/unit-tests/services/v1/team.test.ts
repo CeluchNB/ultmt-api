@@ -252,7 +252,13 @@ describe('test team rollover', () => {
         user.playerTeams.push(getEmbeddedTeam(team))
         await user.save()
 
-        const newTeam = await services.rollover(manager._id, team._id.toString(), true, new Date(), new Date())
+        const newTeam = await services.rollover(
+            manager._id,
+            team._id.toString(),
+            true,
+            new Date('2023'),
+            new Date('2023'),
+        )
         expect(newTeam._id.toString()).not.toBe(team._id.toString())
         expect(newTeam.place).toBe(team.place)
         expect(newTeam.name).toBe(team.name)
@@ -261,6 +267,8 @@ describe('test team rollover', () => {
         expect(newTeam.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(newTeam.continuationId.toString()).toBe(team.continuationId.toString())
         expect(newTeam.seasonNumber).toBe(team.seasonNumber + 1)
+        expect(newTeam.seasonStart).not.toEqual(team.seasonStart)
+        expect(newTeam.seasonEnd).not.toEqual(team.seasonEnd)
 
         const oldTeamRecord = await Team.findById(team._id)
         expect(oldTeamRecord).toBeNull()
@@ -275,6 +283,8 @@ describe('test team rollover', () => {
         expect(archiveTeamRecord?.managers[0]._id.toString()).toBe(manager._id.toString())
         expect(archiveTeamRecord?.continuationId.toString()).toBe(team.continuationId.toString())
         expect(archiveTeamRecord?.seasonNumber).toBe(team.seasonNumber)
+        expect(archiveTeamRecord?.seasonStart).toEqual(team.seasonStart)
+        expect(archiveTeamRecord?.seasonEnd).toEqual(team.seasonEnd)
 
         const managerRecord = await User.findById(manager._id)
         expect(managerRecord?.managerTeams.length).toBe(1)
@@ -850,5 +860,203 @@ describe('test change designation', () => {
         expect(
             services.changeDesignation(anonId, teamRecord._id.toString(), new Types.ObjectId().toHexString()),
         ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+    })
+})
+
+describe('test delete team', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('successfully deletes team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await services.deleteTeam(manager._id.toHexString(), team._id.toHexString())
+
+        const [managerResult, playerOneResult, playerTwoResult] = await User.find({})
+        expect(managerResult.managerTeams.length).toBe(0)
+        expect(playerOneResult.playerTeams.length).toBe(0)
+        expect(playerTwoResult.playerTeams.length).toBe(0)
+
+        const teams = await Team.find()
+        expect(teams.length).toBe(0)
+    })
+
+    it('handles unfound team error', async () => {
+        await Team.create(getTeam())
+        const [manager] = await User.find({})
+
+        await expect(services.deleteTeam(manager._id.toHexString(), anonId)).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('handles unfound manager error', async () => {
+        const team = await Team.create(getTeam())
+
+        await expect(services.deleteTeam(anonId, team._id.toHexString())).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('handles not last manager error', async () => {
+        const team = await Team.create(getTeam())
+        const [managerOne, managerTwo] = await User.find({})
+
+        team.managers.push(getEmbeddedUser(managerOne), getEmbeddedUser(managerTwo))
+        await team.save()
+
+        managerOne.managerTeams.push(getEmbeddedTeam(team))
+        await managerOne.save()
+
+        managerTwo.managerTeams.push(getEmbeddedTeam(team))
+        await managerTwo.save()
+
+        await expect(services.deleteTeam(managerOne._id.toHexString(), team._id.toHexString())).rejects.toThrow(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
+
+        const teamResults = await Team.find()
+        expect(teamResults.length).toBe(1)
+    })
+})
+
+describe('test archive team', () => {
+    beforeEach(async () => {
+        await saveUsers()
+    })
+
+    it('handles success', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        const req1 = await RosterRequest.create({
+            team: team._id,
+            user: playerTwo._id,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+
+        const req2 = await RosterRequest.create({
+            team: team._id,
+            user: anonId,
+            requestSource: Initiator.Player,
+            status: Status.Pending,
+        })
+
+        team.players = [getEmbeddedUser(playerOne)]
+        team.managers.push(getEmbeddedUser(manager))
+        team.requests.push(req1._id, new Types.ObjectId(), req2._id)
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.requests.push(req1._id)
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        const result = await services.archiveTeam(manager._id.toHexString(), team._id.toHexString())
+
+        const archiveTeamResult = getEmbeddedTeam(result)
+
+        const [managerRecord, playerOneRecord, playerTwoRecord] = await User.find({})
+        expect(managerRecord.managerTeams.length).toBe(0)
+        expect(managerRecord.archiveTeams[0]).toMatchObject(archiveTeamResult)
+
+        expect(playerOneRecord.playerTeams.length).toBe(0)
+        expect(playerOneRecord.archiveTeams[0]).toMatchObject(archiveTeamResult)
+
+        expect(playerTwoRecord.playerTeams.length).toBe(0)
+        expect(playerTwoRecord.archiveTeams.length).toBe(0)
+        expect(playerTwoRecord.requests.length).toBe(0)
+
+        const archiveTeamRecord = await ArchiveTeam.findOne({})
+        expect(archiveTeamRecord).toMatchObject(archiveTeamResult)
+        expect(archiveTeamRecord?.requests.length).toBe(0)
+
+        const teamRecords = await Team.find()
+        expect(teamRecords.length).toBe(0)
+
+        const requestRecords = await RosterRequest.find()
+        expect(requestRecords.length).toBe(1)
+    })
+
+    it('handles unfound team', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.archiveTeam(manager._id.toHexString(), anonId)).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('handles unfound manager', async () => {
+        const team = await Team.create(getTeam())
+        const [manager, playerOne, playerTwo] = await User.find({})
+
+        team.players = [getEmbeddedUser(playerOne), getEmbeddedUser(playerTwo)]
+        team.managers.push(getEmbeddedUser(manager))
+        await team.save()
+
+        playerOne.playerTeams.push(getEmbeddedTeam(team))
+        await playerOne.save()
+        playerTwo.playerTeams.push(getEmbeddedTeam(team))
+        await playerTwo.save()
+
+        manager.managerTeams.push(getEmbeddedTeam(team))
+        await manager.save()
+
+        await expect(services.archiveTeam(anonId, team._id.toHexString())).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_USER,
+        )
+    })
+
+    describe('test teamname taken', () => {
+        it('with taken teamname', async () => {
+            const team = await Team.create(getTeam())
+
+            const result = await services.teamnameTaken(team.teamname)
+            expect(result).toBe(true)
+        })
+
+        it('with free teamname', async () => {
+            const team = await Team.create(getTeam())
+
+            const result = await services.teamnameTaken(`${team.teamname}7582574`)
+            expect(result).toBe(false)
+        })
+
+        it('with missing teamname', async () => {
+            await expect(services.teamnameTaken()).rejects.toThrow(Constants.DUPLICATE_TEAM_NAME)
+        })
+
+        it('with invalid teamname', async () => {
+            await expect(services.teamnameTaken('a')).rejects.toThrow(Constants.DUPLICATE_TEAM_NAME)
+        })
     })
 })
