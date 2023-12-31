@@ -13,12 +13,6 @@ import { client } from '../../../../src/loaders/redis'
 import jwt from 'jsonwebtoken'
 import MockDate from 'mockdate'
 
-jest.mock('node-cron', () => {
-    return {
-        schedule: jest.fn(),
-    }
-})
-
 beforeAll(async () => {
     await setUpDatabase()
 })
@@ -29,9 +23,6 @@ afterEach(async () => {
 
 afterAll((done) => {
     tearDownDatabase()
-    if (client.isOpen) {
-        client.quit()
-    }
     done()
 })
 
@@ -132,13 +123,16 @@ describe('test /POST logout', () => {
         const accessToken = await userRecord.generateAuthToken()
         const refreshToken = await userRecord.generateRefreshToken()
 
-        await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${accessToken}`).send({ refreshToken }).expect(200)
+        await request(app)
+            .post('/api/v1/auth/logout')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({ refreshToken })
+            .expect(200)
 
         const accessExp = await redisClient.ttl(accessToken)
-        expect(accessExp).toBe(60*60*12)
+        expect(accessExp).toBe(60 * 60 * 12)
         const refreshExp = await redisClient.ttl(refreshToken)
-        expect(refreshExp).toBe(60*60*24*90)
-        
+        expect(refreshExp).toBe(60 * 60 * 24 * 90)
     })
 
     it('with non-existent objectid of user', async () => {
@@ -156,11 +150,13 @@ describe('test /POST logout', () => {
 
     it('with blacklisted token', async () => {
         const user = await User.create(getUser())
-        const token = jwt.sign({}, process.env.JWT_SECRET as string, { expiresIn: 60*60*12, subject: user._id.toString() })
-        await client.setEx(token, 60*60*12, '1')
+        const token = jwt.sign({}, process.env.JWT_SECRET as string, {
+            expiresIn: 60 * 60 * 12,
+            subject: user._id.toString(),
+        })
+        await client.setEx(token, 60 * 60 * 12, '1')
 
         await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`).send().expect(401)
-
     })
 
     it('with service error', async () => {
@@ -177,18 +173,18 @@ describe('test /POST logout', () => {
 })
 
 // describe('test /POST logout all', () => {
-    // it('with existing user and multiple tokens', async () => {
-    //     const user = getUser()
-    //     const userRecord = await User.create(user)
-    //     const token = await userRecord.generateAuthToken()
-    //     await userRecord.generateAuthToken()
-    //     await userRecord.generateAuthToken()
+// it('with existing user and multiple tokens', async () => {
+//     const user = getUser()
+//     const userRecord = await User.create(user)
+//     const token = await userRecord.generateAuthToken()
+//     await userRecord.generateAuthToken()
+//     await userRecord.generateAuthToken()
 
-    //     await request(app).post('/api/v1/auth/logoutAll').set('Authorization', `Bearer ${token}`).send().expect(200)
+//     await request(app).post('/api/v1/auth/logoutAll').set('Authorization', `Bearer ${token}`).send().expect(200)
 
-    //     const testUser = await User.findById(userRecord._id)
-    //     expect(testUser?.tokens?.length).toBe(0)
-    // })
+//     const testUser = await User.findById(userRecord._id)
+//     expect(testUser?.tokens?.length).toBe(0)
+// })
 
 //     it('with service error', async () => {
 //         const user = getUser()
@@ -222,7 +218,7 @@ describe('test /GET authenticate manager', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .expect(200)
-    
+
         const { user: userResponse } = response.body
         expect(userResponse._id.toString()).toBe(user._id.toString())
         expect(userResponse.username).toBe(user.username)

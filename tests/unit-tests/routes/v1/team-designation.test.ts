@@ -3,7 +3,6 @@ import request from 'supertest'
 import app from '../../../../src/app'
 import { setUpDatabase, resetDatabase, tearDownDatabase } from '../../../fixtures/setup-db'
 import { getUser } from '../../../fixtures/utils'
-import { client } from '../../../../src/loaders/redis'
 import User from '../../../../src/models/user'
 import TeamDesignation from '../../../../src/models/team-designation'
 
@@ -17,9 +16,6 @@ afterEach(async () => {
 
 afterAll(() => {
     tearDownDatabase()
-    if (client.isOpen) {
-        client.quit()
-    }
 })
 
 describe('Team Designation Endpoints', () => {
