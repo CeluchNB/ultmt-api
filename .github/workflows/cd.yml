@@ -94,7 +94,7 @@ jobs:
       - name: "Deploy Cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v1'
         with:
-          region: us-easy4
+          region: us-east4
           metadata: cloudrun/${{ needs.get-environment.outputs.env_name }}.yaml
          
           
