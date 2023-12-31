@@ -1,0 +1,105 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+    annotations:
+        client.knative.dev/user-image: us-east4-docker.pkg.dev/ultmt-app-dev/ultmt-services/ultmt-api
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 458.0.1
+        run.googleapis.com/ingress: all
+        run.googleapis.com/ingress-status: all
+        run.googleapis.com/operation-id: ed222c6f-b05f-422b-ae56-7e7e28d561a2
+        serving.knative.dev/creator: github-actions@ultmt-app-dev.iam.gserviceaccount.com
+        serving.knative.dev/lastModifier: github-actions@ultmt-app-dev.iam.gserviceaccount.com
+    creationTimestamp: '2023-02-16T05:44:18.267807Z'
+    generation: 29
+    labels:
+        cloud.googleapis.com/location: us-east4
+        commit-sha: 3f6042704c277f7253b40da658a1ecd07f43b627
+        managed-by: github-actions
+        run.googleapis.com/satisfiesPzs: 'true'
+    name: ultmt-api
+    namespace: '547412493494'
+    resourceVersion: AAYN03DfNlI
+    selfLink: /apis/serving.knative.dev/v1/namespaces/547412493494/services/ultmt-api
+    uid: 6b287d5e-8e09-41a3-8f91-a688dea968b3
+spec:
+    template:
+        metadata:
+            annotations:
+                autoscaling.knative.dev/maxScale: '100'
+                client.knative.dev/user-image: us-east4-docker.pkg.dev/ultmt-app-dev/ultmt-services/ultmt-api
+                run.googleapis.com/client-name: gcloud
+                run.googleapis.com/client-version: 458.0.1
+            labels:
+                client.knative.dev/nonce: ovndolcnmd
+                commit-sha: 3f6042704c277f7253b40da658a1ecd07f43b627
+                managed-by: github-actions
+                run.googleapis.com/startupProbeType: Default
+        spec:
+            containerConcurrency: 80
+            containers:
+                - env:
+                      - name: JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                key: latest
+                                name: ULTMT_JWT_SECRET
+                      - name: SENDGRID_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                key: latest
+                                name: SENDGRID_API_KEY
+                      - name: MONGOOSE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                key: latest
+                                name: ULTMT_MONGOOSE_URL
+                      - name: REDIS_URL
+                        valueFrom:
+                            secretKeyRef:
+                                key: latest
+                                name: REDIS_URL
+                  image: us-east4-docker.pkg.dev/ultmt-app-dev/ultmt-services/ultmt-api
+                  ports:
+                      - containerPort: 8080
+                        name: http1
+                  resources:
+                      limits:
+                          cpu: 1000m
+                          memory: 512Mi
+                  startupProbe:
+                      failureThreshold: 1
+                      periodSeconds: 240
+                      tcpSocket:
+                          port: 8080
+                      timeoutSeconds: 240
+            serviceAccountName: 547412493494-compute@developer.gserviceaccount.com
+            timeoutSeconds: 300
+            resources:
+                limits:
+                    cpu: 2000m
+                    memory: 2Gi
+    traffic:
+        - latestRevision: true
+          percent: 100
+status:
+    address:
+        url: https://ultmt-api-cpy2f2hmpa-uk.a.run.app
+    conditions:
+        - lastTransitionTime: '2023-12-31T19:40:43.201106Z'
+          status: 'True'
+          type: Ready
+        - lastTransitionTime: '2023-12-31T19:40:05.739620Z'
+          status: 'True'
+          type: ConfigurationsReady
+        - lastTransitionTime: '2023-12-31T19:40:43.201106Z'
+          status: 'True'
+          type: RoutesReady
+    latestCreatedRevisionName: ultmt-api-00029-vw9
+    latestReadyRevisionName: ultmt-api-00029-vw9
+    observedGeneration: 29
+    traffic:
+        - latestRevision: true
+          percent: 100
+          revisionName: ultmt-api-00029-vw9
+    url: https://ultmt-api-cpy2f2hmpa-uk.a.run.app
