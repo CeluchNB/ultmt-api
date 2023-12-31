@@ -65,8 +65,8 @@ spec:
                         name: http1
                   resources:
                       limits:
-                          cpu: 1000m
-                          memory: 512Mi
+                          cpu: 2000m
+                          memory: 2Gi
                   startupProbe:
                       failureThreshold: 1
                       periodSeconds: 240
@@ -75,10 +75,6 @@ spec:
                       timeoutSeconds: 240
             serviceAccountName: 547412493494-compute@developer.gserviceaccount.com
             timeoutSeconds: 300
-            resources:
-                limits:
-                    cpu: 2000m
-                    memory: 2Gi
     traffic:
         - latestRevision: true
           percent: 100
