@@ -94,8 +94,14 @@ jobs:
       - name: "Deploy Cloud Run"
         uses: 'google-github-actions/deploy-cloudrun@v1'
         with:
+          service: 'ultmt-api'
+          image: ${{ vars.CONTAINER_REPOSITORY }}
           region: us-east4
-          metadata: cloudrun/${{ needs.get-environment.outputs.env_name }}.yaml
+          secrets: |
+            JWT_SECRET=ULTMT_JWT_SECRET:latest
+            SENDGRID_API_KEY=SENDGRID_API_KEY:latest
+            MONGOOSE_URL=ULTMT_MONGOOSE_URL:latest
+            REDIS_URL=REDIS_URL:latest
          
           
 
