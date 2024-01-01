@@ -47,23 +47,23 @@ jobs:
           echo REDIS_URL=${{ secrets.REDIS_URL }}
           cd ..
       
-      # - name: Run Docker CI container
-      #   run: docker compose -f docker-compose.dev.yml up -d --build
+      - name: Run Docker CI container
+        run: docker compose -f docker-compose.dev.yml up -d --build
         
-      # - name: Add dependencies
-      #   run: yarn install
+      - name: Add dependencies
+        run: yarn install
 
-      # - name: Run tests
-      #   run: yarn test
+      - name: Run tests
+        run: yarn test
       
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-      # - name: Stop containers
-      #   if: always()
-      #   run: docker compose -f docker-compose.dev.yml down
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
 
   deploy:
     needs: [test, get-environment]
