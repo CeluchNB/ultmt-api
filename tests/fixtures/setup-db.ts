@@ -8,12 +8,14 @@ import OneTimePasscode from '../../src/models/one-time-passcode'
 import TeamDesignation from '../../src/models/team-designation'
 import VerificationRequest from '../../src/models/verification-request'
 import { createClient } from 'redis'
+import { connectRedis, closeRedis } from '../../src/loaders/redis'
 
 export const redisClient = createClient({ url: process.env.REDIS_URL })
 
 export const setUpDatabase = async () => {
     await connect(process.env.MONGOOSE_URL as string)
     await redisClient.connect()
+    await connectRedis()
 }
 
 export const saveUsers = async () => {
@@ -63,4 +65,5 @@ export const tearDownDatabase = () => {
     if (redisClient.isOpen) {
         redisClient.quit()
     }
+    closeRedis()
 }

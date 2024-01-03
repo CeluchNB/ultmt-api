@@ -9,15 +9,8 @@ import OneTimePasscode from '../../../../src/models/one-time-passcode'
 import Team from '../../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import sgMail from '@sendgrid/mail'
-import { client } from '../../../../src/loaders/redis'
 import jwt from 'jsonwebtoken'
 import { Types } from 'mongoose'
-
-jest.mock('node-cron', () => {
-    return {
-        schedule: jest.fn(),
-    }
-})
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -29,9 +22,6 @@ afterEach(async () => {
 
 afterAll((done) => {
     tearDownDatabase()
-    if (client.isOpen) {
-        client.quit()
-    }
     done()
 })
 

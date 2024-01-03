@@ -8,13 +8,6 @@ import RosterRequest from '../../../../src/models/roster-request'
 import { ApiError, Initiator, IRosterRequest, Status } from '../../../../src/types'
 import * as Constants from '../../../../src/utils/constants'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
-import { client } from '../../../../src/loaders/redis'
-
-jest.mock('node-cron', () => {
-    return {
-        schedule: jest.fn(),
-    }
-})
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -30,9 +23,6 @@ afterEach(async () => {
 
 afterAll((done) => {
     tearDownDatabase()
-    if (client.isOpen) {
-        client.quit()
-    }
     done()
 })
 

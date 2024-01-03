@@ -10,15 +10,8 @@ import Team from '../../../../src/models/team'
 import ArchiveTeam from '../../../../src/models/archive-team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import MockDate from 'mockdate'
-import { client } from '../../../../src/loaders/redis'
 import TeamDesignation from '../../../../src/models/team-designation'
 import { Types } from 'mongoose'
-
-jest.mock('node-cron', () => {
-    return {
-        schedule: jest.fn(),
-    }
-})
 
 beforeAll(async () => {
     MockDate.set(new Date('2022'))
@@ -32,9 +25,6 @@ afterEach(async () => {
 afterAll((done) => {
     MockDate.reset()
     tearDownDatabase()
-    if (client.isOpen) {
-        client.quit()
-    }
     done()
 })
 
