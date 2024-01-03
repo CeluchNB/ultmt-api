@@ -1,7 +1,6 @@
 import passport from 'passport'
 import passportLocal from 'passport-local'
 import passportJwt, { StrategyOptions } from 'passport-jwt'
-import User from '../models/user'
 import bcrypt from 'bcryptjs'
 import * as Constants from '../utils/constants'
 import { client } from './redis'
@@ -14,6 +13,7 @@ passport.use(
     new LocalStrategy(
         { usernameField: 'email', passwordField: 'password', session: false },
         async (email, password, done) => {
+            const { default: User } = await import('../models/user')
             const user = await User.findOne({ $or: [{ email }, { username: email }] })
             if (!user) {
                 return done(null, false, { message: Constants.UNABLE_TO_LOGIN })

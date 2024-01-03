@@ -7,7 +7,7 @@ import { verificationRequestRouter } from './verification-request'
 import { teamDesignationRouter } from './team-designation'
 import { Router } from 'express'
 
-export const router = Router()
+const router = Router()
 
 router.use(userRouter)
 router.use(teamRouter)
@@ -16,3 +16,5 @@ router.use(otpRouter)
 router.use(authRouter)
 router.use(verificationRequestRouter)
 router.use(teamDesignationRouter)
+
+export default router
