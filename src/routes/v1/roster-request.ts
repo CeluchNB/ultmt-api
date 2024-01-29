@@ -11,11 +11,11 @@ import { Logger } from '../../logging'
 export const rosterRequestRouter = Router()
 
 const logger = Logger()
-rosterRequestRouter.use(logger.requestMiddleware as RequestHandler)
 
 rosterRequestRouter.get(
     '/request/userRequests',
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -31,6 +31,7 @@ rosterRequestRouter.get(
     '/request/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -47,6 +48,7 @@ rosterRequestRouter.post(
     param('id').escape().isString(),
     query('user').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -67,6 +69,7 @@ rosterRequestRouter.post(
     '/request/user',
     query('team').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -82,6 +85,7 @@ rosterRequestRouter.post(
     '/request/team/accept/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -97,6 +101,7 @@ rosterRequestRouter.post(
     '/request/team/deny/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -112,6 +117,7 @@ rosterRequestRouter.post(
     '/request/user/accept/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -127,6 +133,7 @@ rosterRequestRouter.post(
     '/request/user/deny/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -142,6 +149,7 @@ rosterRequestRouter.post(
     '/request/team/delete/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -157,6 +165,7 @@ rosterRequestRouter.post(
     '/request/user/delete/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
@@ -172,6 +181,7 @@ rosterRequestRouter.get(
     '/request/team/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new RosterRequestServices(Team, User, RosterRequest)
