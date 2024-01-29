@@ -6,7 +6,6 @@ import User from '../../models/user'
 import RosterRequest from '../../models/roster-request'
 import ArchiveTeam from '../../models/archive-team'
 import OneTimePasscode from '../../models/one-time-passcode'
-import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam } from '../../types'
 import { query, body, param } from 'express-validator'
 import { parseBoolean } from '../../utils/utils'
@@ -267,5 +266,3 @@ teamRouter.put(
         }
     },
 )
-
-teamRouter.use(errorMiddleware)

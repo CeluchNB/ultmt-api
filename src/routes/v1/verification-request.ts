@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import { body, param, query } from 'express-validator'
 import { getVerification, requestVerification, respondToVerification } from '../../services/v1/verification-request'
@@ -54,5 +53,3 @@ verificationRequestRouter.put(
         }
     },
 )
-
-verificationRequestRouter.use(errorMiddleware)

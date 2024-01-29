@@ -5,7 +5,6 @@ import OneTimePasscodeServices from '../../services/v1/one-time-passcode'
 import { body } from 'express-validator'
 import OneTimePasscode from '../../models/one-time-passcode'
 import User from '../../models/user'
-import { errorMiddleware } from '../../middleware/errors'
 import { Logger } from '../../logging'
 
 export const otpRouter = Router()
@@ -42,5 +41,3 @@ otpRouter.post(
         }
     },
 )
-
-otpRouter.use(errorMiddleware)
