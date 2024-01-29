@@ -50,7 +50,7 @@ describe('test sign up', () => {
         const user = getUser()
         user.email = 'bad@email'
 
-        await expect(services.signUp(user)).rejects.toThrowError(Constants.UNABLE_TO_CREATE_USER)
+        await expect(services.signUp(user)).rejects.toThrow(Constants.UNABLE_TO_CREATE_USER)
     })
 })
 
@@ -59,7 +59,7 @@ describe('test get user', () => {
         const user = getUser()
         const userRecord = await User.create(user)
 
-        const userResponse = await services.getUser(userRecord._id)
+        const userResponse = await services.getUser(userRecord._id.toHexString())
 
         expect(userResponse._id.toString()).toBe(userRecord._id.toString())
         expect(userResponse.firstName).toBe(userRecord.firstName)
@@ -77,7 +77,7 @@ describe('test get user', () => {
         userRecord.private = true
         await userRecord.save()
 
-        const userResponse = await services.getUser(userRecord._id)
+        const userResponse = await services.getUser(userRecord._id.toHexString())
         expect(userResponse._id.toString()).toBe(userRecord._id.toString())
         expect(userResponse.firstName).toBe(userRecord.firstName)
         expect(userResponse.lastName).toBe(userRecord.lastName)
@@ -89,7 +89,7 @@ describe('test get user', () => {
     })
 
     it('with non-existent user', async () => {
-        await expect(services.getUser(anonId)).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+        await expect(services.getUser(anonId)).rejects.toThrow(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 
     it('with bad id', async () => {
@@ -119,7 +119,7 @@ describe('test get me', () => {
     })
 
     it('with unfound user', async () => {
-        await expect(services.getMe(anonId)).rejects.toThrowError(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
+        await expect(services.getMe(anonId)).rejects.toThrow(new ApiError(Constants.UNABLE_TO_FIND_USER, 404))
     })
 })
 
@@ -132,7 +132,7 @@ describe('test delete account', () => {
         const userRecord1 = await User.create(user1)
         const userRecord2 = await User.create(user2)
 
-        await services.deleteUser(userRecord1._id)
+        await services.deleteUser(userRecord1._id.toHexString())
 
         const userResult1 = await User.findById(userRecord1._id)
         const userResult2 = await User.findById(userRecord2._id)
@@ -155,7 +155,7 @@ describe('test set open to requests', () => {
     it('with valid open data', async () => {
         const user = await User.create(getUser())
 
-        const userResponse = await services.setOpenToRequests(user._id, true)
+        const userResponse = await services.setOpenToRequests(user._id.toHexString(), true)
         expect(userResponse.firstName).toBe(user.firstName)
         expect(userResponse.openToRequests).toBe(true)
 
@@ -168,7 +168,7 @@ describe('test set open to requests', () => {
         user.openToRequests = true
         await user.save()
 
-        const userResponse = await services.setOpenToRequests(user._id, false)
+        const userResponse = await services.setOpenToRequests(user._id.toHexString(), false)
         expect(userResponse.firstName).toBe(user.firstName)
         expect(userResponse.openToRequests).toBe(false)
 
@@ -178,7 +178,7 @@ describe('test set open to requests', () => {
 
     it('with non-existent user', async () => {
         await User.create(getUser())
-        await expect(services.setOpenToRequests(anonId, true)).rejects.toThrowError(
+        await expect(services.setOpenToRequests(anonId, true)).rejects.toThrow(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -214,7 +214,7 @@ describe('test leave team', () => {
         team.players.push(getEmbeddedUser(user))
         await team.save()
 
-        await expect(services.leaveTeam(anonId, team._id.toString())).rejects.toThrowError(
+        await expect(services.leaveTeam(anonId, team._id.toString())).rejects.toThrow(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -228,7 +228,7 @@ describe('test leave team', () => {
         team.players.push(getEmbeddedUser(user))
         await team.save()
 
-        await expect(services.leaveTeam(user._id, anonId)).rejects.toThrowError(
+        await expect(services.leaveTeam(user._id.toHexString(), anonId)).rejects.toThrow(
             new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404),
         )
     })
@@ -237,7 +237,7 @@ describe('test leave team', () => {
         const user = await User.create(getUser())
         const team = await Team.create(getTeam())
 
-        await expect(services.leaveTeam(user._id.toString(), team._id.toString())).rejects.toThrowError(
+        await expect(services.leaveTeam(user._id.toString(), team._id.toString())).rejects.toThrow(
             new ApiError(Constants.PLAYER_NOT_ON_TEAM, 404),
         )
     })
@@ -324,9 +324,7 @@ describe('test search user', () => {
     })
 
     it('test not enough characters', async () => {
-        await expect(services.searchUsers('no')).rejects.toThrowError(
-            new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400),
-        )
+        await expect(services.searchUsers('no')).rejects.toThrow(new ApiError(Constants.NOT_ENOUGH_CHARACTERS, 400))
     })
 })
 
@@ -366,7 +364,9 @@ describe('test manager leave', () => {
         manager2.managerTeams.push(getEmbeddedTeam(team))
         await manager2.save()
 
-        await expect(services.leaveManagerRole(anonId, manager._id)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+        await expect(services.leaveManagerRole(anonId, manager._id.toHexString())).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
     })
 
     it('with non-existent manager', async () => {
@@ -380,7 +380,7 @@ describe('test manager leave', () => {
         manager2.managerTeams.push(getEmbeddedTeam(team))
         await manager2.save()
 
-        await expect(services.leaveManagerRole(team._id.toString(), anonId)).rejects.toThrowError(
+        await expect(services.leaveManagerRole(team._id.toString(), anonId)).rejects.toThrow(
             Constants.UNABLE_TO_FIND_USER,
         )
     })
@@ -426,14 +426,14 @@ describe('test change user password', () => {
     it('with unfound user', async () => {
         await User.create(getUser())
 
-        expect(services.changePassword(anonId, 'Test987!')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.changePassword(anonId, 'Test987!')).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 
     it('with invalid password', async () => {
         const user = await User.create(getUser())
         const oldPassword = user.password
 
-        expect(services.changePassword(user._id.toString(), 'test')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+        expect(services.changePassword(user._id.toString(), 'test')).rejects.toThrow(Constants.INVALID_PASSWORD)
 
         const userRecord = await User.findById(user._id.toString())
         expect(userRecord?.password).toBe(oldPassword)
@@ -456,7 +456,7 @@ describe('test change user email', () => {
     it('with invalid email', async () => {
         const user = await User.create(getUser())
 
-        expect(services.changeEmail(user._id.toString(), 'newemail@hotmailcom')).rejects.toThrowError(
+        expect(services.changeEmail(user._id.toString(), 'newemail@hotmailcom')).rejects.toThrow(
             Constants.INVALID_EMAIL,
         )
         const userRecord = await User.findById(user._id)
@@ -465,7 +465,7 @@ describe('test change user email', () => {
 
     it('with unfound user', async () => {
         await User.create(getUser())
-        expect(services.changeEmail(anonId, 'newemail@hotmail.com')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.changeEmail(anonId, 'newemail@hotmail.com')).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 })
 
@@ -502,7 +502,7 @@ describe('test change user name', () => {
         const user = await User.create(userData)
         expect(
             services.changeName(user._id.toString(), 'thisiswaytoolongforonepersonsname', 'New Last'),
-        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+        ).rejects.toThrow(Constants.NAME_TOO_LONG)
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.firstName).toBe(userData.firstName)
@@ -514,7 +514,7 @@ describe('test change user name', () => {
         const user = await User.create(userData)
         expect(
             services.changeName(user._id.toString(), 'New First', 'thisiswaytoolongforonepersonsname'),
-        ).rejects.toThrowError(Constants.NAME_TOO_LONG)
+        ).rejects.toThrow(Constants.NAME_TOO_LONG)
 
         const userRecord = await User.findById(user._id)
         expect(userRecord?.firstName).toBe(userData.firstName)
@@ -523,7 +523,7 @@ describe('test change user name', () => {
 
     it('with unfound user', async () => {
         await User.create(getUser())
-        expect(services.changeName(anonId, 'New First', 'New Last')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.changeName(anonId, 'New First', 'New Last')).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 })
 
@@ -553,9 +553,7 @@ describe('test request password recovery', () => {
 
     it('with unfound user', async () => {
         await User.create(getUser())
-        expect(services.requestPasswordRecovery('unknown@email.com')).rejects.toThrowError(
-            Constants.UNABLE_TO_FIND_USER,
-        )
+        expect(services.requestPasswordRecovery('unknown@email.com')).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 
     it('with send error', async () => {
@@ -563,7 +561,7 @@ describe('test request password recovery', () => {
             throw new ApiError('', 400)
         })
         const user = await User.create(getUser())
-        expect(services.requestPasswordRecovery(user.email)).rejects.toThrowError(Constants.UNABLE_TO_SEND_EMAIL)
+        expect(services.requestPasswordRecovery(user.email)).rejects.toThrow(Constants.UNABLE_TO_SEND_EMAIL)
         expect(spy).toHaveBeenCalled()
         const [otp] = await OneTimePasscode.find({})
         expect(otp).toBeUndefined()
@@ -596,7 +594,7 @@ describe('test reset password', () => {
     it('with unfound otp', async () => {
         await User.create(getUser())
 
-        expect(services.resetPassword('123456', 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+        expect(services.resetPassword('123456', 'Test987#')).rejects.toThrow(Constants.INVALID_PASSCODE)
     })
 
     it('with expired otp', async () => {
@@ -607,7 +605,7 @@ describe('test reset password', () => {
             expiresAt: new Date(),
         })
 
-        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrow(Constants.INVALID_PASSCODE)
     })
 
     it('with unfound user', async () => {
@@ -617,7 +615,7 @@ describe('test reset password', () => {
             reason: OTPReason.PasswordRecovery,
         })
 
-        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.resetPassword(otp.passcode, 'Test987#')).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 
     it('with invalid password', async () => {
@@ -628,7 +626,7 @@ describe('test reset password', () => {
             reason: OTPReason.PasswordRecovery,
         })
 
-        expect(services.resetPassword(otp.passcode, 'test#')).rejects.toThrowError(Constants.INVALID_PASSWORD)
+        expect(services.resetPassword(otp.passcode, 'test#')).rejects.toThrow(Constants.INVALID_PASSWORD)
         const newUser = await User.findById(otp.creator)
         expect(newUser?.password).toBe(user.password)
 
@@ -643,7 +641,7 @@ describe('test set private', () => {
         user.private = false
         await user.save()
 
-        const updatedUser = await services.setPrivateAccount(user._id, true)
+        const updatedUser = await services.setPrivateAccount(user._id.toHexString(), true)
 
         expect(updatedUser.username).toBe(user.username)
         expect(updatedUser.private).toBe(true)
@@ -657,7 +655,7 @@ describe('test set private', () => {
         user.private = false
         await user.save()
 
-        expect(services.setPrivateAccount(anonId, true)).rejects.toThrowError(
+        expect(services.setPrivateAccount(anonId, true)).rejects.toThrow(
             new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
         )
     })
@@ -679,7 +677,7 @@ describe('test join team by bulk code', () => {
             reason: OTPReason.TeamJoin,
         })
 
-        const userResult = await services.joinByCode(user._id, otp.passcode)
+        const userResult = await services.joinByCode(user._id.toHexString(), otp.passcode)
         expect(userResult._id.toString()).toBe(user._id.toString())
         expect(userResult.playerTeams.length).toBe(1)
         expect(userResult.playerTeams[0]._id.toString()).toBe(teamRecord._id.toString())
@@ -700,7 +698,7 @@ describe('test join team by bulk code', () => {
             reason: OTPReason.TeamJoin,
         })
 
-        expect(services.joinByCode(anonId, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_USER)
+        expect(services.joinByCode(anonId, otp.passcode)).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 
     it('with non-existent code', async () => {
@@ -714,7 +712,7 @@ describe('test join team by bulk code', () => {
             reason: OTPReason.TeamJoin,
         })
 
-        expect(services.joinByCode(user._id, 'abcdef')).rejects.toThrowError(Constants.INVALID_PASSCODE)
+        expect(services.joinByCode(user._id.toHexString(), 'abcdef')).rejects.toThrow(Constants.INVALID_PASSCODE)
     })
 
     it('with expired code', async () => {
@@ -729,7 +727,7 @@ describe('test join team by bulk code', () => {
             expiresAt: new Date('01-01-2022'),
         })
 
-        expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.INVALID_PASSCODE)
+        expect(services.joinByCode(user._id.toHexString(), otp.passcode)).rejects.toThrow(Constants.INVALID_PASSCODE)
     })
 
     it('with non-existent team', async () => {
@@ -742,7 +740,7 @@ describe('test join team by bulk code', () => {
             team: anonId,
             reason: OTPReason.TeamJoin,
         })
-        expect(services.joinByCode(user._id, otp.passcode)).rejects.toThrowError(Constants.UNABLE_TO_FIND_TEAM)
+        expect(services.joinByCode(user._id.toHexString(), otp.passcode)).rejects.toThrow(Constants.UNABLE_TO_FIND_TEAM)
     })
 })
 

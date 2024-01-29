@@ -151,10 +151,10 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .userExists(managerId)
-            .userIsManager(managerId, team._id.toString())
+            .userIsManager(managerId, team._id.toHexString())
             .requestIsUserInitiated(requestId)
-            .requestIsPending(request._id.toString())
-            .userNotOnTeam(user._id, team._id.toString())
+            .requestIsPending(request._id.toHexString())
+            .userNotOnTeam(user._id.toHexString(), team._id.toHexString())
             .test()
 
         if (approve) {
@@ -204,9 +204,9 @@ export default class RosterRequestServices {
 
         await new UltmtValidator(this.userModel, this.teamModel, this.rosterRequestModel)
             .requestIsTeamInitiated(requestId)
-            .requestIsPending(request._id.toString())
-            .userOnRequest(user._id, request._id.toString())
-            .userNotOnTeam(user._id, team._id.toString())
+            .requestIsPending(request._id.toHexString())
+            .userOnRequest(user._id.toHexString(), request._id.toHexString())
+            .userNotOnTeam(user._id.toHexString(), team._id.toHexString())
             .test()
 
         if (approve) {
@@ -263,7 +263,7 @@ export default class RosterRequestServices {
             await user.save()
         }
 
-        await request.delete()
+        await request.deleteOne()
         await team.save()
 
         return request
@@ -299,7 +299,7 @@ export default class RosterRequestServices {
         }
         user.requests = user.requests.filter((id) => !id.equals(request._id))
 
-        await request.delete()
+        await request.deleteOne()
         await user.save()
 
         return request
