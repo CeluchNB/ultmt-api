@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
 import RosterRequestServices from '../../services/v1/roster-request'
 import RosterRequest from '../../models/roster-request'
@@ -6,8 +6,12 @@ import Team from '../../models/team'
 import User from '../../models/user'
 import { errorMiddleware } from '../../middleware/errors'
 import { param, query } from 'express-validator'
+import { Logger } from '../../logging'
 
 export const rosterRequestRouter = Router()
+
+const logger = Logger()
+rosterRequestRouter.use(logger.requestMiddleware as RequestHandler)
 
 rosterRequestRouter.get(
     '/request/userRequests',

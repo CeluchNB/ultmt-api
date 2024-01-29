@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
 import TeamServices from '../../services/v1/team'
 import Team from '../../models/team'
@@ -10,8 +10,12 @@ import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam } from '../../types'
 import { query, body, param } from 'express-validator'
 import { parseBoolean } from '../../utils/utils'
+import { Logger } from '../../logging'
 
 export const teamRouter = Router()
+
+const logger = Logger()
+teamRouter.use(logger.requestMiddleware as RequestHandler)
 
 teamRouter.get(
     '/team/search',

@@ -1,6 +1,5 @@
 import winston from 'winston'
 import { LoggingWinston } from '@google-cloud/logging-winston'
-import { ApiError } from '../types/errors'
 import { Request, Response, NextFunction } from 'express'
 import { v4 as uuid } from 'uuid'
 
@@ -40,17 +39,6 @@ export const Logger = () => {
         next()
     }
 
-    const errorMiddleware = (err: ApiError, req: UniqueRequest, res: Response, next: NextFunction) => {
-        logger.error(`${req.url} - ${req.uuid}`, {
-            httpRequest: {
-                status: res.statusCode,
-                requestUrl: req.url,
-                requestMethod: req.method,
-            },
-        })
-        next(err)
-    }
-
     const logError = (error: unknown) => {
         logger.error(error)
     }
@@ -61,7 +49,6 @@ export const Logger = () => {
 
     return {
         requestMiddleware,
-        errorMiddleware,
         logError,
         logInfo,
     }

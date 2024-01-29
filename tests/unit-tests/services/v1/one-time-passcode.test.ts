@@ -28,7 +28,7 @@ describe('test create otp', () => {
         const user = await User.create(getUser())
         const services = new OneTimePasscodeServices(OneTimePasscode, User)
 
-        const code = await services.createOtp(user._id, 'gamejoin')
+        const code = await services.createOtp(user._id.toHexString(), 'gamejoin')
         expect(code).toBe('123456')
 
         const otp = await OneTimePasscode.findOne({ passcode: '123456' })
@@ -55,6 +55,6 @@ describe('test create otp', () => {
         const user = await User.create(getUser())
         const services = new OneTimePasscodeServices(OneTimePasscode, User)
 
-        expect(services.createOtp(user._id, 'badreason')).rejects.toThrow()
+        expect(services.createOtp(user._id.toHexString(), 'badreason')).rejects.toThrow()
     })
 })

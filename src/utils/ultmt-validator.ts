@@ -4,6 +4,7 @@ import RosterRequest, { IRosterRequestModel } from '../models/roster-request'
 import { ApiError, Initiator, Status } from '../types'
 import * as Constants from './constants'
 import { Types } from 'mongoose'
+import { idEquals } from './utils'
 
 enum ValidationType {
     USER_EXISTS,
@@ -189,7 +190,7 @@ export default class UltmtValidator {
                 let found = false
                 if (managingTeam) {
                     for (const i of managingTeam.managers) {
-                        if (i._id.equals(manager?._id)) {
+                        if (idEquals(i._id, manager?._id)) {
                             found = true
                         }
                     }
@@ -257,7 +258,7 @@ export default class UltmtValidator {
 
                 if (team) {
                     for (const i of team.players) {
-                        if (i._id.equals(user?._id)) {
+                        if (idEquals(i._id, user?._id)) {
                             throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
                         }
                     }
@@ -277,7 +278,7 @@ export default class UltmtValidator {
                 const request = await this.rosterRequestModel.findById(requestId)
                 const user = await this.userModel.findById(userId)
 
-                if (!request?.user.equals(user?._id)) {
+                if (!idEquals(request?.user, user?._id)) {
                     throw new ApiError(Constants.NOT_ALLOWED_TO_RESPOND, 400)
                 }
                 break
@@ -289,7 +290,7 @@ export default class UltmtValidator {
                 const team = await this.teamModel.findById(request?.team)
 
                 const managers = team?.managers.map((m) => m._id.toString())
-                if (!(request?.user.equals(user?._id) || managers?.includes(userId.toString()))) {
+                if (!(idEquals(request?.user, user?._id) || managers?.includes(userId.toString()))) {
                     throw new Error(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)
                 }
                 break
@@ -321,7 +322,7 @@ export default class UltmtValidator {
                 let found = false
                 if (team) {
                     for (const i of team.players) {
-                        if (i._id.equals(user?._id)) {
+                        if (user?._id && i._id.equals(user._id)) {
                             found = true
                         }
                     }
