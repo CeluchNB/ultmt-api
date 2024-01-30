@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import { EmbeddedTeam, EmbeddedUser, ITeam, IUser } from '../types'
 
 export const createExpressErrorObject = (message: string, code: number): { message: string; code: number } => {
@@ -59,4 +60,8 @@ export const parseBoolean = (bool: string): boolean | undefined => {
     }
 
     return undefined
+}
+
+export const idEquals = (idOne: Types.ObjectId | undefined, idTwo: string | Types.ObjectId | undefined): boolean => {
+    return idOne !== undefined && idTwo !== undefined && idOne.equals(idTwo)
 }

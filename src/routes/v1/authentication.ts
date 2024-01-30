@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import User from '../../models/user'
 import Team from '../../models/team'
@@ -66,5 +65,3 @@ authRouter.post('/auth/refresh', async (req: Request, res: Response, next) => {
         next(error)
     }
 })
-
-authRouter.use(errorMiddleware)

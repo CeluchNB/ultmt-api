@@ -3,7 +3,6 @@ import { ApiError, CreateUser } from '../../types'
 import UserServices from '../../services/v1/user'
 import User from '../../models/user'
 import Team from '../../models/team'
-import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import { body, query, param } from 'express-validator'
 import OneTimePasscode from '../../models/one-time-passcode'
@@ -244,5 +243,3 @@ userRouter.post(
         }
     },
 )
-
-userRouter.use(errorMiddleware)
