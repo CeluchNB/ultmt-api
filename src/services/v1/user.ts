@@ -296,7 +296,7 @@ export default class UserServices {
                 html: getPasscodeHtml(user.firstName, otp.passcode),
             })
         } catch (error) {
-            await otp.delete()
+            await otp.deleteOne()
             throw new ApiError(Constants.UNABLE_TO_SEND_EMAIL, 500)
         }
     }
@@ -325,7 +325,7 @@ export default class UserServices {
         const refresh = await user.generateRefreshToken()
 
         // delete otp
-        await otp.delete()
+        await otp.deleteOne()
         return { user, tokens: { access, refresh } }
     }
 
@@ -369,7 +369,9 @@ export default class UserServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
-        await new UltmtValidator(this.userModel, this.teamModel).userNotOnTeam(user._id, team._id.toString()).test()
+        await new UltmtValidator(this.userModel, this.teamModel)
+            .userNotOnTeam(user._id.toHexString(), team._id.toHexString())
+            .test()
 
         team.players.push(getEmbeddedUser(user))
         await team.save()

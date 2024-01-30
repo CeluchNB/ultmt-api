@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express'
-import { errorMiddleware } from '../../middleware/errors'
 import passport from 'passport'
 import { body } from 'express-validator'
 import { createTeamDesignation, getDesignations } from '../../services/v1/team-designation'
@@ -24,5 +23,3 @@ teamDesignationRouter.get('/team-designations', async (req: Request, res: Respon
     const designations = await getDesignations()
     res.status(200).json({ designations })
 })
-
-teamDesignationRouter.use(errorMiddleware)

@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
 import TeamServices from '../../services/v1/team'
 import Team from '../../models/team'
@@ -6,17 +6,20 @@ import User from '../../models/user'
 import RosterRequest from '../../models/roster-request'
 import ArchiveTeam from '../../models/archive-team'
 import OneTimePasscode from '../../models/one-time-passcode'
-import { errorMiddleware } from '../../middleware/errors'
 import { CreateTeam } from '../../types'
 import { query, body, param } from 'express-validator'
 import { parseBoolean } from '../../utils/utils'
+import { Logger } from '../../logging'
 
 export const teamRouter = Router()
+
+const logger = Logger()
 
 teamRouter.get(
     '/team/search',
     query('q').escape().isString(),
     query('rosterOpen').escape().isString(),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -30,19 +33,24 @@ teamRouter.get(
     },
 )
 
-teamRouter.get('/team/teamname-taken', async (req: Request, res: Response, next) => {
-    try {
-        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-        const taken = await teamServices.teamnameTaken(req.query.teamname as string)
-        return res.json({ taken })
-    } catch (e) {
-        next(e)
-    }
-})
+teamRouter.get(
+    '/team/teamname-taken',
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const taken = await teamServices.teamnameTaken(req.query.teamname as string)
+            return res.json({ taken })
+        } catch (e) {
+            next(e)
+        }
+    },
+)
 
 teamRouter.post(
     '/team',
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -56,20 +64,26 @@ teamRouter.post(
     },
 )
 
-teamRouter.get('/team/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
-    try {
-        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-        const team = await teamServices.getTeam(req.params.id, true)
-        return res.json({ team })
-    } catch (error) {
-        next(error)
-    }
-})
+teamRouter.get(
+    '/team/:id',
+    param('id').escape().isString(),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.getTeam(req.params.id, true)
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 teamRouter.get(
     '/team/managing/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -86,6 +100,7 @@ teamRouter.post(
     param('id').escape().isString(),
     query('user').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -108,6 +123,7 @@ teamRouter.post(
     body('seasonStart').escape().isString(),
     body('seasonEnd').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -130,6 +146,7 @@ teamRouter.put(
     param('id').escape().isString(),
     query('open').escape().isBoolean(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -150,6 +167,7 @@ teamRouter.post(
     param('id').escape().isString(),
     query('manager').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -169,6 +187,7 @@ teamRouter.post(
     '/team/getBulkCode',
     query('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam, OneTimePasscode)
@@ -180,21 +199,27 @@ teamRouter.post(
     },
 )
 
-teamRouter.get('/archiveTeam/:id', param('id').escape().isString(), async (req: Request, res: Response, next) => {
-    try {
-        const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-        const team = await teamServices.getArchivedTeam(req.params.id)
-        return res.json({ team })
-    } catch (error) {
-        next(error)
-    }
-})
+teamRouter.get(
+    '/archiveTeam/:id',
+    param('id').escape().isString(),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const team = await teamServices.getArchivedTeam(req.params.id)
+            return res.json({ team })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 teamRouter.put(
     '/team/:id/designation',
     param('id').escape().isString(),
     body('designation').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -214,6 +239,7 @@ teamRouter.delete(
     '/team/:id',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -229,6 +255,7 @@ teamRouter.put(
     '/team/:id/archive',
     param('id').escape().isString(),
     passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
@@ -239,5 +266,3 @@ teamRouter.put(
         }
     },
 )
-
-teamRouter.use(errorMiddleware)

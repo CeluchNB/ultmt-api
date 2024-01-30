@@ -210,7 +210,7 @@ export default class TeamServices {
 
             user.requests = user.requests.filter((reqId) => !reqId.equals(id))
             await user.save()
-            await request.delete()
+            await request.deleteOne()
         }
 
         team.requests = []
@@ -469,7 +469,7 @@ export default class TeamServices {
         manager.managerTeams = manager.managerTeams.filter((mTeam) => !mTeam._id.equals(team._id))
         await manager.save()
 
-        await team.delete()
+        await team.deleteOne()
     }
 
     /**
@@ -511,7 +511,7 @@ export default class TeamServices {
 
             user.requests = user.requests.filter((reqId) => !reqId.equals(id))
             await user.save()
-            await request.delete()
+            await request.deleteOne()
         }
 
         team.requests = []
