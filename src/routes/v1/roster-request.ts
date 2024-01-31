@@ -4,7 +4,6 @@ import RosterRequestServices from '../../services/v1/roster-request'
 import RosterRequest from '../../models/roster-request'
 import Team from '../../models/team'
 import User from '../../models/user'
-import { errorMiddleware } from '../../middleware/errors'
 import { param, query } from 'express-validator'
 import { Logger } from '../../logging'
 
