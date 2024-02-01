@@ -30,7 +30,7 @@ schema.virtual('user', {
     justOne: true,
 })
 
-const ClaimGuestRequest = model<IDetailedClaimGuestRequest>('RosterRequest', schema)
+const ClaimGuestRequest = model<IDetailedClaimGuestRequest>('ClaimGuestRequest', schema)
 
 export type IRosterRequestModel = typeof ClaimGuestRequest
 export default ClaimGuestRequest

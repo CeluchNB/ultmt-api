@@ -22,6 +22,7 @@ export interface IUser extends CreateUser {
     archiveTeams: EmbeddedTeam[]
     requests: Types.ObjectId[]
     openToRequests: boolean
+    guest: boolean
     verified: boolean
     generateAuthToken: () => Promise<string>
     generateRefreshToken: () => Promise<string>
@@ -34,6 +35,7 @@ export interface EmbeddedUser {
     lastName: string
     username: string
     verified: boolean
+    guest: boolean
 }
 
 export type UserProfile = { user: IUser; fullManagerTeams: ITeam[] }

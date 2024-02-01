@@ -108,10 +108,11 @@ const schema = new Schema<IUser>({
         required: true,
         default: true,
     },
+    guest: { type: Boolean, default: false },
     verified: { type: Boolean, default: false },
 })
 
-const isValidPassword = (password: string): boolean => {
+export const isValidPassword = (password: string): boolean => {
     const validateSchema = new PasswordValidator()
 
     // eslint-disable-next-line prettier/prettier

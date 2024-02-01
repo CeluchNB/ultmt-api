@@ -25,6 +25,7 @@ export const getEmbeddedUser = (user: IUser): EmbeddedUser => {
         lastName: user.lastName,
         username: user.username,
         verified: user.verified,
+        guest: user.guest,
     }
 }
 

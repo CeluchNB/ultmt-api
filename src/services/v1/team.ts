@@ -1,14 +1,15 @@
 import { ITeamModel } from '../../models/team'
-import { IUserModel } from '../../models/user'
+import { IUserModel, isValidPassword } from '../../models/user'
 import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
-import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
+import { ApiError, CreateTeam, ITeam, IUser, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { FilterQuery, Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
+import randomstring from 'randomstring'
 
 interface LevenshteinTeam {
     team: ITeam
@@ -558,5 +559,51 @@ export default class TeamServices {
         const teams = await this.teamModel.find({ teamname })
 
         return teams.length > 0
+    }
+
+    /**
+     * Method to create a guest user for a team
+     * @param teamId id of team for guest
+     * @param managerId id of manager making edits
+     * @param firstName first name of guest
+     * @param lastName last name of guest
+     * @returns
+     */
+    addGuest = async (teamId: string, managerId: string, firstName: string, lastName: string): Promise<IUser> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        const _id = new Types.ObjectId()
+        const username = `guest${Date.now()}`
+        const email = `${username}@theultmtapp.com`
+        let password = ''
+
+        while (!isValidPassword(password)) {
+            password = randomstring.generate({ charset: 'a-zA-Z0-9!@#$%', length: 15 })
+        }
+
+        const user = await this.userModel.create({
+            _id,
+            firstName,
+            lastName,
+            username,
+            email,
+            password,
+            guest: true,
+            playerTeams: [getEmbeddedTeam(team)],
+        })
+
+        team.players.push(getEmbeddedUser(user))
+        await team.save()
+
+        return user
     }
 }

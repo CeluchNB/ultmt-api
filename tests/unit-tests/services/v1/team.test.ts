@@ -1088,3 +1088,53 @@ describe('test archive team', () => {
         })
     })
 })
+
+describe('test add guest', () => {
+    it('creates a guest user', async () => {
+        const team = await Team.create(getTeam())
+        const manager = await User.create(getUser())
+        await team.updateOne({ $push: { managers: [getEmbeddedUser(manager)] } })
+        await manager.updateOne({ $push: { managerTeams: [getEmbeddedTeam(team)] } })
+
+        const result = await services.addGuest(team._id.toHexString(), manager._id.toHexString(), 'guest', 'guest')
+        expect(result).toMatchObject({
+            firstName: 'guest',
+            lastName: 'guest',
+            playerTeams: [getEmbeddedTeam(team)],
+            guest: true,
+        })
+
+        const teamResult = await Team.findOne()
+        expect(teamResult?.players[0]._id.toHexString()).toBe(result._id.toHexString())
+
+        const userResult = await User.findById(result._id)
+        expect(userResult).toMatchObject({
+            firstName: 'guest',
+            lastName: 'guest',
+            playerTeams: [getEmbeddedTeam(team)],
+            guest: true,
+        })
+        expect(userResult?.username).toContain('guest')
+    })
+
+    it('fails with unfound team', async () => {
+        await expect(services.addGuest(new Types.ObjectId().toHexString(), '', '', '')).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('fails with unfound manager', async () => {
+        const team = await Team.create(getTeam())
+        await expect(
+            services.addGuest(team._id.toHexString(), new Types.ObjectId().toHexString(), '', ''),
+        ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with non-manager', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        await expect(services.addGuest(team._id.toHexString(), user._id.toHexString(), '', '')).rejects.toThrow(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
+    })
+})
