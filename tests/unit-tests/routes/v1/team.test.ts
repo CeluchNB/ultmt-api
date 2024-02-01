@@ -833,3 +833,36 @@ describe('test GET /team/teamname-taken', () => {
         expect(response.body.message).toBe(Constants.DUPLICATE_TEAM_NAME)
     })
 })
+
+describe('test POST /team/:id/guest', () => {
+    it('with successful result', async () => {
+        const team = await Team.create(getTeam())
+        const manager = await User.create(getUser())
+        await team.updateOne({ $push: { managers: [getEmbeddedUser(manager)] } })
+        await manager.updateOne({ $push: { managerTeams: [getEmbeddedTeam(team)] } })
+        const token = await manager.generateAuthToken()
+
+        const response = await request(app)
+            .post(`/api/v1/team/${team._id.toHexString()}/guest`)
+            .set({ Authorization: `Bearer ${token}` })
+            .send({ firstName: 'guest', lastName: 'guest' })
+            .expect(201)
+
+        expect(response.body.guest).toMatchObject({ firstName: 'guest', lastName: 'guest' })
+        expect(response.body.guest.password).toBeUndefined()
+    })
+
+    it('with failure', async () => {
+        const team = await Team.create(getTeam())
+        const manager = await User.create(getUser())
+        const token = await manager.generateAuthToken()
+
+        const response = await request(app)
+            .post(`/api/v1/team/${team._id.toHexString()}/guest`)
+            .set({ Authorization: `Bearer ${token}` })
+            .send({ firstName: 'guest', lastName: 'guest' })
+            .expect(401)
+
+        expect(response.body.message).toBe(Constants.UNAUTHORIZED_MANAGER)
+    })
+})

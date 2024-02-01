@@ -266,3 +266,24 @@ teamRouter.put(
         }
     },
 )
+
+teamRouter.post(
+    '/team/:id/guest',
+    param('id').escape().isString(),
+    passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const guest = await teamServices.addGuest(
+                req.params.id,
+                req.user?.id as string,
+                req.body.firstName,
+                req.body.lastName,
+            )
+            return res.status(201).json({ guest })
+        } catch (e) {
+            next(e)
+        }
+    },
+)
