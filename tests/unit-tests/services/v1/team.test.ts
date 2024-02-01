@@ -1097,17 +1097,15 @@ describe('test add guest', () => {
         await manager.updateOne({ $push: { managerTeams: [getEmbeddedTeam(team)] } })
 
         const result = await services.addGuest(team._id.toHexString(), manager._id.toHexString(), 'guest', 'guest')
-        expect(result).toMatchObject({
-            firstName: 'guest',
-            lastName: 'guest',
-            playerTeams: [getEmbeddedTeam(team)],
-            guest: true,
-        })
+        expect(result._id.toHexString()).toBe(team._id.toHexString())
+        expect(result.players.length).toBe(1)
+        expect(result.players[0]).toMatchObject({ firstName: 'guest', lastName: 'guest' })
 
         const teamResult = await Team.findOne()
-        expect(teamResult?.players[0]._id.toHexString()).toBe(result._id.toHexString())
+        expect(teamResult?.players[0].firstName).toBe('guest')
+        expect(teamResult?.players[0].lastName).toBe('guest')
 
-        const userResult = await User.findById(result._id)
+        const userResult = await User.findById(result.players[0]._id)
         expect(userResult).toMatchObject({
             firstName: 'guest',
             lastName: 'guest',

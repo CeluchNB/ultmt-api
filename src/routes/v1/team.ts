@@ -275,13 +275,13 @@ teamRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-            const guest = await teamServices.addGuest(
+            const team = await teamServices.addGuest(
                 req.params.id,
                 req.user?.id as string,
                 req.body.firstName,
                 req.body.lastName,
             )
-            return res.status(201).json({ guest })
+            return res.status(201).json({ team })
         } catch (e) {
             next(e)
         }

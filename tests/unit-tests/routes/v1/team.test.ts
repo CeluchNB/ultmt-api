@@ -848,8 +848,8 @@ describe('test POST /team/:id/guest', () => {
             .send({ firstName: 'guest', lastName: 'guest' })
             .expect(201)
 
-        expect(response.body.guest).toMatchObject({ firstName: 'guest', lastName: 'guest' })
-        expect(response.body.guest.password).toBeUndefined()
+        expect(response.body.team._id).toBe(team._id.toHexString())
+        expect(response.body.team.players.length).toBe(1)
     })
 
     it('with failure', async () => {

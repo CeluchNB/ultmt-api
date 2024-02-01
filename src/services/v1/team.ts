@@ -2,7 +2,7 @@ import { ITeamModel } from '../../models/team'
 import { IUserModel, isValidPassword } from '../../models/user'
 import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
-import { ApiError, CreateTeam, ITeam, IUser, OTPReason } from '../../types'
+import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { FilterQuery, Types } from 'mongoose'
@@ -569,7 +569,7 @@ export default class TeamServices {
      * @param lastName last name of guest
      * @returns
      */
-    addGuest = async (teamId: string, managerId: string, firstName: string, lastName: string): Promise<IUser> => {
+    addGuest = async (teamId: string, managerId: string, firstName: string, lastName: string): Promise<ITeam> => {
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
@@ -604,6 +604,6 @@ export default class TeamServices {
         team.players.push(getEmbeddedUser(user))
         await team.save()
 
-        return user
+        return team
     }
 }
