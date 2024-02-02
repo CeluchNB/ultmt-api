@@ -248,6 +248,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.UNAUTHORIZED_ADMIN, 401),
         )
     })
+
+    it('with non-guest user', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.USER_IS_NOT_A_GUEST} extra details`)).toEqual(
+            createExpressErrorObject(Constants.USER_IS_NOT_A_GUEST, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

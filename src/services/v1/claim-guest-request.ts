@@ -28,9 +28,12 @@ export default class ClaimGuestRequestServices {
 
         await new UltmtValidator(this.userModel).userIsGuest(guestId).test()
 
-        return await this.claimGuestRequestModel.create({
+        let request = await this.claimGuestRequestModel.create({
             guestId: guest._id,
             userId: user._id,
         })
+        request = await (await request.populate('user')).populate('guest')
+
+        return request
     }
 }

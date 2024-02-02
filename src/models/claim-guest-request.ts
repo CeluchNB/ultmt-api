@@ -19,14 +19,14 @@ const schema = new Schema<IDetailedClaimGuestRequest>(
 
 schema.virtual('guest', {
     ref: 'User',
-    localField: 'guest',
+    localField: 'guestId',
     foreignField: '_id',
     justOne: true,
 })
 
 schema.virtual('user', {
     ref: 'User',
-    localField: 'user',
+    localField: 'userId',
     foreignField: '_id',
     justOne: true,
 })
