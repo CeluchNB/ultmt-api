@@ -560,4 +560,21 @@ describe('test ultmt validator', () => {
 
         await expect(validator.test()).rejects.toThrow(Constants.UNAUTHORIZED_ADMIN)
     })
+
+    it('test user is guest with guest user', async () => {
+        const user = await User.create({ ...getUser(), guest: true })
+        const validator = new UltmtValidator()
+        validator.userIsGuest(user._id.toHexString())
+
+        const result = await validator.test()
+        expect(result).toBe(true)
+    })
+
+    it('test user is guest with non-guest user', async () => {
+        const user = await User.create({ ...getUser(), guest: false })
+        const validator = new UltmtValidator()
+        validator.userIsGuest(user._id.toHexString())
+
+        await expect(validator.test()).rejects.toThrow(Constants.USER_IS_NOT_A_GUEST)
+    })
 })

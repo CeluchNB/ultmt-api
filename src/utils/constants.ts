@@ -44,3 +44,4 @@ export const UNAUTHORIZED_TO_VERIFY = 'You are unauthorized to respond to verifi
 export const INVALID_RESPONSE_TYPE = 'This is not a valid response type.'
 export const VERIFICATION_REQUEST_ALREADY_EXISTS = 'A verification request already exists.'
 export const UNAUTHORIZED_ADMIN = 'You are not a valid admin that can perform this action.'
+export const USER_IS_NOT_A_GUEST = 'The specified user is not a guest.'

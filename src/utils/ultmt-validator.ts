@@ -27,6 +27,7 @@ enum ValidationType {
     USER_NOT_MANAGER,
     VALID_SEASON_DATES,
     IS_ADMIN,
+    USER_IS_GUEST,
 }
 
 const ADMIN_EMAIL = 'noah.celuch@gmail.com'
@@ -150,6 +151,11 @@ export default class UltmtValidator {
 
     userIsAdmin = (userId: string): UltmtValidator => {
         this.validations.push({ type: ValidationType.IS_ADMIN, data: { userId } })
+        return this
+    }
+
+    userIsGuest = (userId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_IS_GUEST, data: { userId } })
         return this
     }
 
@@ -419,6 +425,14 @@ export default class UltmtValidator {
                 }
 
                 break
+            }
+            case ValidationType.USER_IS_GUEST: {
+                const { userId } = validation.data
+                const user = await User.findById(userId)
+
+                if (!user?.guest) {
+                    throw new ApiError(Constants.USER_IS_NOT_A_GUEST, 400)
+                }
             }
         }
     }

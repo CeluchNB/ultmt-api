@@ -11,6 +11,7 @@ const schema = new Schema<IDetailedClaimGuestRequest>(
             type: String,
             enum: Object.values(Status),
             required: true,
+            default: Status.Pending,
         },
     },
     opts,
@@ -32,5 +33,5 @@ schema.virtual('user', {
 
 const ClaimGuestRequest = model<IDetailedClaimGuestRequest>('ClaimGuestRequest', schema)
 
-export type IRosterRequestModel = typeof ClaimGuestRequest
+export type IClaimGuestRequestModel = typeof ClaimGuestRequest
 export default ClaimGuestRequest
