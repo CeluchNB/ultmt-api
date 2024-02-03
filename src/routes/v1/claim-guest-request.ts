@@ -31,3 +31,19 @@ claimGuestRequestRouter.post(
         }
     },
 )
+
+claimGuestRequestRouter.put(
+    '/claim-guest-request/deny',
+    body('requestId').escape(),
+    passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team)
+            const request = await services.denyClaimGuestRequest(req.user?.id as string, req.body.requestId)
+            return res.json({ request })
+        } catch (e) {
+            next(e)
+        }
+    },
+)

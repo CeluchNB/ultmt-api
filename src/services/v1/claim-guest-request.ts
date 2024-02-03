@@ -1,7 +1,7 @@
 import * as Constants from '../../utils/constants'
 import { IClaimGuestRequestModel } from '../../models/claim-guest-request'
 import { IUserModel } from '../../models/user'
-import { ApiError, IClaimGuestRequest } from '../../types'
+import { ApiError, IClaimGuestRequest, Status } from '../../types'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { ITeamModel } from '../../models/team'
 
@@ -52,5 +52,30 @@ export default class ClaimGuestRequestServices {
             })
 
         return request
+    }
+
+    /**
+     * Method to deny a claim guest request
+     * @param managerId id of manager responding
+     * @param claimGuestRequestId id of claim guest request to deny
+     * @returns updated claim guest request
+     */
+    denyClaimGuestRequest = async (managerId: string, claimGuestRequestId: string): Promise<IClaimGuestRequest> => {
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+
+        const claimGuestRequest = await this.claimGuestRequestModel.findById(claimGuestRequestId)
+        if (!claimGuestRequest) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_REQUEST, 404)
+        }
+
+        await new UltmtValidator().userIsManager(managerId, claimGuestRequest.teamId.toHexString()).test()
+
+        claimGuestRequest.status = Status.Denied
+        await claimGuestRequest.save()
+
+        return claimGuestRequest
     }
 }

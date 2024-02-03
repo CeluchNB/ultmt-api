@@ -112,4 +112,60 @@ describe('ClaimGuestRequestServices', () => {
             ).rejects.toThrow(Constants.PLAYER_NOT_ON_TEAM)
         })
     })
+
+    describe('denyClaimGuestRequest', () => {
+        it('succeeds', async () => {
+            const team = await Team.create(getTeam())
+            const [guest, user, manager] = await User.find()
+
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+
+            guest.playerTeams.push(getEmbeddedTeam(team))
+            guest.guest = true
+            await guest.save()
+
+            team.managers.push(getEmbeddedUser(manager))
+            team.players.push(getEmbeddedUser(guest))
+            await team.save()
+
+            const request = await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
+
+            const result = await services.denyClaimGuestRequest(manager._id.toHexString(), request._id.toHexString())
+
+            expect(result._id.toHexString()).toBe(request._id.toHexString())
+            expect(result.status).toBe(Status.Denied)
+
+            const requestRecord = await ClaimGuestRequest.findOne()
+            expect(requestRecord?.status).toBe(Status.Denied)
+        })
+
+        it('fails with unfound manager', async () => {
+            await expect(services.denyClaimGuestRequest(anonId, anonId)).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+        })
+
+        it('fails with unfound request', async () => {
+            const [user] = await User.find()
+            await expect(services.denyClaimGuestRequest(user._id.toHexString(), anonId)).rejects.toThrow(
+                Constants.UNABLE_TO_FIND_REQUEST,
+            )
+        })
+
+        it('fails with non-manager', async () => {
+            const team = await Team.create(getTeam())
+            const [guest, user, manager] = await User.find()
+
+            guest.playerTeams.push(getEmbeddedTeam(team))
+            guest.guest = true
+            await guest.save()
+
+            team.players.push(getEmbeddedUser(guest))
+            await team.save()
+
+            const request = await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
+            await expect(
+                services.denyClaimGuestRequest(manager._id.toHexString(), request._id.toHexString()),
+            ).rejects.toThrow(Constants.UNAUTHORIZED_MANAGER)
+        })
+    })
 })
