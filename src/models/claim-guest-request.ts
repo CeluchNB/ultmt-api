@@ -7,6 +7,7 @@ const schema = new Schema<IDetailedClaimGuestRequest>(
     {
         guestId: { ref: 'User', type: SchemaTypes.ObjectId, required: true },
         userId: { ref: 'User', type: SchemaTypes.ObjectId, required: true },
+        teamId: { ref: 'Team', type: SchemaTypes.ObjectId, required: true },
         status: {
             type: String,
             enum: Object.values(Status),
@@ -27,6 +28,13 @@ schema.virtual('guest', {
 schema.virtual('user', {
     ref: 'User',
     localField: 'userId',
+    foreignField: '_id',
+    justOne: true,
+})
+
+schema.virtual('team', {
+    ref: 'Team',
+    localField: 'teamId',
     foreignField: '_id',
     justOne: true,
 })
