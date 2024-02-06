@@ -6,6 +6,7 @@ import { Logger } from '../../logging'
 import ClaimGuestRequestServices from '../../services/v1/claim-guest-request'
 import ClaimGuestRequest from '../../models/claim-guest-request'
 import Team from '../../models/team'
+import ArchiveTeam from '../../models/archive-team'
 
 export const claimGuestRequestRouter = Router()
 
@@ -19,7 +20,7 @@ claimGuestRequestRouter.post(
     logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
-            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team)
+            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
             const request = await services.createClaimGuestRequest(
                 req.user?.id as string,
                 req.body.guestId,
@@ -39,7 +40,7 @@ claimGuestRequestRouter.put(
     logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
-            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team)
+            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
             const request = await services.denyClaimGuestRequest(req.user?.id as string, req.body.requestId)
             return res.json({ request })
         } catch (e) {

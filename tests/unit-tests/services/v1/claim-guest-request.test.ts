@@ -7,8 +7,9 @@ import { Status } from '../../../../src/types'
 import { anonId, getTeam } from '../../../fixtures/utils'
 import Team from '../../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
+import ArchiveTeam from '../../../../src/models/archive-team'
 
-const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team)
+const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -166,6 +167,56 @@ describe('ClaimGuestRequestServices', () => {
             await expect(
                 services.denyClaimGuestRequest(manager._id.toHexString(), request._id.toHexString()),
             ).rejects.toThrow(Constants.UNAUTHORIZED_MANAGER)
+        })
+    })
+
+    describe('acceptClaimGuestRequest', () => {
+        beforeEach(async () => {
+            const [guest, user, manager] = await User.find()
+            guest.guest = true
+            await guest.save()
+
+            const team = await Team.create({
+                ...getTeam(),
+                managers: [getEmbeddedUser(manager)],
+                players: [getEmbeddedUser(guest)],
+            })
+
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+
+            guest.playerTeams.push(getEmbeddedTeam(team))
+            await guest.save()
+
+            await ClaimGuestRequest.create({
+                guestId: guest._id,
+                userId: user._id,
+                teamId: team._id,
+            })
+        })
+
+        it('handles base success case', async () => {
+            const team = await Team.findOne()
+            const request = await ClaimGuestRequest.findOne()
+
+            const result = await services.acceptClaimGuestRequest(
+                team!.managers[0]._id.toHexString(),
+                request!._id.toHexString(),
+            )
+
+            expect(result.status).toBe(Status.Approved)
+
+            const guestResult = await User.findById(request?.guestId)
+            expect(guestResult).toBeNull()
+
+            const userResult = await User.findById(request?.userId)
+
+            const teamResult = await Team.findById(request?.teamId)
+            expect(teamResult?.players.length).toBe(1)
+            expect(teamResult?.players[0]._id.toHexString()).toBe(userResult?._id.toHexString())
+
+            expect(userResult?.playerTeams.length).toBe(1)
+            expect(userResult?.playerTeams[0]._id.toHexString()).toBe(team?._id.toHexString())
         })
     })
 })

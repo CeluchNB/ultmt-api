@@ -1,5 +1,5 @@
-import { Types } from 'mongoose'
-import { EmbeddedTeam, EmbeddedUser, ITeam, IUser } from '../types'
+import { Document, Model, Types } from 'mongoose'
+import { ApiError, EmbeddedTeam, EmbeddedUser, ITeam, IUser } from '../types'
 
 export const createExpressErrorObject = (message: string, code: number): { message: string; code: number } => {
     return { message, code }
@@ -65,4 +65,16 @@ export const parseBoolean = (bool: string): boolean | undefined => {
 
 export const idEquals = (idOne: Types.ObjectId | undefined, idTwo: string | Types.ObjectId | undefined): boolean => {
     return idOne !== undefined && idTwo !== undefined && idOne.equals(idTwo)
+}
+
+export const findByIdOrThrow = async <R>(
+    id: string | Types.ObjectId,
+    model: Model<R>,
+    error: string,
+): Promise<Document<unknown, unknown, R> & R> => {
+    const doc = await model.findById(id)
+    if (!doc) {
+        throw new ApiError(error, 404)
+    }
+    return doc
 }
