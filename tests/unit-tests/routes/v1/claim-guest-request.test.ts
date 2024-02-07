@@ -102,9 +102,9 @@ describe('Claim Guest Request routes', () => {
             const cgr = await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
 
             const response = await request(app)
-                .put('/api/v1/claim-guest-request/deny')
+                .put(`/api/v1/claim-guest-request/${cgr._id.toHexString()}/deny`)
                 .set({ Authorization: `Bearer ${token}` })
-                .send({ requestId: cgr._id.toHexString() })
+                .send()
                 .expect(200)
 
             expect(response.body.request).toMatchObject({
@@ -139,9 +139,85 @@ describe('Claim Guest Request routes', () => {
             await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
 
             const response = await request(app)
-                .put('/api/v1/claim-guest-request/deny')
+                .put(`/api/v1/claim-guest-request/${anonId}/deny`)
                 .set({ Authorization: `Bearer ${token}` })
-                .send({ requestId: anonId })
+                .send()
+                .expect(404)
+
+            expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
+        })
+    })
+
+    describe('PUT /claim-guest-request/accept', () => {
+        it('succeeds', async () => {
+            const team = await Team.create(getTeam())
+            const [guest, user, manager] = await User.find()
+
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+
+            guest.playerTeams.push(getEmbeddedTeam(team))
+            guest.guest = true
+            await guest.save()
+
+            team.managers.push(getEmbeddedUser(manager))
+            team.players.push(getEmbeddedUser(guest))
+            await team.save()
+
+            const token = await manager.generateAuthToken()
+
+            const cgr = await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
+
+            const response = await request(app)
+                .put(`/api/v1/claim-guest-request/${cgr._id.toHexString()}/accept`)
+                .set({ Authorization: `Bearer ${token}` })
+                .send()
+                .expect(200)
+
+            expect(response.body.request).toMatchObject({
+                _id: cgr._id.toHexString(),
+                status: Status.Approved,
+            })
+
+            const cgrRecord = await ClaimGuestRequest.findOne()
+            expect(cgrRecord).toMatchObject({
+                _id: cgr._id,
+                status: Status.Approved,
+            })
+
+            const userResult = await User.findById(cgr?.userId)
+
+            const teamResult = await Team.findById(cgr?.teamId)
+            expect(teamResult?.players.length).toBe(1)
+            expect(teamResult?.players[0]._id.toHexString()).toBe(userResult?._id.toHexString())
+
+            expect(userResult?.playerTeams.length).toBe(1)
+            expect(userResult?.playerTeams[0]._id.toHexString()).toBe(teamResult?._id.toHexString())
+        })
+
+        it('fails', async () => {
+            const team = await Team.create(getTeam())
+            const [guest, user, manager] = await User.find()
+
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+
+            guest.playerTeams.push(getEmbeddedTeam(team))
+            guest.guest = true
+            await guest.save()
+
+            team.managers.push(getEmbeddedUser(manager))
+            team.players.push(getEmbeddedUser(guest))
+            await team.save()
+
+            const token = await manager.generateAuthToken()
+
+            await ClaimGuestRequest.create({ teamId: team._id, userId: user._id, guestId: guest._id })
+
+            const response = await request(app)
+                .put(`/api/v1/claim-guest-request/${anonId}/accept`)
+                .set({ Authorization: `Bearer ${token}` })
+                .send()
                 .expect(404)
 
             expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)

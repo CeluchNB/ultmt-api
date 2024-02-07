@@ -1,6 +1,6 @@
 import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
-import { body } from 'express-validator'
+import { body, param } from 'express-validator'
 import User from '../../models/user'
 import { Logger } from '../../logging'
 import ClaimGuestRequestServices from '../../services/v1/claim-guest-request'
@@ -34,14 +34,30 @@ claimGuestRequestRouter.post(
 )
 
 claimGuestRequestRouter.put(
-    '/claim-guest-request/deny',
-    body('requestId').escape(),
+    '/claim-guest-request/:id/deny',
+    param('id').escape(),
     passport.authenticate('jwt', { session: false }),
     logger.requestMiddleware as RequestHandler,
     async (req: Request, res: Response, next) => {
         try {
             const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
-            const request = await services.denyClaimGuestRequest(req.user?.id as string, req.body.requestId)
+            const request = await services.denyClaimGuestRequest(req.user?.id as string, req.params.id)
+            return res.json({ request })
+        } catch (e) {
+            next(e)
+        }
+    },
+)
+
+claimGuestRequestRouter.put(
+    '/claim-guest-request/:id/accept',
+    param('id').escape(),
+    passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
+            const request = await services.acceptClaimGuestRequest(req.user?.id as string, req.params.id)
             return res.json({ request })
         } catch (e) {
             next(e)
