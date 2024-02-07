@@ -199,6 +199,11 @@ describe('ClaimGuestRequestServices', () => {
         it('handles base success case', async () => {
             const team = await Team.findOne()
             const request = await ClaimGuestRequest.findOne()
+            await ClaimGuestRequest.create({
+                guestId: request?.guestId,
+                userId: new Types.ObjectId(),
+                teamId: team?._id,
+            })
 
             const result = await services.acceptClaimGuestRequest(
                 team!.managers[0]._id.toHexString(),
@@ -218,6 +223,12 @@ describe('ClaimGuestRequestServices', () => {
 
             expect(userResult?.playerTeams.length).toBe(1)
             expect(userResult?.playerTeams[0]._id.toHexString()).toBe(team?._id.toHexString())
+
+            const guestUser = await User.findById(request?.guestId)
+            expect(guestUser).toBeNull()
+
+            const otherRequests = await ClaimGuestRequest.find({ guestId: request?.guestId, status: Status.Denied })
+            expect(otherRequests.length).toBe(1)
         })
 
         it('updates archive teams', async () => {

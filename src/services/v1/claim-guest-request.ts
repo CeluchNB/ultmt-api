@@ -147,6 +147,10 @@ export default class ClaimGuestRequestServices {
         }
 
         await guestUser.deleteOne()
+
+        await this.claimGuestRequestModel
+            .find({ guestId: claimGuestRequest.guestId, status: Status.Pending })
+            .updateMany({ status: Status.Denied })
     }
 
     private reconcilePlayerOnTeam = async (
