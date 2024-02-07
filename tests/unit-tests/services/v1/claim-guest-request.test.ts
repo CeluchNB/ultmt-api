@@ -8,6 +8,7 @@ import { anonId, getTeam } from '../../../fixtures/utils'
 import Team from '../../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import ArchiveTeam from '../../../../src/models/archive-team'
+import { Types } from 'mongoose'
 
 const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
 
@@ -217,6 +218,85 @@ describe('ClaimGuestRequestServices', () => {
 
             expect(userResult?.playerTeams.length).toBe(1)
             expect(userResult?.playerTeams[0]._id.toHexString()).toBe(team?._id.toHexString())
+        })
+
+        it('updates archive teams', async () => {
+            const team = await Team.findOne()
+            const request = await ClaimGuestRequest.findOne()
+            const guest = await User.findById(request?.guestId)
+
+            const archiveTeam = await ArchiveTeam.create({
+                ...getTeam(),
+                _id: new Types.ObjectId(),
+                continuationId: team?.continuationId,
+                players: [getEmbeddedUser(guest!)],
+            })
+
+            guest?.archiveTeams.push(getEmbeddedTeam(archiveTeam))
+            await guest?.save()
+
+            const result = await services.acceptClaimGuestRequest(
+                team!.managers[0]._id.toHexString(),
+                request!._id.toHexString(),
+            )
+
+            expect(result.status).toBe(Status.Approved)
+
+            const guestResult = await User.findById(request?.guestId)
+            expect(guestResult).toBeNull()
+
+            const userResult = await User.findById(request?.userId)
+            const teamResult = await Team.findById(request?.teamId)
+
+            expect(teamResult?.players.length).toBe(1)
+            expect(teamResult?.players[0]._id.toHexString()).toBe(userResult?._id.toHexString())
+
+            expect(userResult?.playerTeams.length).toBe(1)
+            expect(userResult?.playerTeams[0]._id.toHexString()).toBe(team?._id.toHexString())
+
+            const archiveTeamResult = await ArchiveTeam.findById(archiveTeam._id)
+            expect(archiveTeamResult?.players.length).toBe(1)
+            expect(archiveTeamResult?.players[0]._id.toHexString()).toBe(userResult?._id.toHexString())
+        })
+
+        it('skips reconciling when user is already on team', async () => {
+            const team = await Team.findOne()
+            const request = await ClaimGuestRequest.findOne()
+            const user = await User.findById(request?.userId)
+
+            team?.players.push(getEmbeddedUser(user!))
+            await team?.save()
+
+            user?.playerTeams.push(getEmbeddedTeam(team!))
+            await user?.save()
+
+            const result = await services.acceptClaimGuestRequest(
+                team!.managers[0]._id.toHexString(),
+                request!._id.toHexString(),
+            )
+
+            expect(result.status).toBe(Status.Approved)
+
+            const guestResult = await User.findById(request?.guestId)
+            expect(guestResult).toBeNull()
+
+            const userResult = await User.findById(request?.userId)
+            expect(userResult?.playerTeams.length).toBe(1)
+
+            const teamResult = await Team.findById(request?.teamId)
+            expect(teamResult?.players.length).toBe(2)
+        })
+
+        it('fails on previously approved request', async () => {
+            const team = await Team.findOne()
+
+            const request = await ClaimGuestRequest.findOne()
+            request!.status = Status.Approved
+            await request?.save()
+
+            await expect(
+                services.acceptClaimGuestRequest(team!.managers[0]._id.toHexString(), request!._id.toHexString()),
+            ).rejects.toThrow(Constants.REQUEST_ALREADY_RESOLVED)
         })
     })
 })

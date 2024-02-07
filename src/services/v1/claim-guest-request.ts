@@ -136,40 +136,41 @@ export default class ClaimGuestRequestServices {
             Constants.UNABLE_TO_FIND_TEAM,
         )
 
-        // reconcile current teams
-        if (team.players.findIndex((p) => idEquals(p._id, realUser._id)) >= 0) {
-            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
-        }
-
-        team.players = team.players.filter((player) => !idEquals(player._id, guestUser._id))
-        team.players.push(getEmbeddedUser(realUser))
-
-        if (realUser.playerTeams.findIndex((t) => idEquals(t._id, team._id)) >= 0) {
-            throw new ApiError(Constants.PLAYER_ALREADY_ROSTERED, 400)
-        }
-
-        realUser.playerTeams.push(getEmbeddedTeam(team))
-
-        await team.save()
-        await realUser.save()
+        await this.reconcilePlayerOnTeam(team, realUser, guestUser)
+        await this.reconcileTeamOnPlayer(realUser, team)
 
         // reconcile archive teams
         const archiveTeams = await this.archiveTeamModel.find({ continuationId: team.continuationId })
-
         for (const archiveTeam of archiveTeams) {
-            if (archiveTeam.players.findIndex((p) => idEquals(p._id, realUser._id)) >= 0) continue
-
-            archiveTeam.players = archiveTeam.players.filter((player) => !idEquals(player._id, guestUser._id))
-            archiveTeam.players.push(getEmbeddedUser(realUser))
-
-            if (realUser.archiveTeams.findIndex((t) => idEquals(t._id, team._id)) >= 0) continue
-
-            realUser.archiveTeams.push(getEmbeddedTeam(team))
-
-            await archiveTeam.save()
-            await realUser.save()
+            await this.reconcilePlayerOnTeam(archiveTeam, realUser, guestUser)
+            await this.reconcileTeamOnPlayer(realUser, archiveTeam, true)
         }
 
         await guestUser.deleteOne()
+    }
+
+    private reconcilePlayerOnTeam = async (
+        team: Document<unknown, unknown, ITeam> & ITeam,
+        realUser: IUser,
+        guestUser: IUser,
+    ) => {
+        if (team.players.findIndex((p) => idEquals(p._id, realUser._id)) >= 0) return
+
+        team.players = team.players.filter((player) => !idEquals(player._id, guestUser._id))
+        team.players.push(getEmbeddedUser(realUser))
+        await team.save()
+    }
+
+    private reconcileTeamOnPlayer = async (
+        realUser: Document<unknown, unknown, IUser> & IUser,
+        team: ITeam,
+        archive = false,
+    ) => {
+        const teamType = archive ? 'archiveTeams' : 'playerTeams'
+        if (realUser[teamType].findIndex((t) => idEquals(t._id, team._id)) >= 0) return
+
+        realUser[teamType].push(getEmbeddedTeam(team))
+
+        await realUser.save()
     }
 }
