@@ -220,8 +220,11 @@ export default class TeamServices {
         await team.save()
 
         // update managers
-        const embeddedTeam = getEmbeddedTeam({ ...team, seasonStart: oldSeasonStart, seasonEnd: oldSeasonEnd })
+        const embeddedTeam = getEmbeddedTeam(team)
         embeddedTeam._id = oldId
+        embeddedTeam.seasonStart = oldSeasonStart
+        embeddedTeam.seasonEnd = oldSeasonEnd
+
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
@@ -230,6 +233,7 @@ export default class TeamServices {
                 if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     managerRecord.archiveTeams.push(embeddedTeam)
                 }
+
                 managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
             }
