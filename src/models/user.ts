@@ -14,6 +14,7 @@ const schema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true,
+        lowercase: true,
         validate: [
             {
                 validator: function (value: string) {
