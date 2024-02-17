@@ -601,6 +601,21 @@
   resolved "https://registry.yarnpkg.com/@google-cloud/promisify/-/promisify-4.0.0.tgz#a906e533ebdd0f754dca2509933334ce58b8c8b1"
   integrity sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==
 
+"@google-cloud/tasks@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/tasks/-/tasks-5.1.0.tgz#6ec7768670b6d6fc7392727da897206aacacd6b9"
+  integrity sha512-6TU2BqK5G62iLSiNzIAK7EBXJzDtjY9kiOjvXm1bcZAnRbmlow+2QtunSWzRlcLYJW9oz4v4mTGkuvNWa/QC0A==
+  dependencies:
+    google-gax "^4.0.4"
+
+"@grpc/grpc-js@~1.10.0":
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.10.1.tgz#be450560c990c08274bc19d514e181ea205ccaa8"
+  integrity sha512-55ONqFytZExfOIjF1RjXPcVmT/jJqFzbbDqxK9jmRV4nxiYWtL9hENSW1Jfx0SdZfrvoqd44YJ/GJTqfRrawSQ==
+  dependencies:
+    "@grpc/proto-loader" "^0.7.8"
+    "@types/node" ">=12.12.47"
+
 "@grpc/grpc-js@~1.9.6":
   version "1.9.14"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.14.tgz#236378822876cbf7903f9d61a0330410e8dcc5a1"
@@ -2756,6 +2771,18 @@ google-auth-library@^9.0.0:
     gtoken "^7.0.0"
     jws "^4.0.0"
 
+google-auth-library@^9.3.0:
+  version "9.6.3"
+  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-9.6.3.tgz#add8935bc5b842a8e80f84fef2b5ed9febb41d48"
+  integrity sha512-4CacM29MLC2eT9Cey5GDVK4Q8t+MMp8+OEdOaqD9MG6b0dOyLORaaeJMPQ7EESVgm/+z5EKYyFLxgzBJlJgyHQ==
+  dependencies:
+    base64-js "^1.3.0"
+    ecdsa-sig-formatter "^1.0.11"
+    gaxios "^6.1.1"
+    gcp-metadata "^6.1.0"
+    gtoken "^7.0.0"
+    jws "^4.0.0"
+
 google-gax@^4.0.3:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-4.2.1.tgz#4b3a269b543655ef25f04537b5494a4bb5656934"
@@ -2767,6 +2794,24 @@ google-gax@^4.0.3:
     abort-controller "^3.0.0"
     duplexify "^4.0.0"
     google-auth-library "^9.0.0"
+    node-fetch "^2.6.1"
+    object-hash "^3.0.0"
+    proto3-json-serializer "^2.0.0"
+    protobufjs "7.2.6"
+    retry-request "^7.0.0"
+    uuid "^9.0.1"
+
+google-gax@^4.0.4:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-4.3.1.tgz#bdffd9d8e01e1a5f8c3cd085e326d22310bd3aad"
+  integrity sha512-qpSfslpwqToIgQ+Tf3MjWIDjYK4UFIZ0uz6nLtttlW9N1NQA4PhGf9tlGo6KDYJ4rgL2w4CjXVd0z5yeNpN/Iw==
+  dependencies:
+    "@grpc/grpc-js" "~1.10.0"
+    "@grpc/proto-loader" "^0.7.0"
+    "@types/long" "^4.0.0"
+    abort-controller "^3.0.0"
+    duplexify "^4.0.0"
+    google-auth-library "^9.3.0"
     node-fetch "^2.6.1"
     object-hash "^3.0.0"
     proto3-json-serializer "^2.0.0"

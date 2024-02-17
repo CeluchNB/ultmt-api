@@ -47,6 +47,7 @@
     "dependencies": {
         "@google-cloud/logging": "^11.0.0",
         "@google-cloud/logging-winston": "^6.0.0",
+        "@google-cloud/tasks": "^5.1.0",
         "@sendgrid/mail": "^7.6.2",
         "@types/bcryptjs": "^2.4.2",
         "@types/cors": "^2.8.12",

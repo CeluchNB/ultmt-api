@@ -1,4 +1,5 @@
 import * as Constants from '../../../../src/utils/constants'
+import * as CloudTaskServices from '../../../../src/utils/cloud-tasks'
 import request from 'supertest'
 import app from '../../../../src/app'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../../fixtures/setup-db'
@@ -150,6 +151,7 @@ describe('Claim Guest Request routes', () => {
 
     describe('PUT /claim-guest-request/accept', () => {
         it('succeeds', async () => {
+            jest.spyOn(CloudTaskServices, 'sendCloudTask').mockReturnValue(Promise.resolve([] as never))
             const team = await Team.create(getTeam())
             const [guest, user, manager] = await User.find()
 

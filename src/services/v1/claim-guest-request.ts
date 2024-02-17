@@ -7,6 +7,7 @@ import { ITeamModel } from '../../models/team'
 import { Document } from 'mongoose'
 import { findByIdOrThrow, getEmbeddedTeam, getEmbeddedUser, idEquals } from '../../utils/utils'
 import { IArchiveTeamModel } from '../../models/archive-team'
+import { sendCloudTask } from '../../utils/cloud-tasks'
 
 export default class ClaimGuestRequestServices {
     claimGuestRequestModel: IClaimGuestRequestModel
@@ -151,6 +152,14 @@ export default class ClaimGuestRequestServices {
         await this.claimGuestRequestModel
             .find({ guestId: claimGuestRequest.guestId, status: Status.Pending })
             .updateMany({ status: Status.Denied })
+
+        const data = {
+            teams: [team._id.toHexString(), ...archiveTeams.map((t) => t._id.toHexString())],
+            guestId: guestUser._id,
+            user: getEmbeddedUser(realUser),
+        }
+        sendCloudTask(`/api/v1/games/reconcile-guest`, data, 'PUT')
+        sendCloudTask(`/api/v1/games/reconcile-guest`, data, 'PUT')
     }
 
     private reconcilePlayerOnTeam = async (

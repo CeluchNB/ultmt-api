@@ -158,6 +158,7 @@ export default class UserServices {
         const users = await this.userModel.find({
             $or: tests,
             openToRequests: true,
+            guest: false,
         })
 
         if (terms.length >= 2 && users.length > 1) {
@@ -278,7 +279,7 @@ export default class UserServices {
      * @returns nothing
      */
     requestPasswordRecovery = async (userEmail: string): Promise<void> => {
-        const user = await User.findOne({ email: userEmail })
+        const user = await User.findOne({ email: userEmail.toLowerCase() })
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }

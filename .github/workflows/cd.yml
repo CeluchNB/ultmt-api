@@ -102,6 +102,9 @@ jobs:
             SENDGRID_API_KEY=SENDGRID_API_KEY:latest
             MONGOOSE_URL=ULTMT_MONGOOSE_URL:latest
             REDIS_URL=REDIS_URL:latest
+            GCP_PROJECT_ID=GCP_PROJECT_ID:latest
+            MESSAGE_QUEUE_NAME=GUEST_MESSAGE_QUEUE_NAME:latest
+            MESSAGE_QUEUE_REGION=GUEST_MESSAGE_QUEUE_REGION:latest
          
           
 

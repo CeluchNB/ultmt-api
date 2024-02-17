@@ -1,4 +1,5 @@
 import * as Constants from '../../../../src/utils/constants'
+import * as CloudTaskServices from '../../../../src/utils/cloud-tasks'
 import ClaimGuestRequest from '../../../../src/models/claim-guest-request'
 import ClaimGuestRequestServices from '../../../../src/services/v1/claim-guest-request'
 import User from '../../../../src/models/user'
@@ -197,6 +198,7 @@ describe('ClaimGuestRequestServices', () => {
         })
 
         it('handles base success case', async () => {
+            const spy = jest.spyOn(CloudTaskServices, 'sendCloudTask').mockReturnValue(Promise.resolve([] as never))
             const team = await Team.findOne()
             const request = await ClaimGuestRequest.findOne()
             await ClaimGuestRequest.create({
@@ -229,9 +231,12 @@ describe('ClaimGuestRequestServices', () => {
 
             const otherRequests = await ClaimGuestRequest.find({ guestId: request?.guestId, status: Status.Denied })
             expect(otherRequests.length).toBe(1)
+
+            expect(spy).toHaveBeenCalledTimes(2)
         })
 
         it('updates archive teams', async () => {
+            jest.spyOn(CloudTaskServices, 'sendCloudTask').mockReturnValue(Promise.resolve([] as never))
             const team = await Team.findOne()
             const request = await ClaimGuestRequest.findOne()
             const guest = await User.findById(request?.guestId)
@@ -271,6 +276,7 @@ describe('ClaimGuestRequestServices', () => {
         })
 
         it('skips reconciling when user is already on team', async () => {
+            jest.spyOn(CloudTaskServices, 'sendCloudTask').mockReturnValue(Promise.resolve([] as never))
             const team = await Team.findOne()
             const request = await ClaimGuestRequest.findOne()
             const user = await User.findById(request?.userId)
