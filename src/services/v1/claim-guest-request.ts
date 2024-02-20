@@ -45,7 +45,11 @@ export default class ClaimGuestRequestServices {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
         }
 
-        await new UltmtValidator(this.userModel).userIsGuest(guestId).userOnTeam(guestId, teamId).test()
+        await new UltmtValidator(this.userModel)
+            .userIsGuest(guestId)
+            .userOnTeam(guestId, teamId)
+            .claimGuestRequestDoesNotExist(userId, guestId, teamId)
+            .test()
 
         let request = await this.claimGuestRequestModel.create({
             guestId: guest._id,

@@ -9,6 +9,7 @@ import * as Constants from '../../../src/utils/constants'
 import { Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../src/utils/utils'
 import MockDate from 'mockdate'
+import ClaimGuestRequest from '../../../src/models/claim-guest-request'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -576,5 +577,30 @@ describe('test ultmt validator', () => {
         validator.userIsGuest(user._id.toHexString())
 
         await expect(validator.test()).rejects.toThrow(Constants.USER_IS_NOT_A_GUEST)
+    })
+
+    it('test claim guest request already exists with existing request', async () => {
+        const userId = new Types.ObjectId()
+        const guestId = new Types.ObjectId()
+        const teamId = new Types.ObjectId()
+
+        await ClaimGuestRequest.create({ userId, guestId, teamId })
+
+        const validator = new UltmtValidator()
+        validator.claimGuestRequestDoesNotExist(userId.toHexString(), guestId.toHexString(), teamId.toHexString())
+
+        await expect(validator.test()).rejects.toThrow(Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS)
+    })
+
+    it('test claim guest request exists without existing request', async () => {
+        const userId = new Types.ObjectId()
+        const guestId = new Types.ObjectId()
+        const teamId = new Types.ObjectId()
+
+        const validator = new UltmtValidator()
+        validator.claimGuestRequestDoesNotExist(userId.toHexString(), guestId.toHexString(), teamId.toHexString())
+
+        const result = await validator.test()
+        expect(result).toBe(true)
     })
 })
