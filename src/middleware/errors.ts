@@ -85,6 +85,8 @@ export const userErrorResponse = (error: string): { message: string; code: numbe
         return createExpressErrorObject(Constants.UNAUTHORIZED_ADMIN, 401)
     } else if (error.includes(Constants.USER_IS_NOT_A_GUEST)) {
         return createExpressErrorObject(Constants.USER_IS_NOT_A_GUEST, 400)
+    } else if (error.includes(Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS)) {
+        return createExpressErrorObject(Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS, 400)
     } else {
         return createExpressErrorObject(Constants.GENERIC_ERROR, 500)
     }

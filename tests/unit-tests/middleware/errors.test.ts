@@ -254,6 +254,12 @@ describe('test user error response parsing', () => {
             createExpressErrorObject(Constants.USER_IS_NOT_A_GUEST, 400),
         )
     })
+
+    it('with claim guest request already created', () => {
+        expect(userErrorResponse(`Extra Error: ${Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS} extra details`)).toEqual(
+            createExpressErrorObject(Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS, 400),
+        )
+    })
 })
 
 describe('test middleware', () => {

@@ -1,7 +1,7 @@
 import * as Constants from '../../utils/constants'
 import { IClaimGuestRequestModel } from '../../models/claim-guest-request'
 import { IUserModel } from '../../models/user'
-import { ApiError, IClaimGuestRequest, ITeam, IUser, Status } from '../../types'
+import { ApiError, IClaimGuestRequest, IDetailedClaimGuestRequest, ITeam, IUser, Status } from '../../types'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { ITeamModel } from '../../models/team'
 import { Document } from 'mongoose'
@@ -99,6 +99,23 @@ export default class ClaimGuestRequestServices {
         await this.reconcileGuest(claimGuestRequest)
 
         return claimGuestRequest
+    }
+
+    /**
+     * Method to get all claim guest requests for a team
+     * @param managerId id of team manager
+     * @param teamId id of team requests are on
+     * @returns array of claim guest requests
+     */
+    getTeamRequests = async (managerId: string, teamId: string): Promise<IDetailedClaimGuestRequest[]> => {
+        await new UltmtValidator().userIsManager(managerId, teamId).test()
+
+        const requests = await this.claimGuestRequestModel
+            .find({ teamId })
+            .populate('guest')
+            .populate('team')
+            .populate('user')
+        return requests
     }
 
     private verifyClaimGuestRequest = async (

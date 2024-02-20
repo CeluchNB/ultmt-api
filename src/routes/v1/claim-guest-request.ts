@@ -64,3 +64,19 @@ claimGuestRequestRouter.put(
         }
     },
 )
+
+claimGuestRequestRouter.get(
+    '/claim-guest-request/team/:id',
+    param('id').escape(),
+    passport.authenticate('jwt', { session: false }),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const services = new ClaimGuestRequestServices(ClaimGuestRequest, User, Team, ArchiveTeam)
+            const requests = await services.getTeamRequests(req.user?.id as string, req.params.id)
+            return res.json({ requests })
+        } catch (e) {
+            next(e)
+        }
+    },
+)

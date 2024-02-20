@@ -4,11 +4,12 @@ import request from 'supertest'
 import app from '../../../../src/app'
 import { setUpDatabase, resetDatabase, tearDownDatabase, saveUsers } from '../../../fixtures/setup-db'
 import User from '../../../../src/models/user'
-import { anonId, getTeam } from '../../../fixtures/utils'
+import { anonId, getTeam, getUser } from '../../../fixtures/utils'
 import Team from '../../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import ClaimGuestRequest from '../../../../src/models/claim-guest-request'
 import { Status } from '../../../../src/types'
+import { Types } from 'mongoose'
 
 beforeAll(async () => {
     await setUpDatabase()
@@ -223,6 +224,54 @@ describe('Claim Guest Request routes', () => {
                 .expect(404)
 
             expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
+        })
+    })
+
+    describe('GET /claim-guest-request/team/:id', () => {
+        it('successfully gets team requests', async () => {
+            const manager = await User.create(getUser())
+            const team = await Team.create(getTeam())
+
+            const token = await manager.generateAuthToken()
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+            team.managers.push(getEmbeddedUser(manager))
+            await team.save()
+
+            const user1Id = new Types.ObjectId()
+            const user2Id = new Types.ObjectId()
+            const guest1Id = new Types.ObjectId()
+            const guest2Id = new Types.ObjectId()
+
+            await ClaimGuestRequest.create({ teamId: team._id, userId: user1Id, guestId: guest1Id })
+            await ClaimGuestRequest.create({ teamId: team._id, userId: user2Id, guestId: guest2Id })
+
+            const response = await request(app)
+                .get(`/api/v1/claim-guest-request/team/${team._id}`)
+                .set({ Authorization: `Bearer ${token}` })
+                .send()
+                .expect(200)
+
+            const { requests } = response.body
+            expect(requests.length).toBe(2)
+            expect(requests[0].guest).toBeDefined()
+            expect(requests[0].user).toBeDefined()
+            expect(requests[0].team).toBeDefined()
+        })
+
+        it('handles get request error', async () => {
+            const manager = await User.create(getUser())
+            const team = await Team.create(getTeam())
+
+            const token = await manager.generateAuthToken()
+
+            const response = await request(app)
+                .get(`/api/v1/claim-guest-request/team/${team._id}`)
+                .set({ Authorization: `Bearer ${token}` })
+                .send()
+                .expect(401)
+
+            expect(response.body.message).toBe(Constants.UNAUTHORIZED_MANAGER)
         })
     })
 })

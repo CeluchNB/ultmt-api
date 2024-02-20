@@ -5,7 +5,7 @@ import ClaimGuestRequestServices from '../../../../src/services/v1/claim-guest-r
 import User from '../../../../src/models/user'
 import { resetDatabase, saveUsers, setUpDatabase, tearDownDatabase } from '../../../fixtures/setup-db'
 import { Status } from '../../../../src/types'
-import { anonId, getTeam } from '../../../fixtures/utils'
+import { anonId, getTeam, getUser } from '../../../fixtures/utils'
 import Team from '../../../../src/models/team'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../../../src/utils/utils'
 import ArchiveTeam from '../../../../src/models/archive-team'
@@ -314,6 +314,42 @@ describe('ClaimGuestRequestServices', () => {
             await expect(
                 services.acceptClaimGuestRequest(team!.managers[0]._id.toHexString(), request!._id.toHexString()),
             ).rejects.toThrow(Constants.REQUEST_ALREADY_RESOLVED)
+        })
+    })
+
+    describe('getTeamRequests', () => {
+        it('finds requests for a team', async () => {
+            const manager = await User.create(getUser())
+            const team = await Team.create(getTeam())
+
+            manager.managerTeams.push(getEmbeddedTeam(team))
+            await manager.save()
+            team.managers.push(getEmbeddedUser(manager))
+            await team.save()
+
+            const user1Id = new Types.ObjectId()
+            const user2Id = new Types.ObjectId()
+            const guest1Id = new Types.ObjectId()
+            const guest2Id = new Types.ObjectId()
+
+            await ClaimGuestRequest.create({ teamId: team._id, userId: user1Id, guestId: guest1Id })
+            await ClaimGuestRequest.create({ teamId: team._id, userId: user2Id, guestId: guest2Id })
+
+            const result = await services.getTeamRequests(manager._id.toHexString(), team._id.toHexString())
+
+            expect(result.length).toBe(2)
+            expect(result[0].guest).toBeDefined()
+            expect(result[0].user).toBeDefined()
+            expect(result[0].team).toBeDefined()
+        })
+
+        it('throws error when user is not manager', async () => {
+            const manager = await User.create(getUser())
+            const team = await Team.create(getTeam())
+
+            await expect(services.getTeamRequests(manager._id.toHexString(), team._id.toHexString())).rejects.toThrow(
+                Constants.UNAUTHORIZED_MANAGER,
+            )
         })
     })
 })
