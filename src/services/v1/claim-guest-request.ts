@@ -180,7 +180,7 @@ export default class ClaimGuestRequestServices {
             user: getEmbeddedUser(realUser),
         }
         sendCloudTask(`/api/v1/games/reconcile-guest`, data, 'PUT')
-        sendCloudTask(`/api/v1/games/reconcile-guest`, data, 'PUT')
+        sendCloudTask(`/api/v1/stats/reconcile-guest`, data, 'PUT')
     }
 
     private reconcilePlayerOnTeam = async (
