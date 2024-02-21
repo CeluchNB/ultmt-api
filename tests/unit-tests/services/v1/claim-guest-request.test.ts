@@ -301,7 +301,7 @@ describe('ClaimGuestRequestServices', () => {
             expect(userResult?.playerTeams.length).toBe(1)
 
             const teamResult = await Team.findById(request?.teamId)
-            expect(teamResult?.players.length).toBe(2)
+            expect(teamResult?.players.length).toBe(1)
         })
 
         it('fails on previously approved request', async () => {

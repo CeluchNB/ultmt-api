@@ -106,6 +106,8 @@ jobs:
             MESSAGE_QUEUE_NAME=GUEST_MESSAGE_QUEUE_NAME:latest
             MESSAGE_QUEUE_REGION=GUEST_MESSAGE_QUEUE_REGION:latest
             GCP_SERVICE_ACCOUNT=GCP_SERVICE_ACCOUNT:latest
+            ULTMT_API_URL=GATEWAY_URL:latest
+            API_KEY=GATEWAY_API_KEY:latest
          
           
 

@@ -111,7 +111,7 @@ export default class ClaimGuestRequestServices {
         await new UltmtValidator().userIsManager(managerId, teamId).test()
 
         const requests = await this.claimGuestRequestModel
-            .find({ teamId })
+            .find({ teamId, status: Status.Pending })
             .populate('guest')
             .populate('team')
             .populate('user')
@@ -188,10 +188,10 @@ export default class ClaimGuestRequestServices {
         realUser: IUser,
         guestUser: IUser,
     ) => {
-        if (team.players.findIndex((p) => idEquals(p._id, realUser._id)) >= 0) return
-
         team.players = team.players.filter((player) => !idEquals(player._id, guestUser._id))
-        team.players.push(getEmbeddedUser(realUser))
+        if (team.players.findIndex((p) => idEquals(p._id, realUser._id)) < 0) {
+            team.players.push(getEmbeddedUser(realUser))
+        }
         await team.save()
     }
 
