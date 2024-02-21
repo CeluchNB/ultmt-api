@@ -105,6 +105,7 @@ jobs:
             GCP_PROJECT_ID=GCP_PROJECT_ID:latest
             MESSAGE_QUEUE_NAME=GUEST_MESSAGE_QUEUE_NAME:latest
             MESSAGE_QUEUE_REGION=GUEST_MESSAGE_QUEUE_REGION:latest
+            GCP_SERVICE_ACCOUNT=GCP_SERVICE_ACCOUNT:latest
          
           
 
