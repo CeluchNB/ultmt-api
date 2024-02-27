@@ -275,12 +275,8 @@ teamRouter.post(
     async (req: Request, res: Response, next) => {
         try {
             const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
-            const team = await teamServices.addGuest(
-                req.params.id,
-                req.user?.id as string,
-                req.body.firstName,
-                req.body.lastName,
-            )
+            const { guest } = req.body
+            const team = await teamServices.addGuest(req.params.id, req.user?.id as string, guest)
             return res.status(201).json({ team })
         } catch (e) {
             next(e)

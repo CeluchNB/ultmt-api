@@ -9,6 +9,13 @@ export interface CreateUser {
     password?: string
 }
 
+export interface CreateGuest {
+    _id?: string
+    firstName: string
+    lastName: string
+    username?: string
+}
+
 export interface Tokens {
     access: string
     refresh: string

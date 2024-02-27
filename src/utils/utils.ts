@@ -1,4 +1,4 @@
-import { Document, Model, Types } from 'mongoose'
+import { Document, Model, Types, isValidObjectId } from 'mongoose'
 import { ApiError, EmbeddedTeam, EmbeddedUser, ITeam, IUser } from '../types'
 
 export const createExpressErrorObject = (message: string, code: number): { message: string; code: number } => {
@@ -77,4 +77,12 @@ export const findByIdOrThrow = async <R>(
         throw new ApiError(error, 404)
     }
     return doc
+}
+
+export const isUnusedObjectId = async <R>(model: Model<R>, id?: string | Types.ObjectId): Promise<boolean> => {
+    if (id && isValidObjectId(id)) {
+        const doc = await model.findById(id)
+        if (!doc) return true
+    }
+    return false
 }

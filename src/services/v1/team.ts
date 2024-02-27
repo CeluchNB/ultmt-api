@@ -1,15 +1,15 @@
 import { ITeamModel } from '../../models/team'
-import { IUserModel, isValidPassword } from '../../models/user'
+import { IUserModel } from '../../models/user'
 import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
-import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
+import { ApiError, CreateGuest, CreateTeam, ITeam, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { FilterQuery, Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
-import randomstring from 'randomstring'
+import { generateGuestData } from '../../utils/team'
 
 interface LevenshteinTeam {
     team: ITeam
@@ -573,7 +573,7 @@ export default class TeamServices {
      * @param lastName last name of guest
      * @returns
      */
-    addGuest = async (teamId: string, managerId: string, firstName: string, lastName: string): Promise<ITeam> => {
+    addGuest = async (teamId: string, managerId: string, guest: CreateGuest): Promise<ITeam> => {
         const team = await this.teamModel.findById(teamId)
         if (!team) {
             throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
@@ -585,22 +585,10 @@ export default class TeamServices {
         }
         await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
 
-        const _id = new Types.ObjectId()
-        const username = `guest${Date.now()}`
-        const email = `${username}@theultmtapp.com`
-        let password = ''
-
-        while (!isValidPassword(password)) {
-            password = randomstring.generate({ charset: 'a-zA-Z0-9!@#$%', length: 15 })
-        }
+        const guestData = await generateGuestData(guest, this.userModel)
 
         const user = await this.userModel.create({
-            _id,
-            firstName,
-            lastName,
-            username,
-            email,
-            password,
+            ...guestData,
             guest: true,
             playerTeams: [getEmbeddedTeam(team)],
         })

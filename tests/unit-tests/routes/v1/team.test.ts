@@ -845,7 +845,7 @@ describe('test POST /team/:id/guest', () => {
         const response = await request(app)
             .post(`/api/v1/team/${team._id.toHexString()}/guest`)
             .set({ Authorization: `Bearer ${token}` })
-            .send({ firstName: 'guest', lastName: 'guest' })
+            .send({ guest: { firstName: 'guest', lastName: 'guest'} })
             .expect(201)
 
         expect(response.body.team._id).toBe(team._id.toHexString())
@@ -860,7 +860,7 @@ describe('test POST /team/:id/guest', () => {
         const response = await request(app)
             .post(`/api/v1/team/${team._id.toHexString()}/guest`)
             .set({ Authorization: `Bearer ${token}` })
-            .send({ firstName: 'guest', lastName: 'guest' })
+            .send({ guest: { firstName: 'guest', lastName: 'guest' } })
             .expect(401)
 
         expect(response.body.message).toBe(Constants.UNAUTHORIZED_MANAGER)

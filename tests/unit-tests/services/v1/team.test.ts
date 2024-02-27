@@ -1090,13 +1090,18 @@ describe('test archive team', () => {
 })
 
 describe('test add guest', () => {
+    const createGuest = {
+        firstName: 'guest',
+        lastName: 'guest',
+    }
+
     it('creates a guest user', async () => {
         const team = await Team.create(getTeam())
         const manager = await User.create(getUser())
         await team.updateOne({ $push: { managers: [getEmbeddedUser(manager)] } })
         await manager.updateOne({ $push: { managerTeams: [getEmbeddedTeam(team)] } })
 
-        const result = await services.addGuest(team._id.toHexString(), manager._id.toHexString(), 'guest', 'guest')
+        const result = await services.addGuest(team._id.toHexString(), manager._id.toHexString(), createGuest)
         expect(result._id.toHexString()).toBe(team._id.toHexString())
         expect(result.players.length).toBe(1)
         expect(result.players[0]).toMatchObject({ firstName: 'guest', lastName: 'guest' })
@@ -1116,7 +1121,7 @@ describe('test add guest', () => {
     })
 
     it('fails with unfound team', async () => {
-        await expect(services.addGuest(new Types.ObjectId().toHexString(), '', '', '')).rejects.toThrow(
+        await expect(services.addGuest(new Types.ObjectId().toHexString(), '', createGuest)).rejects.toThrow(
             Constants.UNABLE_TO_FIND_TEAM,
         )
     })
@@ -1124,14 +1129,14 @@ describe('test add guest', () => {
     it('fails with unfound manager', async () => {
         const team = await Team.create(getTeam())
         await expect(
-            services.addGuest(team._id.toHexString(), new Types.ObjectId().toHexString(), '', ''),
+            services.addGuest(team._id.toHexString(), new Types.ObjectId().toHexString(), createGuest),
         ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
     })
 
     it('with non-manager', async () => {
         const team = await Team.create(getTeam())
         const user = await User.create(getUser())
-        await expect(services.addGuest(team._id.toHexString(), user._id.toHexString(), '', '')).rejects.toThrow(
+        await expect(services.addGuest(team._id.toHexString(), user._id.toHexString(), createGuest)).rejects.toThrow(
             Constants.UNAUTHORIZED_MANAGER,
         )
     })
