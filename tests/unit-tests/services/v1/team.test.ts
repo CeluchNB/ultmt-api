@@ -184,23 +184,6 @@ describe('test remove player', () => {
         expect(userRecord?.playerTeams.length).toBe(0)
     })
 
-    it('with non-existent user', async () => {
-        const team = await Team.create(getTeam())
-        const [manager, user] = await User.find({})
-
-        team.managers.push(getEmbeddedUser(manager))
-        team.players.push(getEmbeddedUser(user))
-        await team.save()
-        user.playerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-        manager.managerTeams.push(getEmbeddedTeam(team))
-        await manager.save()
-
-        await expect(services.removePlayer(manager._id.toHexString(), team._id.toHexString(), anonId)).rejects.toThrow(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-
     it('with non-existent team', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})

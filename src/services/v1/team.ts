@@ -121,9 +121,6 @@ export default class TeamServices {
      */
     removePlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeam> => {
         const user = await this.userModel.findById(userId)
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
 
         const team = await this.teamModel.findById(teamId)
         if (!team) {
@@ -135,11 +132,13 @@ export default class TeamServices {
             .userIsManager(managerId, teamId)
             .test()
 
-        team.players = team.players.filter((player) => !player._id.equals(user._id))
-        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+        team.players = team.players.filter((player) => !player._id.equals(userId))
+        if (user) {
+            user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+        }
 
         await team.save()
-        await user.save()
+        await user?.save()
         return team
     }
 
