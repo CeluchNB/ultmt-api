@@ -157,8 +157,7 @@ export default class UserServices {
 
         const users = await this.userModel.find({
             $or: tests,
-            openToRequests: true,
-            guest: false,
+            $and: [{ $or: [{ guest: false }, { guest: { $exists: false } }] }, { openToRequests: true }],
         })
 
         if (terms.length >= 2 && users.length > 1) {
