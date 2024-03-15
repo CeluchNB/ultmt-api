@@ -291,25 +291,42 @@ describe('test /GET search users', () => {
         user1.email = 'noahceluch@gmail.com'
 
         const user2 = getUser()
-        user2.firstName = 'Connor'
-        user2.lastName = 'Tipping'
-        user2.username = 'connortipping'
-        user2.email = 'connortipping@gmail.com'
+        user2.firstName = 'Noah'
+        user2.lastName = 'Coolman'
+        user2.username = 'noahcoolman'
+        user2.email = 'noahcoolman@gmail.com'
 
-        const noah = await User.create(user1)
-        noah.openToRequests = true
-        await noah.save()
-        const connor = await User.create(user2)
-        connor.openToRequests = true
-        await connor.save()
+        const noahceluch = await User.create(user1)
+        noahceluch.openToRequests = true
+        await noahceluch.save()
+        const noahcoolman = await User.create(user2)
+        noahcoolman.openToRequests = false
+        await noahcoolman.save()
     })
 
-    it('with valid query', async () => {
+    it('with valid query and roster undefined', async () => {
         const response = await request(app).get('/api/v1/user/search?q=noah').send().expect(200)
+
+        const { users } = response.body
+        expect(users.length).toBe(2)
+        expect(users[0].username).toBe('noahceluch')
+        expect(users[1].username).toBe('noahcoolman')
+    })
+
+    it('with roster open', async () => {
+        const response = await request(app).get('/api/v1/user/search?q=noah&open=true').send().expect(200)
 
         const { users } = response.body
         expect(users.length).toBe(1)
         expect(users[0].username).toBe('noahceluch')
+    })
+
+    it('with roster closed', async () => {
+        const response = await request(app).get('/api/v1/user/search?q=noah&open=false').send().expect(200)
+
+        const { users } = response.body
+        expect(users.length).toBe(1)
+        expect(users[0].username).toBe('noahcoolman')
     })
 
     it('with invalid query', async () => {
