@@ -184,23 +184,6 @@ describe('test remove player', () => {
         expect(userRecord?.playerTeams.length).toBe(0)
     })
 
-    it('with non-existent user', async () => {
-        const team = await Team.create(getTeam())
-        const [manager, user] = await User.find({})
-
-        team.managers.push(getEmbeddedUser(manager))
-        team.players.push(getEmbeddedUser(user))
-        await team.save()
-        user.playerTeams.push(getEmbeddedTeam(team))
-        await user.save()
-        manager.managerTeams.push(getEmbeddedTeam(team))
-        await manager.save()
-
-        await expect(services.removePlayer(manager._id.toHexString(), team._id.toHexString(), anonId)).rejects.toThrow(
-            new ApiError(Constants.UNABLE_TO_FIND_USER, 404),
-        )
-    })
-
     it('with non-existent team', async () => {
         const team = await Team.create(getTeam())
         const [manager, user] = await User.find({})
@@ -1086,5 +1069,58 @@ describe('test archive team', () => {
         it('with invalid teamname', async () => {
             await expect(services.teamnameTaken('a')).rejects.toThrow(Constants.DUPLICATE_TEAM_NAME)
         })
+    })
+})
+
+describe('test add guest', () => {
+    const createGuest = {
+        firstName: 'guest',
+        lastName: 'guest',
+    }
+
+    it('creates a guest user', async () => {
+        const team = await Team.create(getTeam())
+        const manager = await User.create(getUser())
+        await team.updateOne({ $push: { managers: [getEmbeddedUser(manager)] } })
+        await manager.updateOne({ $push: { managerTeams: [getEmbeddedTeam(team)] } })
+
+        const result = await services.addGuest(team._id.toHexString(), manager._id.toHexString(), createGuest)
+        expect(result._id.toHexString()).toBe(team._id.toHexString())
+        expect(result.players.length).toBe(1)
+        expect(result.players[0]).toMatchObject({ firstName: 'guest', lastName: 'guest' })
+
+        const teamResult = await Team.findOne()
+        expect(teamResult?.players[0].firstName).toBe('guest')
+        expect(teamResult?.players[0].lastName).toBe('guest')
+
+        const userResult = await User.findById(result.players[0]._id)
+        expect(userResult).toMatchObject({
+            firstName: 'guest',
+            lastName: 'guest',
+            playerTeams: [getEmbeddedTeam(team)],
+            guest: true,
+        })
+        expect(userResult?.username).toContain('guest')
+    })
+
+    it('fails with unfound team', async () => {
+        await expect(services.addGuest(new Types.ObjectId().toHexString(), '', createGuest)).rejects.toThrow(
+            Constants.UNABLE_TO_FIND_TEAM,
+        )
+    })
+
+    it('fails with unfound manager', async () => {
+        const team = await Team.create(getTeam())
+        await expect(
+            services.addGuest(team._id.toHexString(), new Types.ObjectId().toHexString(), createGuest),
+        ).rejects.toThrow(Constants.UNABLE_TO_FIND_USER)
+    })
+
+    it('with non-manager', async () => {
+        const team = await Team.create(getTeam())
+        const user = await User.create(getUser())
+        await expect(services.addGuest(team._id.toHexString(), user._id.toHexString(), createGuest)).rejects.toThrow(
+            Constants.UNAUTHORIZED_MANAGER,
+        )
     })
 })

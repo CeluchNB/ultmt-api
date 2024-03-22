@@ -2,13 +2,14 @@ import { ITeamModel } from '../../models/team'
 import { IUserModel } from '../../models/user'
 import { IRosterRequestModel } from '../../models/roster-request'
 import { IArchiveTeamModel } from '../../models/archive-team'
-import { ApiError, CreateTeam, ITeam, OTPReason } from '../../types'
+import { ApiError, CreateGuest, CreateTeam, ITeam, OTPReason } from '../../types'
 import * as Constants from '../../utils/constants'
 import UltmtValidator from '../../utils/ultmt-validator'
 import { FilterQuery, Types } from 'mongoose'
 import { getEmbeddedTeam, getEmbeddedUser } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import OneTimePasscode, { IOneTimePasscodeModel } from '../../models/one-time-passcode'
+import { generateGuestData } from '../../utils/team'
 
 interface LevenshteinTeam {
     team: ITeam
@@ -120,9 +121,6 @@ export default class TeamServices {
      */
     removePlayer = async (managerId: string, teamId: string, userId: string): Promise<ITeam> => {
         const user = await this.userModel.findById(userId)
-        if (!user) {
-            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
-        }
 
         const team = await this.teamModel.findById(teamId)
         if (!team) {
@@ -134,11 +132,13 @@ export default class TeamServices {
             .userIsManager(managerId, teamId)
             .test()
 
-        team.players = team.players.filter((player) => !player._id.equals(user._id))
-        user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+        team.players = team.players.filter((player) => !player._id.equals(userId))
+        if (user) {
+            user.playerTeams = user.playerTeams.filter((pTeam) => !pTeam._id.equals(team._id))
+        }
 
         await team.save()
-        await user.save()
+        await user?.save()
         return team
     }
 
@@ -219,8 +219,11 @@ export default class TeamServices {
         await team.save()
 
         // update managers
-        const embeddedTeam = getEmbeddedTeam({ ...team, seasonStart: oldSeasonStart, seasonEnd: oldSeasonEnd })
+        const embeddedTeam = getEmbeddedTeam(team)
         embeddedTeam._id = oldId
+        embeddedTeam.seasonStart = oldSeasonStart
+        embeddedTeam.seasonEnd = oldSeasonEnd
+
         for (const i of team.managers) {
             const managerRecord = await this.userModel.findById(i)
             if (managerRecord) {
@@ -229,6 +232,7 @@ export default class TeamServices {
                 if (managerRecord.archiveTeams.find((at) => at._id.equals(oldId)) === undefined) {
                     managerRecord.archiveTeams.push(embeddedTeam)
                 }
+
                 managerRecord.managerTeams.push(getEmbeddedTeam(team))
                 await managerRecord.save()
             }
@@ -558,5 +562,39 @@ export default class TeamServices {
         const teams = await this.teamModel.find({ teamname })
 
         return teams.length > 0
+    }
+
+    /**
+     * Method to create a guest user for a team
+     * @param teamId id of team for guest
+     * @param managerId id of manager making edits
+     * @param firstName first name of guest
+     * @param lastName last name of guest
+     * @returns
+     */
+    addGuest = async (teamId: string, managerId: string, guest: CreateGuest): Promise<ITeam> => {
+        const team = await this.teamModel.findById(teamId)
+        if (!team) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_TEAM, 404)
+        }
+
+        const manager = await this.userModel.findById(managerId)
+        if (!manager) {
+            throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
+        }
+        await new UltmtValidator(this.userModel, this.teamModel).userIsManager(managerId, teamId).test()
+
+        const guestData = await generateGuestData(guest, this.userModel)
+
+        const user = await this.userModel.create({
+            ...guestData,
+            guest: true,
+            playerTeams: [getEmbeddedTeam(team)],
+        })
+
+        team.players.push(getEmbeddedUser(user))
+        await team.save()
+
+        return team
     }
 }

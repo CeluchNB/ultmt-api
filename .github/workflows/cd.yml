@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create env
         run: |
@@ -57,7 +57,7 @@ jobs:
         run: yarn test
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -76,10 +76,10 @@ jobs:
 
     steps:
       - name: Check Out Repo 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: 'Authenticate to GCP'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.SERVICE_ACCOUNT }}
@@ -102,6 +102,12 @@ jobs:
             SENDGRID_API_KEY=SENDGRID_API_KEY:latest
             MONGOOSE_URL=ULTMT_MONGOOSE_URL:latest
             REDIS_URL=REDIS_URL:latest
+            GCP_PROJECT_ID=GCP_PROJECT_ID:latest
+            MESSAGE_QUEUE_NAME=GUEST_MESSAGE_QUEUE_NAME:latest
+            MESSAGE_QUEUE_REGION=GUEST_MESSAGE_QUEUE_REGION:latest
+            GCP_SERVICE_ACCOUNT=GCP_SERVICE_ACCOUNT:latest
+            ULTMT_API_URL=GATEWAY_URL:latest
+            API_KEY=GATEWAY_API_KEY:latest
          
           
 

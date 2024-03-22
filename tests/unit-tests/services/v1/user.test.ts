@@ -298,6 +298,8 @@ describe('test search user', () => {
     })
 
     it('test by full name', async () => {
+        await User.updateOne({ username: 'zachdahm' }, { openToRequests: false })
+
         const result = await services.searchUsers('Zach Risinger')
 
         expect(result.length).toBe(2)
@@ -319,8 +321,25 @@ describe('test search user', () => {
     })
 
     it('test search zachs', async () => {
+        await User.updateOne({ username: 'zachdahm' }, { openToRequests: false })
+
         const result = await services.searchUsers('zach')
         expect(result.length).toBe(2)
+    })
+
+    it('search with open true', async () => {
+        await User.updateOne({ username: 'zachdahm' }, { openToRequests: false })
+        const result = await services.searchUsers('zach', true)
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('zachris')
+    })
+
+    it('search with open false', async () => {
+        await User.updateOne({ username: 'zachdahm' }, { openToRequests: false })
+
+        const result = await services.searchUsers('zach', false)
+        expect(result.length).toBe(1)
+        expect(result[0].username).toBe('zachdahm')
     })
 
     it('test not enough characters', async () => {

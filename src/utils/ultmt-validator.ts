@@ -5,6 +5,7 @@ import { ApiError, Initiator, Status } from '../types'
 import * as Constants from './constants'
 import { Types } from 'mongoose'
 import { idEquals } from './utils'
+import ClaimGuestRequest from '../models/claim-guest-request'
 
 enum ValidationType {
     USER_EXISTS,
@@ -27,6 +28,8 @@ enum ValidationType {
     USER_NOT_MANAGER,
     VALID_SEASON_DATES,
     IS_ADMIN,
+    USER_IS_GUEST,
+    CLAIM_GUEST_REQUEST_DOES_NOT_EXIST,
 }
 
 const ADMIN_EMAIL = 'noah.celuch@gmail.com'
@@ -153,10 +156,24 @@ export default class UltmtValidator {
         return this
     }
 
+    userIsGuest = (userId: string): UltmtValidator => {
+        this.validations.push({ type: ValidationType.USER_IS_GUEST, data: { userId } })
+        return this
+    }
+
+    claimGuestRequestDoesNotExist = (userId: string, guestId: string, teamId: string) => {
+        this.validations.push({
+            type: ValidationType.CLAIM_GUEST_REQUEST_DOES_NOT_EXIST,
+            data: { userId, guestId, teamId },
+        })
+        return this
+    }
+
     test = async (): Promise<boolean> => {
         for (const i of this.validations) {
             await this.performCheck(i)
         }
+
         return true
     }
 
@@ -417,7 +434,24 @@ export default class UltmtValidator {
                 if (user?.email !== ADMIN_EMAIL) {
                     throw new ApiError(Constants.UNAUTHORIZED_ADMIN, 404)
                 }
+                break
+            }
+            case ValidationType.USER_IS_GUEST: {
+                const { userId } = validation.data
+                const user = await User.findById(userId)
 
+                if (!user?.guest) {
+                    throw new ApiError(Constants.USER_IS_NOT_A_GUEST, 400)
+                }
+                break
+            }
+            case ValidationType.CLAIM_GUEST_REQUEST_DOES_NOT_EXIST: {
+                const { userId, guestId, teamId } = validation.data
+                const request = await ClaimGuestRequest.findOne({ userId, guestId, teamId, status: Status.Pending })
+
+                if (request) {
+                    throw new ApiError(Constants.CLAIM_GUEST_REQUEST_ALREADY_EXISTS, 400)
+                }
                 break
             }
         }
