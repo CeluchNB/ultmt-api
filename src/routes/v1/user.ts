@@ -6,19 +6,26 @@ import Team from '../../models/team'
 import passport from 'passport'
 import { body, query, param } from 'express-validator'
 import OneTimePasscode from '../../models/one-time-passcode'
+import { parseBoolean } from '../../utils/utils'
 
 export const userRouter = Router()
 
-userRouter.get('/user/search', query('q').escape(), async (req: Request, res: Response, next) => {
-    try {
-        const term = (req.query.q as string) || ''
-        const userService = new UserServices(User, Team)
-        const users = await userService.searchUsers(term)
-        return res.json({ users })
-    } catch (error) {
-        next(error)
-    }
-})
+userRouter.get(
+    '/user/search',
+    query('q').escape(),
+    query('open').escape(),
+    async (req: Request, res: Response, next) => {
+        try {
+            const term = (req.query.q as string) || ''
+            const open = parseBoolean(req.query.open as string)
+            const userService = new UserServices(User, Team)
+            const users = await userService.searchUsers(term, open)
+            return res.json({ users })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
 
 userRouter.get('/user/username-taken', async (req: Request, res: Response, next) => {
     try {

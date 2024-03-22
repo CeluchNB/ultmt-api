@@ -7,6 +7,7 @@ import UltmtValidator from '../../utils/ultmt-validator'
 import { getEmbeddedTeam, getEmbeddedUser, getPasscodeHtml } from '../../utils/utils'
 import levenshtein from 'js-levenshtein'
 import sgMail from '@sendgrid/mail'
+import { FilterQuery } from 'mongoose'
 
 interface LevenshteinUser {
     user: IUser
@@ -136,7 +137,7 @@ export default class UserServices {
      * @param term term to search users with
      * @returns array of embedded users
      */
-    searchUsers = async (term: string): Promise<EmbeddedUser[]> => {
+    searchUsers = async (term: string, openToRequests?: boolean): Promise<EmbeddedUser[]> => {
         await new UltmtValidator().enoughSearchCharacters(term).test()
 
         const terms = term.split(' ')
@@ -155,9 +156,14 @@ export default class UserServices {
             }
         }
 
+        const andCases: FilterQuery<IUser>[] = [{ $or: [{ guest: false }, { guest: { $exists: false } }] }]
+        if (openToRequests !== undefined) {
+            andCases.push({ openToRequests })
+        }
+
         const users = await this.userModel.find({
             $or: tests,
-            openToRequests: true,
+            $and: andCases,
         })
 
         if (terms.length >= 2 && users.length > 1) {
@@ -278,7 +284,7 @@ export default class UserServices {
      * @returns nothing
      */
     requestPasswordRecovery = async (userEmail: string): Promise<void> => {
-        const user = await User.findOne({ email: userEmail })
+        const user = await User.findOne({ email: userEmail.toLowerCase() })
         if (!user) {
             throw new ApiError(Constants.UNABLE_TO_FIND_USER, 404)
         }

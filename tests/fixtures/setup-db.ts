@@ -7,6 +7,7 @@ import ArchiveTeam from '../../src/models/archive-team'
 import OneTimePasscode from '../../src/models/one-time-passcode'
 import TeamDesignation from '../../src/models/team-designation'
 import VerificationRequest from '../../src/models/verification-request'
+import ClaimGuestRequest from '../../src/models/claim-guest-request'
 import { createClient } from 'redis'
 import { connectRedis, closeRedis } from '../../src/loaders/redis'
 
@@ -55,6 +56,7 @@ export const resetDatabase = async () => {
     await OneTimePasscode.deleteMany({})
     await VerificationRequest.deleteMany({})
     await TeamDesignation.deleteMany({})
+    await ClaimGuestRequest.deleteMany({})
     if (redisClient.isOpen) {
         await redisClient.flushAll()
     }

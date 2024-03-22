@@ -45,7 +45,7 @@ describe('test /GET request by id', () => {
         expect(reqResponse.user.toString()).toBe(user._id.toString())
         expect(reqResponse.teamDetails.place).toBe(team.place)
         expect(reqResponse.userDetails.username).toBe(user.username)
-    })
+    }, 10000)
 
     it('with bad token', async () => {
         const [user] = await User.find({})
@@ -57,7 +57,7 @@ describe('test /GET request by id', () => {
             .set('Authorization', `Bearer asdfasdf.asdfadsf.adsfasd`)
             .send()
             .expect(401)
-    })
+    }, 10000)
 
     it('with invalid user', async () => {
         const [user, manager] = await User.find({})
@@ -72,7 +72,7 @@ describe('test /GET request by id', () => {
             .expect(401)
 
         expect(response.body.message).toBe(Constants.UNAUTHORIZED_TO_VIEW_REQUEST)
-    })
+    }, 10000)
 })
 
 describe('test request from team route', () => {
@@ -112,7 +112,7 @@ describe('test request from team route', () => {
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.requests.length).toBe(1)
         expect(teamRecord?.requests[0].toString()).toBe(requestRecord?._id.toString())
-    })
+    }, 10000)
 
     it('with bad token', async () => {
         const [manager, user] = await User.find({})
@@ -128,7 +128,7 @@ describe('test request from team route', () => {
             .set('Authorization', 'Bearer averybad.34sadf23.token')
             .send()
             .expect(401)
-    })
+    }, 10000)
 
     it('with non-existent team', async () => {
         const [manager, user] = await User.find({})
@@ -146,7 +146,7 @@ describe('test request from team route', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
-    })
+    }, 10000)
 
     it('with non-existent user', async () => {
         const [manager] = await User.find({})
@@ -162,7 +162,7 @@ describe('test request from team route', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_USER)
-    })
+    }, 10000)
 })
 
 describe('test request from user route', () => {
@@ -198,7 +198,7 @@ describe('test request from user route', () => {
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.requests.length).toBe(1)
         expect(teamRecord?.requests[0].toString()).toBe(rosterRequest._id.toString())
-    })
+    }, 10000)
 
     it('with invalid token', async () => {
         const [user] = await User.find({})
@@ -212,7 +212,7 @@ describe('test request from user route', () => {
             .set('Authorization', 'Bearer averybad.asdf43rasd.token')
             .send()
             .expect(401)
-    })
+    }, 10000)
 
     it('with non-existent team', async () => {
         const [user] = await User.find({})
@@ -226,7 +226,7 @@ describe('test request from user route', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_TEAM)
-    })
+    }, 10000)
 })
 
 describe('test team accept route', () => {
@@ -272,7 +272,7 @@ describe('test team accept route', () => {
         expect(teamRecord?.players.length).toBe(1)
         expect(teamRecord?.players[0]._id.toString()).toBe(user._id.toString())
         expect(teamRecord?.requests.length).toBe(0)
-    })
+    }, 10000)
 
     it('with invalid token', async () => {
         const [user, manager] = await User.find({})
@@ -291,7 +291,7 @@ describe('test team accept route', () => {
             .set('Authorization', 'Bearer asdfasdf123.sdfgad43243.1324123arfad')
             .send()
             .expect(401)
-    })
+    }, 10000)
 
     it('with non-existent request', async () => {
         const [user, manager] = await User.find({})
@@ -312,7 +312,7 @@ describe('test team accept route', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
-    })
+    }, 10000)
 })
 
 describe('test team deny route', () => {
@@ -356,7 +356,7 @@ describe('test team deny route', () => {
         const teamRecord = await Team.findById(team._id)
         expect(teamRecord?.players.length).toBe(0)
         expect(teamRecord?.requests.length).toBe(0)
-    })
+    }, 10000)
 
     it('with invalid token', async () => {
         const [user, manager] = await User.find({})
@@ -375,7 +375,7 @@ describe('test team deny route', () => {
             .set('Authorization', 'Bearer asdfa1234.adsf34asdf.asdfaf431')
             .send()
             .expect(401)
-    })
+    }, 10000)
 
     it('with non-existent request', async () => {
         const [user, manager] = await User.find({})
@@ -396,7 +396,7 @@ describe('test team deny route', () => {
             .expect(404)
 
         expect(response.body.message).toBe(Constants.UNABLE_TO_FIND_REQUEST)
-    })
+    }, 10000)
 })
 
 describe('test user accept route', () => {

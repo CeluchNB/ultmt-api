@@ -14,7 +14,7 @@ passport.use(
         { usernameField: 'email', passwordField: 'password', session: false },
         async (email, password, done) => {
             const { default: User } = await import('../models/user')
-            const user = await User.findOne({ $or: [{ email }, { username: email }] })
+            const user = await User.findOne({ $or: [{ email }, { username: email }], guest: false })
             if (!user) {
                 return done(null, false, { message: Constants.UNABLE_TO_LOGIN })
             }
