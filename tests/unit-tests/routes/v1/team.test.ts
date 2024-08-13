@@ -866,3 +866,22 @@ describe('test POST /team/:id/guest', () => {
         expect(response.body.message).toBe(Constants.UNAUTHORIZED_MANAGER)
     })
 })
+
+describe('test GET /team/all/:continuationId', () => {
+    it('returns found teams', async () => {
+        const continuationId = new Types.ObjectId()
+        const team = await Team.create({ ...getTeam(), continuationId })
+        const archiveTeam = await ArchiveTeam.create({ ...getTeam(), continuationId })
+
+        const response = await request(app).get(`/api/v1/team/all/${continuationId.toHexString()}`).send().expect(200)
+
+        const { teams } = response.body
+        expect(teams[0]._id.toString()).toBe(team._id.toHexString())
+        expect(teams[1]._id.toString()).toBe(archiveTeam._id.toHexString())
+    })
+
+    it('handles error', async () =>{
+        const response = await request(app).get('/api/v1/team/all/badid').send().expect(500)
+        expect(response.body.message).toBe(Constants.GENERIC_ERROR)
+    })
+})
