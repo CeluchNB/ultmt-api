@@ -597,4 +597,16 @@ export default class TeamServices {
 
         return team
     }
+
+    /**
+     * Method to get a list of teams and archived teams with the same continuation ID
+     * @param continuationId continuation ID of team
+     * @returns list of all teams with this continuation ID
+     */
+    getTeamsByContinuationId = async (continuationId: string): Promise<ITeam[]> => {
+        const teams = await this.teamModel.find({ continuationId })
+        const archiveTeams = await this.archiveTeamModel.find({ continuationId })
+
+        return [...teams, ...archiveTeams]
+    }
 }

@@ -1124,3 +1124,16 @@ describe('test add guest', () => {
         )
     })
 })
+
+describe('test get teams by continuation id', () => {
+    it('gets teams found by continuation id', async () => {
+        const continuationId = new Types.ObjectId()
+        const team = await Team.create({ ...getTeam(), continuationId })
+        const archiveTeam = await ArchiveTeam.create({ ...getTeam(), continuationId })
+
+        const result = await services.getTeamsByContinuationId(continuationId.toHexString())
+        expect(result.length).toBe(2)
+        expect(result[0]._id.toHexString()).toBe(team._id.toHexString())
+        expect(result[1]._id.toHexString()).toBe(archiveTeam._id.toHexString())
+    })
+})
