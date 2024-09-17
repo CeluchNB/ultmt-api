@@ -214,6 +214,21 @@ teamRouter.get(
     },
 )
 
+teamRouter.get(
+    '/team/all/:continuationId',
+    param('continuationId').escape().isString(),
+    logger.requestMiddleware as RequestHandler,
+    async (req: Request, res: Response, next) => {
+        try {
+            const teamServices = new TeamServices(Team, User, RosterRequest, ArchiveTeam)
+            const teams = await teamServices.getTeamsByContinuationId(req.params.continuationId)
+            return res.json({ teams })
+        } catch (error) {
+            next(error)
+        }
+    },
+)
+
 teamRouter.put(
     '/team/:id/designation',
     param('id').escape().isString(),
